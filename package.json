@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "cypress open",
-    "cy:run": "cypress run"
+    "cy:run": "cypress run",
+    "test:report": "cypress run --reporter mochawesome",
+    "report:generate": "mochawesome-merge cypress/reports/*.json > cypress/reports/report.json && marge cypress/reports/report.json -f report -o cypress/reports"
+
   },
   "keywords": [],
   "author": "",
@@ -13,6 +16,9 @@
   "devDependencies": {
     "cypress": "^13.17.0",
     "cypress-real-events": "^1.15.0",
-    "cypress-xpath": "^2.0.1"
+    "cypress-xpath": "^2.0.1",
+    "mochawesome": "^7.1.4",
+    "mochawesome-merge": "^5.1.1",
+    "mochawesome-report-generator": "^6.3.2"
   }
 }

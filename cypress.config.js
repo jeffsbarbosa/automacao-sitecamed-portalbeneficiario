@@ -4,7 +4,16 @@ module.exports = defineConfig({
 
   video: true, // 🔥 grava vídeo dos testes
   screenshotOnRunFailure: true, // 📸 print automático em falha
-  
+
+  // 📊 Relatório Mochawesome (ADICIONADO)
+  reporter: "mochawesome",
+  reporterOptions: {
+    reportDir: "cypress/reports",
+    overwrite: false,
+    html: false,
+    json: true
+  },
+
   e2e: {
     "baseUrl":"https://apps.camed.com.br/CamedSaudeServicos/Acesso/Login.aspx",
     "pageLoadTimeout":100000,
