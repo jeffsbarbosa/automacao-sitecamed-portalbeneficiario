@@ -32,7 +32,7 @@ jobs:
         run: npm run report:generate
 
       - name: Upload do relatório
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: relatorio-cypress
           path: cypress/reports
