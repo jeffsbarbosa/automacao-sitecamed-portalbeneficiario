@@ -11,10 +11,10 @@ jobs:
 
     steps:
       - name: Clonar repositório
-        uses: actions/checkout@v3
+        uses: actions/checkout@vX
 
       - name: Configurar Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@vX
         with:
           node-version: 18
 
@@ -32,14 +32,14 @@ jobs:
         run: npm run report:generate
 
       - name: Upload do relatório
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@vX
         with:
           name: relatorio-cypress
           path: cypress/reports
 
       - name: Enviar relatório por email
         if: always()
-        uses: dawidd6/action-send-mail@v3
+        uses: dawidd6/action-send-mail@vX
         with:
           server_address: smtp.office365.com
           server_port: 587
