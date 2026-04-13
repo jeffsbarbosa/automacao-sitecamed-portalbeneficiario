@@ -1,0 +1,64 @@
+name: Testes Cypress Diário - Site Camed / Portal do Beneficiário Área Logada
+
+on:
+  schedule:
+    - cron: '0 9 * * *' # 06:00 Brasil
+  workflow_dispatch:
+
+jobs:
+  cypress-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar repositório
+        uses: actions/checkout@v3
+
+      - name: Configurar Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Instalar dependências
+        run: npm install
+
+      - name: Criar pasta de relatórios
+        run: mkdir -p cypress/reports
+
+      - name: Rodar testes
+        run: npm run test:report
+        continue-on-error: true
+
+      - name: Gerar relatório
+        run: npm run report:generate
+
+      - name: Upload do relatório
+        uses: actions/upload-artifact@v3
+        with:
+          name: relatorio-cypress
+          path: cypress/reports
+
+      - name: Enviar relatório por email
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.office365.com
+          server_port: 587
+          secure: false
+          username: ${{ secrets.EMAIL_USER }}
+          password: ${{ secrets.EMAIL_PASS }}
+          subject: "Relatório Cypress - Execução diária"
+          to: ${{ secrets.EMAIL_TO }}
+          from: ${{ secrets.EMAIL_USER }}
+          body: |
+            Olá,
+
+            A execução automática dos testes Cypress foi concluída.
+
+            📊 O relatório segue em anexo.
+
+            Repositório: ${{ github.repository }}
+            Execução: ${{ github.run_number }}
+
+            Att,
+            Automação QA 🤖
+          attachments: cypress/reports/report.html
