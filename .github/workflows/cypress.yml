@@ -9,7 +9,7 @@ jobs:
 
   # 🔥 JOB 1 - EXECUÇÃO EM PARALELO
   cypress-run:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
   #  strategy:
    #   fail-fast: false
@@ -62,7 +62,7 @@ jobs:
   # 🧠 JOB 2 - CONSOLIDAÇÃO + EMAIL
   gerar-relatorio-final:
     needs: cypress-run
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     env:
       TOTAL: 0
