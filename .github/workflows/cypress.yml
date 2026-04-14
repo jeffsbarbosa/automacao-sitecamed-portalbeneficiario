@@ -23,12 +23,16 @@ jobs:
         run: npm ci
 
       - name: Criar pasta de relatórios
-        run: mkdir -p cypress/reports
-        shell: bash
+        run: mkdir cypress/reports
+       
 
       - name: Testar acesso ao site
-        run: curl -I https://apps.camed.com.br/CamedSaudeServicos || echo "Falha no acesso"
-        shell: bash
+        run: |
+         try {
+         Invoke-WebRequest https://apps.camed.com.br/CamedSaudeServicos -UseBasicParsing
+         } catch {
+         Write-Host "Falha no acesso"
+         }
 
       - name: Rodar testes Cypress
         uses: cypress-io/github-action@v6
@@ -71,52 +75,80 @@ jobs:
         shell: powershell
 
       - name: Consolidar resultados
-        shell: bash
+        shell: powershell
         run: |
-          TOTAL=$(grep -o '"tests":[0-9]*' all-reports/**/*.json | grep -o '[0-9]*' | awk '{s+=$1} END {print s}')
-          PASSED=$(grep -o '"passes":[0-9]*' all-reports/**/*.json | grep -o '[0-9]*' | awk '{s+=$1} END {print s}')
-          FAILED=$(grep -o '"failures":[0-9]*' all-reports/**/*.json | grep -o '[0-9]*' | awk '{s+=$1} END {print s}')
+         $files = Get-ChildItem -Path "all-reports" -Recurse -Filter *.json
 
-          echo "TOTAL=$TOTAL" >> $GITHUB_ENV
-          echo "PASSED=$PASSED" >> $GITHUB_ENV
-          echo "FAILED=$FAILED" >> $GITHUB_ENV
+         $TOTAL = 0
+         $PASSED = 0
+         $FAILED = 0
+
+         foreach ($file in $files) {
+         $json = Get-Content $file.FullName | ConvertFrom-Json
+
+         foreach ($result in $json.results) {
+         $TOTAL += $result.tests
+         $PASSED += $result.passes
+         $FAILED += $result.failures
+         }
+         }
+
+         echo "TOTAL=$TOTAL" >> $env:GITHUB_ENV
+         echo "PASSED=$PASSED" >> $env:GITHUB_ENV
+         echo "FAILED=$FAILED" >> $env:GITHUB_ENV
 
       - name: Calcular métricas
-        shell: bash
+        shell: powershell
         run: |
-          if [ "$TOTAL" -eq "0" ]; then
-            SUCCESS_RATE=0
-          else
-            SUCCESS_RATE=$(awk "BEGIN {printf \"%.2f\", ($PASSED/$TOTAL)*100}")
-          fi
+         if ($env:TOTAL -eq 0) {
+         $SUCCESS_RATE = 0
+         } else {
+         $SUCCESS_RATE = [math]::Round(($env:PASSED / $env:TOTAL) * 100, 2)
+         }
 
-          if [ "$FAILED" -eq "0" ]; then
-            STATUS_LEVEL="SUCESSO TOTAL ✅"
-          elif [ "$FAILED" -le "2" ]; then
-            STATUS_LEVEL="ATENÇÃO ⚠️"
-          else
-            STATUS_LEVEL="CRÍTICO 🚨"
-          fi
+         if ($env:FAILED -eq 0) {
+         $STATUS_LEVEL = "SUCESSO TOTAL ✅"
+         }
+         elseif ($env:FAILED -le 2) {
+         $STATUS_LEVEL = "ATENÇÃO ⚠️"
+         }
+         else {
+         $STATUS_LEVEL = "CRÍTICO 🚨"
+         }
 
-          echo "SUCCESS_RATE=$SUCCESS_RATE" >> $GITHUB_ENV
-          echo "STATUS_LEVEL=$STATUS_LEVEL" >> $GITHUB_ENV
+          echo "SUCCESS_RATE=$SUCCESS_RATE" >> $env:GITHUB_ENV
+          echo "STATUS_LEVEL=$STATUS_LEVEL" >> $env:GITHUB_ENV
 
       - name: Listar testes que falharam
-        shell: bash
+        shell: powershell
         run: |
-          FAIL_LIST=$(cat all-reports/**/*.json | jq -r '
-            .results[]?.suites[]?.tests[]? 
-            | select(.fail == true) 
-            | .fullTitle
-          ')
+         $failList = @()
 
-          if [ -z "$FAIL_LIST" ]; then
-            FAIL_LIST="Nenhum teste falhou 🎉"
-          fi
+         $files = Get-ChildItem -Path "all-reports" -Recurse -Filter *.json
 
-          echo "FAIL_LIST<<EOF" >> $GITHUB_ENV
-          echo "$FAIL_LIST" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+         foreach ($file in $files) {
+         $json = Get-Content $file.FullName | ConvertFrom-Json
+
+         foreach ($result in $json.results) {
+         foreach ($suite in $result.suites) {
+          foreach ($test in $suite.tests) {
+            if ($test.fail -eq $true) {
+              $failList += $test.fullTitle
+            }
+          }
+         }
+         }
+         }
+
+         if ($failList.Count -eq 0) {
+         $failList = "Nenhum teste falhou 🎉"
+         }
+
+         $failText = $failList -join "`n"
+
+         echo "FAIL_LIST<<EOF" >> $env:GITHUB_ENV
+         echo "$failText" >> $env:GITHUB_ENV
+         echo "EOF" >> $env:GITHUB_ENV
 
       - name: Enviar relatório por email
         uses: dawidd6/action-send-mail@v3
