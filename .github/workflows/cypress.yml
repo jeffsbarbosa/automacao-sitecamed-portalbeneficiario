@@ -11,10 +11,10 @@ jobs:
 
     steps:
       - name: Clonar repositório
-        uses: actions/checkout@vX
+        uses: actions/checkout@v3
 
       - name: Configurar Node
-        uses: actions/setup-node@vX
+        uses: actions/setup-node@v3
         with:
           node-version: 18
 
@@ -24,26 +24,25 @@ jobs:
       - name: Criar pasta de relatórios
         run: mkdir -p cypress/reports
 
-      - name: Rodar testes
-        run: npm run test:report
-        continue-on-error: true
+      - name: Rodar diagnóstico Camed
+        run: npx cypress run --config-file cypress.config.ci.js --spec "cypress/e2e/diagnostico-camed.cy.js" || true
 
       - name: Gerar relatório
         run: npm run report:generate
 
       - name: Upload do relatório
-        uses: actions/upload-artifact@vX
+        uses: actions/upload-artifact@v4
         with:
           name: relatorio-cypress
           path: cypress/reports
 
       - name: Enviar relatório por email
         if: always()
-        uses: dawidd6/action-send-mail@vX
+        uses: dawidd6/action-send-mail@v3
         with:
-          server_address: smtp.office365.com
-          server_port: 587
-          secure: false
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
           username: ${{ secrets.EMAIL_USER }}
           password: ${{ secrets.EMAIL_PASS }}
           subject: "Relatório Cypress - Execução diária"

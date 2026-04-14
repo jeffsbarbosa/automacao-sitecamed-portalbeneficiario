@@ -5,7 +5,7 @@ module.exports = defineConfig({
   video: true, // 🔥 grava vídeo dos testes
   screenshotOnRunFailure: true, // 📸 print automático em falha
 
-  // 📊 Relatório Mochawesome (ADICIONADO)
+  // 📊 Relatório Mochawesome 
   reporter: "mochawesome",
   reporterOptions: {
     reportDir: "cypress/reports",
@@ -15,7 +15,7 @@ module.exports = defineConfig({
   },
 
   e2e: {
-    "baseUrl":"https://apps.camed.com.br/CamedSaudeServicos/Acesso/Login.aspx",
+    "baseUrl":"https://apps.camed.com.br/CamedSaudeServicos",
     "pageLoadTimeout":100000,
     "numTestsKeptInMemory": 0,
     "viewportWidth": 1280,
