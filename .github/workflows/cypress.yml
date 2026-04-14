@@ -21,24 +21,8 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
-      - name: Instalar dependências do sistema
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libgtk2.0-0 \
-            libgtk-3-0 \
-            libgbm-dev \
-            libnotify-dev \
-            libgconf-2-4 \
-            libnss3 \
-            libxss1 \
-            libasound2 \
-            libxtst6 \
-            xauth \
-            xvfb
-
       - name: Instalar jq
-        run: sudo apt-get install -y jq
+        run: sudo apt-get update && sudo apt-get install -y jq
 
       - name: Criar pasta de relatórios
         run: mkdir -p cypress/reports
@@ -46,8 +30,11 @@ jobs:
       - name: Listar estrutura do projeto
         run: ls -R
 
-      - name: Rodar todos os testes
-        run: npx cypress run --browser chrome --config-file cypress.config.ci.js || true
+      - name: Rodar testes Cypress
+        uses: cypress-io/github-action@v6
+        with:
+          browser: chrome
+          config-file: cypress.config.ci.js
 
       - name: Gerar relatório
         if: always()
@@ -151,7 +138,7 @@ jobs:
 
             🤖 Jefferson Barbosa - Analista de Qualidade
                         Automação QA
-                        
+
           attachments: |
            cypress/reports/report.html
            cypress/screenshots/**/*.png
