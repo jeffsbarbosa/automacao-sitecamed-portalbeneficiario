@@ -2,7 +2,7 @@ name: Testes Cypress Diário - Site Camed / Portal do Beneficiário Área Logada
 
 on:
   schedule:
-    - cron: '0 9 * * *' # 06:00 Brasil
+    - cron: '0 9 * * *'
   workflow_dispatch:
 
 jobs:
@@ -11,53 +11,147 @@ jobs:
 
     steps:
       - name: Clonar repositório
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configurar Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
 
       - name: Instalar dependências
-        run: npm install
+        run: npm ci
+
+      - name: Instalar dependências do sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk2.0-0 \
+            libgtk-3-0 \
+            libgbm-dev \
+            libnotify-dev \
+            libgconf-2-4 \
+            libnss3 \
+            libxss1 \
+            libasound2 \
+            libxtst6 \
+            xauth \
+            xvfb
+
+      - name: Instalar jq
+        run: sudo apt-get install -y jq
 
       - name: Criar pasta de relatórios
         run: mkdir -p cypress/reports
 
-      - name: Rodar diagnóstico Camed
-        run: npx cypress run --config-file cypress.config.ci.js --spec "cypress/e2e/diagnostico-camed.cy.js" || true
+      - name: Listar estrutura do projeto
+        run: ls -R
+
+      - name: Rodar todos os testes
+        run: npx cypress run --browser chrome --config-file cypress.config.ci.js || true
 
       - name: Gerar relatório
+        if: always()
         run: npm run report:generate
+
+      # 📊 RESUMO DOS TESTES
+      - name: Gerar resumo dos testes
+        if: always()
+        run: |
+          TOTAL=$(grep -o '"tests":[0-9]*' cypress/reports/*.json | grep -o '[0-9]*' | awk '{s+=$1} END {print s}')
+          PASSED=$(grep -o '"passes":[0-9]*' cypress/reports/*.json | grep -o '[0-9]*' | awk '{s+=$1} END {print s}')
+          FAILED=$(grep -o '"failures":[0-9]*' cypress/reports/*.json | grep -o '[0-9]*' | awk '{s+=$1} END {print s}')
+
+          echo "TOTAL=$TOTAL" >> $GITHUB_ENV
+          echo "PASSED=$PASSED" >> $GITHUB_ENV
+          echo "FAILED=$FAILED" >> $GITHUB_ENV
+
+      # ❌ LISTA DE TESTES QUE FALHARAM
+      - name: Listar testes que falharam
+        if: always()
+        run: |
+          FAIL_LIST=$(cat cypress/reports/*.json | jq -r '
+            .results[]?.suites[]?.tests[]? 
+            | select(.fail == true) 
+            | .fullTitle
+          ')
+
+          if [ -z "$FAIL_LIST" ]; then
+            FAIL_LIST="Nenhum teste falhou 🎉"
+          fi
+
+          echo "FAIL_LIST<<EOF" >> $GITHUB_ENV
+          echo "$FAIL_LIST" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      # ✅ DEFINIR STATUS
+      - name: Definir status da execução
+        if: always()
+        run: |
+          if [ "$FAILED" -eq "0" ]; then
+            STATUS="SUCESSO ✅"
+          else
+            STATUS="FALHAS ❌"
+          fi
+
+          echo "STATUS=$STATUS" >> $GITHUB_ENV
 
       - name: Upload do relatório
         uses: actions/upload-artifact@v4
         with:
           name: relatorio-cypress
-          path: cypress/reports
+          path: |
+            cypress/reports
+            cypress/screenshots
 
+      # 📧 EMAIL FINAL SEM WARNINGS
       - name: Enviar relatório por email
         if: always()
         uses: dawidd6/action-send-mail@v3
+        env:
+          TOTAL: ${{ env.TOTAL }}
+          PASSED: ${{ env.PASSED }}
+          FAILED: ${{ env.FAILED }}
+          STATUS: ${{ env.STATUS }}
+          FAIL_LIST: ${{ env.FAIL_LIST }}
         with:
           server_address: smtp.gmail.com
           server_port: 465
           secure: true
           username: ${{ secrets.EMAIL_USER }}
           password: ${{ secrets.EMAIL_PASS }}
-          subject: "Relatório Cypress - Execução diária"
+          subject: "Resultado Cypress - ${{ env.STATUS }}"
           to: ${{ secrets.EMAIL_TO }}
           from: ${{ secrets.EMAIL_USER }}
           body: |
-            Olá,
+            🚀 Execução automática dos testes Cypress finalizada!
 
-            A execução automática dos testes Cypress foi concluída.
+            📊 RESUMO:
+            ✔️ Total de testes: $TOTAL
+            ✅ Passaram: $PASSED
+            ❌ Falharam: $FAILED
 
-            📊 O relatório segue em anexo.
+            ----------------------------------------
 
+            ❌ TESTES QUE FALHARAM:
+            $FAIL_LIST
+
+            ----------------------------------------
+
+            📌 DETALHES:
             Repositório: ${{ github.repository }}
-            Execução: ${{ github.run_number }}
+            Execução: #${{ github.run_number }}
 
-            Att,
-            Automação QA 🤖
-          attachments: cypress/reports/report.html
+            ----------------------------------------
+
+            📎 Em anexo:
+            - Relatório completo HTML
+            - Screenshots das falhas (se houver)
+
+            ----------------------------------------
+
+            🤖 Jefferson Barbosa - Analista de Qualidade
+                        Automação QA
+                        
+          attachments: |
+           cypress/reports/report.html
+           cypress/screenshots/**/*.png
