@@ -33,7 +33,7 @@ Cypress.Commands.add('validarSemErroNaPagina', () => {
 }),
 
 Cypress.Commands.add('homeBeneficiario', () => {
-    cy.visit('/')
+    cy.visit('https://apps.camed.com.br/CamedSaudeServicos')
 
     // valida se a página carregou
     cy.get('[id="Label1"]').should('be.visible').should('contain', 'CPF')

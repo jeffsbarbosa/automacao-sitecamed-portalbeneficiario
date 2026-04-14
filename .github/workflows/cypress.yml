@@ -113,14 +113,15 @@ jobs:
             🚀 Execução automática dos testes Cypress finalizada!
 
             📊 RESUMO:
-            ✔️ Total de testes: $TOTAL
-            ✅ Passaram: $PASSED
-            ❌ Falharam: $FAILED
+
+            ✔️ Total de testes executados: ${{ env.TOTAL }}
+            ✅ Testes aprovados: ${{ env.PASSED }}
+            ❌ Testes com falha: ${{ env.FAILED }}
 
             ----------------------------------------
 
             ❌ TESTES QUE FALHARAM:
-            $FAIL_LIST
+            ${{ env.FAIL_LIST }}
 
             ----------------------------------------
 
