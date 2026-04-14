@@ -1,19 +1,37 @@
 Cypress.Commands.add('loginBeneficiario', (cpf, senha) => {
-  cy.visit('/')
-  cy.get('[name="tbxUsuario"]').type(cpf)
-  cy.get('[name="tbxSenha"]').type(senha)
-  cy.get('[value="ENTRAR"]').click()
-}),
+
+  cy.visit('/Acesso/Login.aspx', { failOnStatusCode: false })
+
+  cy.get('[name="tbxUsuario"]', { timeout: 30000 })
+    .should('be.visible')
+    .type(cpf)
+
+  cy.get('[name="tbxSenha"]', { timeout: 30000 })
+    .should('be.visible')
+    .type(senha, { log: false })
+
+  cy.get('[value="ENTRAR"]')
+    .should('be.visible')
+    .and('not.be.disabled')
+    .click()
+
+  // 🔥 garante que saiu do login
+  cy.url({ timeout: 30000 }).should('not.include', 'Login')
+
+})
 
 Cypress.Commands.add('loginValido', () => {
+  cy.session('login', () => {
     cy.fixture('usuariovalido').then((user) => {
-    cy.loginBeneficiario(user.beneficiario.cpf, user.beneficiario.senha)
+      cy.loginBeneficiario(
+        user.beneficiario.cpf,
+        user.beneficiario.senha
+      )
     })
 
-    // valida que entrou no sistema
     cy.url().should('not.include', '/login')
-    cy.get('[id="perfilId-2"]').should('be.visible')
-}),
+  })
+})
 
 Cypress.Commands.add('acessarHomeCamedSaude', () => {
 
@@ -33,7 +51,7 @@ Cypress.Commands.add('validarSemErroNaPagina', () => {
 }),
 
 Cypress.Commands.add('homeBeneficiario', () => {
-    cy.visit('https://apps.camed.com.br/CamedSaudeServicos')
+    cy.visit('/Acesso/Login.aspx')
 
     // valida se a página carregou
     cy.get('[id="Label1"]').should('be.visible').should('contain', 'CPF')

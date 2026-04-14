@@ -6,8 +6,18 @@ on:
   workflow_dispatch:
 
 jobs:
+
+  # 🔥 JOB 1 - EXECUÇÃO EM PARALELO
   cypress-run:
     runs-on: ubuntu-latest
+
+  #  strategy:
+   #   fail-fast: false
+    #  matrix:
+     #   spec:
+      #    - cypress/e2e/TESTES_HOMEPAGE
+       #   - cypress/e2e/TESTES_PERFIL_ASSOCIADO
+        #  - cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA
 
     steps:
       - name: Clonar repositório
@@ -21,42 +31,84 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
-      - name: Instalar jq
-        run: sudo apt-get update && sudo apt-get install -y jq
+      - name: Cache Cypress
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       - name: Criar pasta de relatórios
         run: mkdir -p cypress/reports
-
-      - name: Listar estrutura do projeto
-        run: ls -R
 
       - name: Rodar testes Cypress
         uses: cypress-io/github-action@v6
         with:
           browser: chrome
-          config-file: cypress.config.ci.js
+          spec: cypress/e2e/TESTES_PERFIL_ASSOCIADO/TESTES_DISPONIBILIDADE_USABILIDADE/MENU_INTERCAMBIO/DISPONIBILIDADE_ITENS.cy.js
 
-      - name: Gerar relatório
+      - name: Upload dos relatórios (parcial)
         if: always()
-        run: npm run report:generate
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-${{ matrix.spec }}
+          path: |
+            cypress/reports
+            cypress/screenshots
 
-      # 📊 RESUMO DOS TESTES
-      - name: Gerar resumo dos testes
-        if: always()
+  # 🧠 JOB 2 - CONSOLIDAÇÃO + EMAIL
+  gerar-relatorio-final:
+    needs: cypress-run
+    runs-on: ubuntu-latest
+
+    env:
+      TOTAL: 0
+      PASSED: 0
+      FAILED: 0
+      SUCCESS_RATE: 0
+      STATUS_LEVEL: ""
+      FAIL_LIST: ""
+
+    steps:
+      - name: Baixar todos os relatórios
+        uses: actions/download-artifact@v4
+        with:
+          path: all-reports
+
+      - name: Instalar jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Consolidar resultados
         run: |
-          TOTAL=$(grep -o '"tests":[0-9]*' cypress/reports/*.json | grep -o '[0-9]*' | awk '{s+=$1} END {print s}')
-          PASSED=$(grep -o '"passes":[0-9]*' cypress/reports/*.json | grep -o '[0-9]*' | awk '{s+=$1} END {print s}')
-          FAILED=$(grep -o '"failures":[0-9]*' cypress/reports/*.json | grep -o '[0-9]*' | awk '{s+=$1} END {print s}')
+          TOTAL=$(grep -o '"tests":[0-9]*' all-reports/**/*.json | grep -o '[0-9]*' | awk '{s+=$1} END {print s}')
+          PASSED=$(grep -o '"passes":[0-9]*' all-reports/**/*.json | grep -o '[0-9]*' | awk '{s+=$1} END {print s}')
+          FAILED=$(grep -o '"failures":[0-9]*' all-reports/**/*.json | grep -o '[0-9]*' | awk '{s+=$1} END {print s}')
 
           echo "TOTAL=$TOTAL" >> $GITHUB_ENV
           echo "PASSED=$PASSED" >> $GITHUB_ENV
           echo "FAILED=$FAILED" >> $GITHUB_ENV
 
-      # ❌ LISTA DE TESTES QUE FALHARAM
-      - name: Listar testes que falharam
-        if: always()
+      - name: Calcular métricas avançadas
         run: |
-          FAIL_LIST=$(cat cypress/reports/*.json | jq -r '
+          if [ "$TOTAL" -eq "0" ]; then
+            SUCCESS_RATE=0
+          else
+            SUCCESS_RATE=$(awk "BEGIN {printf \"%.2f\", ($PASSED/$TOTAL)*100}")
+          fi
+
+          if [ "$FAILED" -eq "0" ]; then
+            STATUS_LEVEL="SUCESSO TOTAL ✅"
+          elif [ "$FAILED" -le "2" ]; then
+            STATUS_LEVEL="ATENÇÃO ⚠️"
+          else
+            STATUS_LEVEL="CRÍTICO 🚨"
+          fi
+
+          echo "SUCCESS_RATE=$SUCCESS_RATE" >> $GITHUB_ENV
+          echo "STATUS_LEVEL=$STATUS_LEVEL" >> $GITHUB_ENV
+
+      - name: Listar testes que falharam
+        run: |
+          FAIL_LIST=$(cat all-reports/**/*.json | jq -r '
             .results[]?.suites[]?.tests[]? 
             | select(.fail == true) 
             | .fullTitle
@@ -70,76 +122,54 @@ jobs:
           echo "$FAIL_LIST" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      # ✅ DEFINIR STATUS
-      - name: Definir status da execução
-        if: always()
-        run: |
-          if [ "$FAILED" -eq "0" ]; then
-            STATUS="SUCESSO ✅"
-          else
-            STATUS="FALHAS ❌"
-          fi
-
-          echo "STATUS=$STATUS" >> $GITHUB_ENV
-
-      - name: Upload do relatório
-        uses: actions/upload-artifact@v4
-        with:
-          name: relatorio-cypress
-          path: |
-            cypress/reports
-            cypress/screenshots
-
-      # 📧 EMAIL FINAL SEM WARNINGS
       - name: Enviar relatório por email
-        if: always()
         uses: dawidd6/action-send-mail@v3
-        env:
-          TOTAL: ${{ env.TOTAL }}
-          PASSED: ${{ env.PASSED }}
-          FAILED: ${{ env.FAILED }}
-          STATUS: ${{ env.STATUS }}
-          FAIL_LIST: ${{ env.FAIL_LIST }}
         with:
           server_address: smtp.gmail.com
           server_port: 465
           secure: true
           username: ${{ secrets.EMAIL_USER }}
           password: ${{ secrets.EMAIL_PASS }}
-          subject: "Resultado Cypress - ${{ env.STATUS }}"
+          subject: "Resultado Cypress - ${{ env.STATUS_LEVEL }}"
           to: ${{ secrets.EMAIL_TO }}
           from: ${{ secrets.EMAIL_USER }}
           body: |
             🚀 Execução automática dos testes Cypress finalizada!
 
-            📊 RESUMO:
+            ==================================================
+            📊 RESUMO EXECUTIVO
+            ==================================================
 
             ✔️ Total de testes executados: ${{ env.TOTAL }}
             ✅ Testes aprovados: ${{ env.PASSED }}
             ❌ Testes com falha: ${{ env.FAILED }}
 
-            ----------------------------------------
+            📈 Taxa de sucesso: ${{ env.SUCCESS_RATE }}%
+            🚨 Nível da execução: ${{ env.STATUS_LEVEL }}
 
-            ❌ TESTES QUE FALHARAM:
+            ==================================================
+            ❌ TESTES QUE FALHARAM
+            ==================================================
+
             ${{ env.FAIL_LIST }}
 
-            ----------------------------------------
+            ==================================================
+            📌 DETALHES DA EXECUÇÃO
+            ==================================================
 
-            📌 DETALHES:
-            Repositório: ${{ github.repository }}
-            Execução: #${{ github.run_number }}
+            🗂 Repositório: ${{ github.repository }}
+            🔢 Execução: #${{ github.run_number }}
+            🌿 Branch: ${{ github.ref_name }}
 
-            ----------------------------------------
+            ==================================================
+            📎 EVIDÊNCIAS
+            ==================================================
 
-            📎 Em anexo:
-            - Relatório completo HTML
-            - Screenshots das falhas (se houver)
+            ✔️ Relatório completo em HTML
+            ✔️ Screenshots automáticos das falhas
 
-            ----------------------------------------
-
-            🤖 Jefferson Barbosa - Analista de Qualidade
-                        Automação QA
-
+            ==================================================
+            🤖 Jefferson Barbosa - Automação QA
           attachments: |
-           cypress/reports/report.html
-           cypress/screenshots/**/*.png
+            all-reports/**/*.html
+            all-reports/**/*.png

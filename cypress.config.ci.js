@@ -1,7 +1,7 @@
 const { defineConfig } = require("cypress");
 
 module.exports = defineConfig({
-  video: true,
+  video: false,
   screenshotOnRunFailure: true,
 
   reporter: "mochawesome",
@@ -15,7 +15,7 @@ module.exports = defineConfig({
   e2e: {
     // 🚫 NÃO colocar baseUrl aqui
 
-    pageLoadTimeout: 120000,
+    pageLoadTimeout: 100000,
     defaultCommandTimeout: 30000,
 
     chromeWebSecurity: false,
@@ -24,7 +24,7 @@ module.exports = defineConfig({
     viewportWidth: 1280,
     viewportHeight: 720,
 
-    retries: 2,
+    retries: 1,
 
     setupNodeEvents(on, config) {
       return config;
