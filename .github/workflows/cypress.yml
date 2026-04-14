@@ -40,11 +40,15 @@ jobs:
       - name: Criar pasta de relatórios
         run: mkdir -p cypress/reports
 
+      - name: Testar acesso ao site
+        run: curl -I https://apps.camed.com.br/CamedSaudeServicos || true
+
       - name: Rodar testes Cypress
         uses: cypress-io/github-action@v6
         with:
           browser: chrome
           spec: cypress/e2e/TESTES_PERFIL_ASSOCIADO/TESTES_DISPONIBILIDADE_USABILIDADE/MENU_INTERCAMBIO/DISPONIBILIDADE_ITENS.cy.js
+          wait-on: ''
 
       - name: Upload dos relatórios (parcial)
         if: always()

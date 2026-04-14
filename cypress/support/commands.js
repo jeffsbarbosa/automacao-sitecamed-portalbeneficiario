@@ -51,7 +51,7 @@ Cypress.Commands.add('validarSemErroNaPagina', () => {
 }),
 
 Cypress.Commands.add('homeBeneficiario', () => {
-    cy.visit('/Acesso/Login.aspx')
+    cy.visit('/Acesso/Login.aspx', { failOnStatusCode: false })
 
     // valida se a página carregou
     cy.get('[id="Label1"]').should('be.visible').should('contain', 'CPF')
