@@ -7,17 +7,8 @@ on:
 
 jobs:
 
-  # 🔥 JOB 1 - EXECUÇÃO EM PARALELO
   cypress-run:
     runs-on: self-hosted
-
-  #  strategy:
-   #   fail-fast: false
-    #  matrix:
-     #   spec:
-      #    - cypress/e2e/TESTES_HOMEPAGE
-       #   - cypress/e2e/TESTES_PERFIL_ASSOCIADO
-        #  - cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA
 
     steps:
       - name: Clonar repositório
@@ -31,17 +22,13 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
-      - name: Cache Cypress
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/Cypress
-          key: cypress-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-
       - name: Criar pasta de relatórios
         run: mkdir -p cypress/reports
+        shell: bash
 
       - name: Testar acesso ao site
-        run: curl -I https://apps.camed.com.br/CamedSaudeServicos || true
+        run: curl -I https://apps.camed.com.br/CamedSaudeServicos || echo "Falha no acesso"
+        shell: bash
 
       - name: Rodar testes Cypress
         uses: cypress-io/github-action@v6
@@ -50,16 +37,15 @@ jobs:
           spec: cypress/e2e/TESTES_PERFIL_ASSOCIADO/TESTES_DISPONIBILIDADE_USABILIDADE/MENU_INTERCAMBIO/DISPONIBILIDADE_ITENS.cy.js
           wait-on: ''
 
-      - name: Upload dos relatórios (parcial)
+      - name: Upload dos relatórios
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: relatorio-${{ matrix.spec }}
+          name: relatorio-cypress
           path: |
             cypress/reports
             cypress/screenshots
 
-  # 🧠 JOB 2 - CONSOLIDAÇÃO + EMAIL
   gerar-relatorio-final:
     needs: cypress-run
     runs-on: self-hosted
@@ -78,10 +64,14 @@ jobs:
         with:
           path: all-reports
 
+      # 🔥 CORREÇÃO IMPORTANTE
       - name: Instalar jq
-        run: sudo apt-get update && sudo apt-get install -y jq
+        run: |
+          choco install jq -y
+        shell: powershell
 
       - name: Consolidar resultados
+        shell: bash
         run: |
           TOTAL=$(grep -o '"tests":[0-9]*' all-reports/**/*.json | grep -o '[0-9]*' | awk '{s+=$1} END {print s}')
           PASSED=$(grep -o '"passes":[0-9]*' all-reports/**/*.json | grep -o '[0-9]*' | awk '{s+=$1} END {print s}')
@@ -91,7 +81,8 @@ jobs:
           echo "PASSED=$PASSED" >> $GITHUB_ENV
           echo "FAILED=$FAILED" >> $GITHUB_ENV
 
-      - name: Calcular métricas avançadas
+      - name: Calcular métricas
+        shell: bash
         run: |
           if [ "$TOTAL" -eq "0" ]; then
             SUCCESS_RATE=0
@@ -111,6 +102,7 @@ jobs:
           echo "STATUS_LEVEL=$STATUS_LEVEL" >> $GITHUB_ENV
 
       - name: Listar testes que falharam
+        shell: bash
         run: |
           FAIL_LIST=$(cat all-reports/**/*.json | jq -r '
             .results[]?.suites[]?.tests[]? 
@@ -140,40 +132,25 @@ jobs:
           body: |
             🚀 Execução automática dos testes Cypress finalizada!
 
-            ==================================================
-            📊 RESUMO EXECUTIVO
-            ==================================================
+            ✔️ Total: ${{ env.TOTAL }}
+            ✅ Passaram: ${{ env.PASSED }}
+            ❌ Falharam: ${{ env.FAILED }}
 
-            ✔️ Total de testes executados: ${{ env.TOTAL }}
-            ✅ Testes aprovados: ${{ env.PASSED }}
-            ❌ Testes com falha: ${{ env.FAILED }}
+            📈 Sucesso: ${{ env.SUCCESS_RATE }}%
+            🚨 Status: ${{ env.STATUS_LEVEL }}
 
-            📈 Taxa de sucesso: ${{ env.SUCCESS_RATE }}%
-            🚨 Nível da execução: ${{ env.STATUS_LEVEL }}
+            ----------------------------------------
 
-            ==================================================
-            ❌ TESTES QUE FALHARAM
-            ==================================================
-
+            ❌ Falhas:
             ${{ env.FAIL_LIST }}
 
-            ==================================================
-            📌 DETALHES DA EXECUÇÃO
-            ==================================================
+            ----------------------------------------
 
-            🗂 Repositório: ${{ github.repository }}
-            🔢 Execução: #${{ github.run_number }}
-            🌿 Branch: ${{ github.ref_name }}
+            Execução: #${{ github.run_number }}
+            Branch: ${{ github.ref_name }}
 
-            ==================================================
-            📎 EVIDÊNCIAS
-            ==================================================
+            🤖 Automação QA
 
-            ✔️ Relatório completo em HTML
-            ✔️ Screenshots automáticos das falhas
-
-            ==================================================
-            🤖 Jefferson Barbosa - Automação QA
           attachments: |
             all-reports/**/*.html
             all-reports/**/*.png
