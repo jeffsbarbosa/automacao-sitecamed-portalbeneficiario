@@ -86,13 +86,20 @@ jobs:
         shell: powershell
         run: |
          if (Test-Path merged.json) {
-         Remove-Item merged.json
+         Remove-Item merged.json -Force
          }
 
       - name: Gerar relatório HTML consolidado
         shell: powershell
-        run: | 
-         $files = Get-ChildItem -Path "all-reports" -Recurse -Filter "mochawesome*.json" | Select-Object -ExpandProperty FullName
+        run: |
+         $files = Get-ChildItem -Path "all-reports" -Recurse -Filter "*.json" |
+         Where-Object { $_.Name -ne "merged.json" } |
+         Select-Object -ExpandProperty FullName
+
+         if ($files.Count -eq 0) {
+         Write-Host "Nenhum JSON encontrado!"
+         exit 1
+         }
 
          npx mochawesome-merge $files > merged.json
 
