@@ -42,7 +42,13 @@ jobs:
           spec: cypress/e2e/TESTES_PERFIL_ASSOCIADO/TESTES_DISPONIBILIDADE_USABILIDADE/MENU_INTERCAMBIO/DISPONIBILIDADE_ITENS.cy.js
           wait-on: ''
 
-      - name: Upload dos relatórios (JSON + evidências)
+      # 🔥 GERA HTML DIRETO (SEM MERGE)
+      - name: Gerar relatório HTML
+        if: always()
+        run: |
+          npx marge cypress/reports/*.json --reportDir cypress/reports --reportFilename report
+
+      - name: Upload dos relatórios (HTML + evidências)
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -66,50 +72,16 @@ jobs:
       FAIL_LIST: ""
 
     steps:
-      - name: Clonar repositório
-        uses: actions/checkout@v4
-
-      - name: Configurar Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-
-      - name: Instalar dependências de relatório
-        run: npm install -g mochawesome mochawesome-merge mochawesome-report-generator
-
       - name: Baixar relatórios do Cypress
         uses: actions/download-artifact@v4
         with:
           path: all-reports
 
-      - name: Limpar arquivos antigos
-        shell: powershell
-        run: |         
-         Remove-Item merged.json -ErrorAction SilentlyContinue
-         
-      - name: Gerar relatório HTML consolidado
-        shell: powershell
-        run: |
-         $files = Get-ChildItem -Path "all-reports" -Recurse -File |
-         Where-Object { $_.Extension -eq ".json" -and $_.Name -ne "merged.json" -and $_.Name -like "mochawesome*.json" } |
-         Select-Object -ExpandProperty FullName
-
-         Write-Host "Arquivos encontrados:"
-         $files
-
-         if (-not $files -or $files.Count -eq 0) {
-         Write-Error "Nenhum arquivo JSON válido encontrado!"
-         exit 1
-         }
-
-         npx mochawesome-merge $files > merged.json
-
-         npx marge merged.json --reportDir all-reports --reportFilename report
-
+      # 🔥 AGORA USA DIRETO OS JSONS (SEM MERGE)
       - name: Consolidar resultados
         shell: powershell
         run: |
-          $files = Get-ChildItem -Path "all-reports" -Recurse -Filter *.json
+          $files = Get-ChildItem -Path "all-reports" -Recurse -Filter mochawesome*.json
 
           $TOTAL = 0
           $PASSED = 0
@@ -156,7 +128,7 @@ jobs:
         run: |
           $failList = @()
 
-          $files = Get-ChildItem -Path "all-reports" -Recurse -Filter *.json
+          $files = Get-ChildItem -Path "all-reports" -Recurse -Filter mochawesome*.json
 
           foreach ($file in $files) {
             $json = Get-Content $file.FullName | ConvertFrom-Json
@@ -221,11 +193,12 @@ jobs:
             Execução: #${{ github.run_number }}
             Branch: ${{ github.ref_name }}
 
-            🤖 Jefferson Barbosa
+            🤖 Automação QA
+
+            —
+            Jefferson Barbosa  
             Analista de Qualidade
-            
-            Automação QA
 
           attachments: |
-            all-reports/report.html
+            all-reports/**/*.html
             all-reports/**/*.png
