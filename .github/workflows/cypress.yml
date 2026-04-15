@@ -82,10 +82,21 @@ jobs:
         with:
           path: all-reports
 
-      - name: Gerar relatório HTML consolidado
+      - name: Limpar arquivos antigos
+        shell: powershell
         run: |
-          mochawesome-merge all-reports/**/*.json > merged.json
-          marge merged.json --reportDir all-reports --reportFilename report
+         if (Test-Path merged.json) {
+         Remove-Item merged.json
+         }
+
+      - name: Gerar relatório HTML consolidado
+        shell: powershell
+        run: | 
+         $files = Get-ChildItem -Path "all-reports" -Recurse -Filter "mochawesome*.json" | Select-Object -ExpandProperty FullName
+
+         npx mochawesome-merge $files > merged.json
+
+         npx marge merged.json --reportDir all-reports --reportFilename report
 
       - name: Consolidar resultados
         shell: powershell
