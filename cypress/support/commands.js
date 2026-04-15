@@ -21,13 +21,12 @@ Cypress.Commands.add('loginBeneficiario', (cpf, senha) => {
 })
 
 Cypress.Commands.add('loginValido', () => {
-  cy.session('login', () => {
+ 
     cy.fixture('usuariovalido').then((user) => {
       cy.loginBeneficiario(
         user.beneficiario.cpf,
-        user.beneficiario.senha
-      )
-    })
+        user.beneficiario.senha)
+   
 
     cy.url().should('not.include', '/login')
   })

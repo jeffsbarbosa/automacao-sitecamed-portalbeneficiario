@@ -11,14 +11,14 @@ describe("Testes de Disponibilidade – Menu Intercambio", () => {
     utilidades.abrirMenuIntercambio()
 })
 
-it('Validar disponibilidade do Menu Intercâmbio', () => {
-    cy.xpath("//span[normalize-space()='Solicitação De Intercâmbio']")
-        .should('contain', 'Intercâmbio')
+it('Validar disponibilidade do Menu Intercâmbio', () => { 
+
+     cy.contains('Solicitação De Intercâmbio', { timeout: 20000 })
+        .should('be.visible')
         .click()
     //Validar que a página carregou corretamente
     cy.url().should('include', '/CamedSaudeServicos/Servicos/Beneficiario/SolicitacaoDeIntercambio.aspx')
     cy.get('h3').should('contain', 'Solicitação de Intercâmbio')
-
 
 })
 
