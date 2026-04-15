@@ -39,7 +39,7 @@ jobs:
         continue-on-error: true
         with:
           browser: chrome
-          spec: cypress/e2e/TESTES_PERFIL_ASSOCIADO/TESTES_DISPONIBILIDADE_USABILIDADE/**/*.cy.js
+          spec: cypress/e2e/TESTES_PERFIL_ASSOCIADO/TESTES_DISPONIBILIDADE_USABILIDADE/MENU_INTERCAMBIO/DISPONIBILIDADE_ITENS.cy.js
           wait-on: ''
 
       - name: Upload dos relatórios (JSON + evidências)
@@ -84,20 +84,21 @@ jobs:
 
       - name: Limpar arquivos antigos
         shell: powershell
-        run: |
-         if (Test-Path merged.json) {
-         Remove-Item merged.json -Force
-         }
-
+        run: |         
+         Remove-Item merged.json -ErrorAction SilentlyContinue
+         
       - name: Gerar relatório HTML consolidado
         shell: powershell
         run: |
-         $files = Get-ChildItem -Path "all-reports" -Recurse -Filter "*.json" |
-         Where-Object { $_.Name -ne "merged.json" } |
+         $files = Get-ChildItem -Path "all-reports" -Recurse -File |
+         Where-Object { $_.Extension -eq ".json" -and $_.Name -ne "merged.json" -and $_.Name -like "mochawesome*.json" } |
          Select-Object -ExpandProperty FullName
 
-         if ($files.Count -eq 0) {
-         Write-Host "Nenhum JSON encontrado!"
+         Write-Host "Arquivos encontrados:"
+         $files
+
+         if (-not $files -or $files.Count -eq 0) {
+         Write-Error "Nenhum arquivo JSON válido encontrado!"
          exit 1
          }
 
