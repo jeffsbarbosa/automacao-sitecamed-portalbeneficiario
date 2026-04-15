@@ -12,14 +12,13 @@ describe("Testes de Disponibilidade – Menu Atendimento", () => {
 })
 
 it('Disponibilidade submenu Autorizações', () => {
-    cy.xpath("//p[normalize-space()='Autorizações']")
+     cy.contains("p", "Autorizações")
       .should('contain', 'Autorizações')
       .click()
 
     //validar que a página carregou corretamente:
     cy.url().should('include', '/CamedSaudeServicos/Servicos/Beneficiario/ConsultaAutorizacao.aspx')
-    cy.get('h3').should('contain', 'Autorização')
-    
+    cy.get('h3').should('contain', 'Autorização')    
 
 })
 

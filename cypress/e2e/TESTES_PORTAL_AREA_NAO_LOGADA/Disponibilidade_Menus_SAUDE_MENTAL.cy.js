@@ -5,7 +5,6 @@ import "cypress-real-events/support";
 describe("Testes de Disponibilidade – Menu SAÚDE MENTAL", () => {
   beforeEach(() => {
     cy.acessarHomeCamedSaude();
-    cy.contains("Saúde Mental").realHover();
     cy.abrirSaudeMental()
   });
 

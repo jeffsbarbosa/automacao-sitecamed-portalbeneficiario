@@ -10,13 +10,13 @@ describe("Testes de Disponibilidade – Fale Conosco", () => {
     cy.entrarPerfilAssociado();
     utilidades.abrirMenuAtendimento();
     utilidades.abrirFaleConosco();
+
+     cy.url({ timeout: 20000 })
+    .should('include', '/CamedSaudeServicos/Servicos/Beneficiario/FaleConosco.aspx');
   });
 
   it("Disponibilidade submenu Fale Conosco", () => {
-    cy.url().should(
-      "include",
-      "/CamedSaudeServicos/Servicos/Beneficiario/FaleConosco.aspx",
-    );
+    
     cy.get("h3").should("contain", "Fale Conosco");
   });
 
@@ -33,7 +33,6 @@ describe("Testes de Disponibilidade – Fale Conosco", () => {
 
     cy.fixture("formulariofaleconosco").then((dados) => {
       cy.preencherFaleConosco(dados, true); // com anexo
-
       cy.botaoProximoFaleConosco().click();
 
       //anexando documento

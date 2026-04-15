@@ -49,11 +49,7 @@ it('Validar disponibilidade do submenu Imposto de Renda', () => {
 
     //clicando no botão Emitir Demonstrativo
 
-    cy.get('[value="Emitir Demonstrativo"]').click()
-    cy.wait(15000)
-
-    //validando modal de sucesso
-    cy.get('[role="dialog"]').should('be.visible')
+   utilidades.emitirDemonstrativo()
 
 })
 

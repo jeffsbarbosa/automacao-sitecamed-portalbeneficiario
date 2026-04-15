@@ -19,7 +19,7 @@ describe("Testes de Disponibilidade – Menu SAÚDE PREVENTIVA", () => {
     { nome: "OrtoVida", url: "/ortovida", titulo: "OrtoVida" },
     { nome: "CardioVida", url: "/cardiovida", titulo: "CardioVida" },
     { nome: "Cuidando de Você", url: "/cuidando-de-voce", titulo: "Cuidando de Você" },
-    { nome: "Check-up 60+", url: "/checkup-60", titulo: "Check-up 60+" },
+    { nome: "Check-up 60+", url: "/check-up-60", titulo: "Check-up 60+" },
     { nome: "Programa Amigo da Família", url: "/programa-amigo-da-familia", titulo: "Programa Amigo da Família" },
     { nome: "Material Informativo", url: "/material-informativo", titulo: "Material Informativo" }
   ];

@@ -85,15 +85,7 @@ describe("Testes de Disponibilidade – Menu A CAMED", () => {
       cy.contains("a", "Identidade Corporativa").should("be.visible").click();
       cy.validarPagina('/identidade', 'Identidade corporativa')
 
-    })
-
-    it('Deve validar que o submenu Identidade Corporativa está disponível', () => {
-      
-      cy.contains("a", "Identidade Corporativa").should("be.visible").click();
-      cy.validarPagina('/identidade', 'Identidade corporativa')
-
-
-    });
+    })    
 
     it('Deve validar que o submenu Relatório Anual está disponível', () => {
       

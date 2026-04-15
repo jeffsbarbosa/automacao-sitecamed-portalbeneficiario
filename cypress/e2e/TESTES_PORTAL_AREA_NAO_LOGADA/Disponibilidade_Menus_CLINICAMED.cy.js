@@ -9,14 +9,14 @@ describe("Testes de Disponibilidade – Menu CLINICAMED", () => {
     cy.contains("Clinicamed").realHover();
   })
 
-it('Validando que a tela da Clinicamed está disponível', () => {
+it('Deve validar que a tela da Clinicamed está disponível', () => {
      cy.contains("a", "Clinicamed")
       .should("be.visible")
       .click();
 
     cy.url().should("include", "/clinicamed");
     cy.contains('Agendar consulta')
-
+   
 
 })
 

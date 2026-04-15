@@ -20,7 +20,7 @@ it("Validando a disponibilidade do item Solicitar Reembolso", () => {
 
 })
 
-it.only('Fluxo de Solicitação de Reembolso com atendimento realizado', () => {
+it('Fluxo de Solicitação de Reembolso com atendimento realizado', () => {
 
     //PASSO 1 - DADOS DO ATENDIMENTO
         
