@@ -45,8 +45,19 @@ jobs:
       # 🔥 GERA HTML DIRETO (SEM MERGE)
       - name: Gerar relatório HTML
         if: always()
+        shell: powershell
         run: |
-          npx marge cypress/reports/*.json --reportDir cypress/reports --reportFilename report
+         $files = Get-ChildItem -Path "cypress/reports" -Filter "*.json" | Select-Object -ExpandProperty FullName
+
+         if (-not $files -or $files.Count -eq 0) {
+         Write-Error "Nenhum arquivo JSON encontrado em cypress/reports!"
+         exit 1
+         }
+
+         Write-Host "Arquivos encontrados:"
+         $files
+
+         npx marge $files --reportDir cypress/reports --reportFilename report
 
       - name: Upload dos relatórios (HTML + evidências)
         if: always()
