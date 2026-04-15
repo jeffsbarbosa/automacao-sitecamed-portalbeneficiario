@@ -2,11 +2,10 @@ name: Testes Cypress Diário - Site Camed / Portal do Beneficiário Área Logada
 
 on:
   schedule:
-    - cron: '0 9 * * *'
+    - cron: "0 9 * * *"
   workflow_dispatch:
 
 jobs:
-
   cypress-run:
     runs-on: self-hosted
 
@@ -40,24 +39,24 @@ jobs:
         with:
           browser: chrome
           spec: cypress/e2e/TESTES_PERFIL_ASSOCIADO/TESTES_DISPONIBILIDADE_USABILIDADE/MENU_INTERCAMBIO/DISPONIBILIDADE_ITENS.cy.js
-          wait-on: ''
+          wait-on: ""
 
       # 🔥 GERA HTML DIRETO (SEM MERGE)
       - name: Gerar relatório HTML
         if: always()
         shell: powershell
         run: |
-         $files = Get-ChildItem -Path "cypress/reports" -Filter "*.json" | Select-Object -ExpandProperty FullName
+          $files = Get-ChildItem -Path "cypress/reports" -Filter "*.json" | Select-Object -ExpandProperty FullName
 
-         if (-not $files -or $files.Count -eq 0) {
-         Write-Error "Nenhum arquivo JSON encontrado em cypress/reports!"
-         exit 1
-         }
+          if (-not $files -or $files.Count -eq 0) {
+          Write-Error "Nenhum arquivo JSON encontrado em cypress/reports!"
+          exit 1
+          }
 
-         Write-Host "Arquivos encontrados:"
-         $files
+          Write-Host "Arquivos encontrados:"
+          $files
 
-         npx marge $files --reportDir cypress/reports --reportFilename report
+          npx marge $files --reportDir cypress/reports --reportFilename report
 
       - name: Upload dos relatórios (HTML + evidências)
         if: always()
@@ -92,25 +91,25 @@ jobs:
       - name: Consolidar resultados
         shell: powershell
         run: |
-         $files = Get-ChildItem -Path "all-reports" -Recurse -Filter mochawesome*.json
+          $files = Get-ChildItem -Path "all-reports" -Recurse -Filter mochawesome*.json
 
-         [int]$TOTAL = 0
-         [int]$PASSED = 0
-         [int]$FAILED = 0
+          [int]$TOTAL = 0
+          [int]$PASSED = 0
+          [int]$FAILED = 0
 
-         foreach ($file in $files) {
-         $json = Get-Content $file.FullName -Raw | ConvertFrom-Json
+          foreach ($file in $files) {
+          $json = Get-Content $file.FullName -Raw | ConvertFrom-Json
 
-         if ($json.stats) {
-         $TOTAL += [int]$json.stats.tests
-         $PASSED += [int]$json.stats.passes
-         $FAILED += [int]$json.stats.failures
-         }
-         }
+          if ($json.stats) {
+          $TOTAL += [int]$json.stats.tests
+          $PASSED += [int]$json.stats.passes
+          $FAILED += [int]$json.stats.failures
+          }
+          }
 
-         echo "TOTAL=$TOTAL" >> $env:GITHUB_ENV
-         echo "PASSED=$PASSED" >> $env:GITHUB_ENV
-         echo "FAILED=$FAILED" >> $env:GITHUB_ENV
+          echo "TOTAL=$TOTAL" >> $env:GITHUB_ENV
+          echo "PASSED=$PASSED" >> $env:GITHUB_ENV
+          echo "FAILED=$FAILED" >> $env:GITHUB_ENV
 
       - name: Calcular métricas
         shell: powershell
@@ -175,46 +174,52 @@ jobs:
       - name: Ajustar encoding UTF-8
         shell: powershell
         run: |
-         [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
- 
+          [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
       - name: Enviar relatório por email
         uses: dawidd6/action-send-mail@v3
         with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          secure: true
-          username: ${{ secrets.EMAIL_USER }}
-          password: ${{ secrets.EMAIL_PASS }}
-          subject: "Resultado Cypress - ${{ env.STATUS_LEVEL }}"
-          to: ${{ secrets.EMAIL_TO }}
-          from: ${{ secrets.EMAIL_USER }}
-          body: |
-            🚀 Execução automática dos testes Cypress finalizada!
+         server_address: smtp.gmail.com
+         server_port: 465
+         secure: true
+         username: ${{ secrets.EMAIL_USER }}
+         password: ${{ secrets.EMAIL_PASS }}
+         subject: "Resultado Cypress - ${{ env.STATUS_LEVEL }}"
+         to: ${{ secrets.EMAIL_TO }}
+         from: ${{ secrets.EMAIL_USER }}
 
-            📊 RESUMO:
-            ✔️ Total: ${{ env.TOTAL }}
-            ✅ Passaram: ${{ env.PASSED }}
-            ❌ Falharam: ${{ env.FAILED }}
+         content_type: text/html
+         body: |
+          <h2>🚀 Execução automática dos testes Cypress finalizada!</h2>
 
-            📈 Sucesso: ${{ env.SUCCESS_RATE }}%
-            🚨 Status: ${{ env.STATUS_LEVEL }}
+          <h3>📊 RESUMO:</h3>
+          <ul>
+          <li>✔️ <b>Total:</b> ${{ env.TOTAL }}</li>
+          <li>✅ <b>Passaram:</b> ${{ env.PASSED }}</li>
+          <li>❌ <b>Falharam:</b> ${{ env.FAILED }}</li>
+          </ul>
 
-            ----------------------------------------
+          <p>📈 <b>Sucesso:</b> ${{ env.SUCCESS_RATE }}%</p>
+          <p>🚨 <b>Status:</b> ${{ env.STATUS_LEVEL }}</p>
 
-            ❌ TESTES QUE FALHARAM:
-            ${{ env.FAIL_LIST }}
+          <hr>
 
-            ----------------------------------------
+          <h3>❌ TESTES QUE FALHARAM:</h3>
+          <pre>${{ env.FAIL_LIST }}</pre>
 
-            Execução: #${{ github.run_number }}
-            Branch: ${{ github.ref_name }}
+          <hr>
 
-            🤖 Automação QA
+          <p><b>Execução:</b> #${{ github.run_number }}</p>
+          <p><b>Branch:</b> ${{ github.ref_name }}</p>
 
-            —
-            Jefferson Barbosa  
-            Analista de Qualidade
+          <br>
+
+          <p>🤖 Automação QA</p>
+
+          <p>—<br>
+          Jefferson Barbosa<br>
+          Analista de Qualidade</p>
 
           attachments: |
-            all-reports/**/*.html
-            all-reports/**/*.png
+           all-reports/**/*.html
+           all-reports/**/*.png
