@@ -92,25 +92,30 @@ jobs:
       - name: Consolidar resultados
         shell: powershell
         run: |
-          $files = Get-ChildItem -Path "all-reports" -Recurse -Filter mochawesome*.json
+         $files = Get-ChildItem -Path "all-reports" -Recurse -Filter mochawesome*.json
 
-          $TOTAL = 0
-          $PASSED = 0
-          $FAILED = 0
+         [int]$TOTAL = 0
+         [int]$PASSED = 0
+         [int]$FAILED = 0
 
-          foreach ($file in $files) {
-            $json = Get-Content $file.FullName | ConvertFrom-Json
+         foreach ($file in $files) {
+         $json = Get-Content $file.FullName -Raw | ConvertFrom-Json
 
-            foreach ($result in $json.results) {
-              $TOTAL += $result.tests
-              $PASSED += $result.passes
-              $FAILED += $result.failures
-            }
-          }
+         foreach ($result in $json.results) {
 
-          echo "TOTAL=$TOTAL" >> $env:GITHUB_ENV
-          echo "PASSED=$PASSED" >> $env:GITHUB_ENV
-          echo "FAILED=$FAILED" >> $env:GITHUB_ENV
+         $tests = [int]($result.tests | ForEach-Object { $_ } | Select-Object -First 1)
+         $passes = [int]($result.passes | ForEach-Object { $_ } | Select-Object -First 1)
+         $failures = [int]($result.failures | ForEach-Object { $_ } | Select-Object -First 1)
+ 
+         $TOTAL += $tests
+         $PASSED += $passes
+         $FAILED += $failures
+         }
+         }
+
+         echo "TOTAL=$TOTAL" >> $env:GITHUB_ENV
+         echo "PASSED=$PASSED" >> $env:GITHUB_ENV
+         echo "FAILED=$FAILED" >> $env:GITHUB_ENV
 
       - name: Calcular métricas
         shell: powershell
