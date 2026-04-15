@@ -23,25 +23,26 @@ jobs:
         run: npm ci
 
       - name: Criar pasta de relatórios
-        run: mkdir cypress/reports
-       
+        run: mkdir -p cypress/reports
 
       - name: Testar acesso ao site
+        shell: powershell
         run: |
-         try {
-         Invoke-WebRequest https://apps.camed.com.br/CamedSaudeServicos -UseBasicParsing
-         } catch {
-         Write-Host "Falha no acesso"
-         }
+          try {
+            Invoke-WebRequest https://apps.camed.com.br/CamedSaudeServicos -UseBasicParsing
+          } catch {
+            Write-Host "Falha no acesso"
+          }
 
       - name: Rodar testes Cypress
         uses: cypress-io/github-action@v6
+        continue-on-error: true
         with:
           browser: chrome
           spec: cypress/e2e/TESTES_PERFIL_ASSOCIADO/TESTES_DISPONIBILIDADE_USABILIDADE/**/*.cy.js
           wait-on: ''
 
-      - name: Upload dos relatórios
+      - name: Upload dos relatórios (JSON + evidências)
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -49,9 +50,11 @@ jobs:
           path: |
             cypress/reports
             cypress/screenshots
+            cypress/videos
 
   gerar-relatorio-final:
     needs: cypress-run
+    if: always()
     runs-on: self-hosted
 
     env:
@@ -63,58 +66,68 @@ jobs:
       FAIL_LIST: ""
 
     steps:
-      - name: Baixar todos os relatórios
+      - name: Clonar repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Instalar dependências de relatório
+        run: npm install -g mochawesome mochawesome-merge mochawesome-report-generator
+
+      - name: Baixar relatórios do Cypress
         uses: actions/download-artifact@v4
         with:
           path: all-reports
 
-      # 🔥 CORREÇÃO IMPORTANTE
-      - name: Instalar jq
+      - name: Gerar relatório HTML consolidado
         run: |
-          choco install jq -y
-        shell: powershell
+          mochawesome-merge all-reports/**/*.json > merged.json
+          marge merged.json --reportDir all-reports --reportFilename report
 
       - name: Consolidar resultados
         shell: powershell
         run: |
-         $files = Get-ChildItem -Path "all-reports" -Recurse -Filter *.json
+          $files = Get-ChildItem -Path "all-reports" -Recurse -Filter *.json
 
-         $TOTAL = 0
-         $PASSED = 0
-         $FAILED = 0
+          $TOTAL = 0
+          $PASSED = 0
+          $FAILED = 0
 
-         foreach ($file in $files) {
-         $json = Get-Content $file.FullName | ConvertFrom-Json
+          foreach ($file in $files) {
+            $json = Get-Content $file.FullName | ConvertFrom-Json
 
-         foreach ($result in $json.results) {
-         $TOTAL += $result.tests
-         $PASSED += $result.passes
-         $FAILED += $result.failures
-         }
-         }
+            foreach ($result in $json.results) {
+              $TOTAL += $result.tests
+              $PASSED += $result.passes
+              $FAILED += $result.failures
+            }
+          }
 
-         echo "TOTAL=$TOTAL" >> $env:GITHUB_ENV
-         echo "PASSED=$PASSED" >> $env:GITHUB_ENV
-         echo "FAILED=$FAILED" >> $env:GITHUB_ENV
+          echo "TOTAL=$TOTAL" >> $env:GITHUB_ENV
+          echo "PASSED=$PASSED" >> $env:GITHUB_ENV
+          echo "FAILED=$FAILED" >> $env:GITHUB_ENV
 
       - name: Calcular métricas
         shell: powershell
         run: |
-         if ($env:TOTAL -eq 0) {
-         $SUCCESS_RATE = 0
-         } else {
-         $SUCCESS_RATE = [math]::Round(($env:PASSED / $env:TOTAL) * 100, 2)
-         }
+          if ($env:TOTAL -eq 0) {
+            $SUCCESS_RATE = 0
+          } else {
+            $SUCCESS_RATE = [math]::Round(($env:PASSED / $env:TOTAL) * 100, 2)
+          }
 
-         if ($env:FAILED -eq 0) {
-         $STATUS_LEVEL = "SUCESSO TOTAL ✅"
-         }
-         elseif ($env:FAILED -le 2) {
-         $STATUS_LEVEL = "ATENÇÃO ⚠️"
-         }
-         else {
-         $STATUS_LEVEL = "CRÍTICO 🚨"
-         }
+          if ($env:FAILED -eq 0) {
+            $STATUS_LEVEL = "SUCESSO TOTAL ✅"
+          }
+          elseif ($env:FAILED -le 2) {
+            $STATUS_LEVEL = "ATENÇÃO ⚠️"
+          }
+          else {
+            $STATUS_LEVEL = "CRÍTICO 🚨"
+          }
 
           echo "SUCCESS_RATE=$SUCCESS_RATE" >> $env:GITHUB_ENV
           echo "STATUS_LEVEL=$STATUS_LEVEL" >> $env:GITHUB_ENV
@@ -122,33 +135,40 @@ jobs:
       - name: Listar testes que falharam
         shell: powershell
         run: |
-         $failList = @()
+          $failList = @()
 
-         $files = Get-ChildItem -Path "all-reports" -Recurse -Filter *.json
+          $files = Get-ChildItem -Path "all-reports" -Recurse -Filter *.json
 
-         foreach ($file in $files) {
-         $json = Get-Content $file.FullName | ConvertFrom-Json
+          foreach ($file in $files) {
+            $json = Get-Content $file.FullName | ConvertFrom-Json
 
-         foreach ($result in $json.results) {
-         foreach ($suite in $result.suites) {
-          foreach ($test in $suite.tests) {
-            if ($test.fail -eq $true) {
-              $failList += $test.fullTitle
+            foreach ($result in $json.results) {
+              foreach ($suite in $result.suites) {
+                foreach ($test in $suite.tests) {
+                  if ($test.fail -eq $true) {
+                    $failList += $test.fullTitle
+                  }
+                }
+              }
             }
           }
-         }
-         }
-         }
 
-         if ($failList.Count -eq 0) {
-         $failList = "Nenhum teste falhou 🎉"
-         }
+          if ($failList.Count -eq 0) {
+            $failList = "Nenhum teste falhou 🎉"
+          }
 
-         $failText = $failList -join "`n"
+          $failText = $failList -join "`n"
 
-         echo "FAIL_LIST<<EOF" >> $env:GITHUB_ENV
-         echo "$failText" >> $env:GITHUB_ENV
-         echo "EOF" >> $env:GITHUB_ENV
+          echo "FAIL_LIST<<EOF" >> $env:GITHUB_ENV
+          echo "$failText" >> $env:GITHUB_ENV
+          echo "EOF" >> $env:GITHUB_ENV
+
+      - name: Upload relatório HTML
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-html
+          path: all-reports
 
       - name: Enviar relatório por email
         uses: dawidd6/action-send-mail@v3
@@ -164,6 +184,7 @@ jobs:
           body: |
             🚀 Execução automática dos testes Cypress finalizada!
 
+            📊 RESUMO:
             ✔️ Total: ${{ env.TOTAL }}
             ✅ Passaram: ${{ env.PASSED }}
             ❌ Falharam: ${{ env.FAILED }}
@@ -173,7 +194,7 @@ jobs:
 
             ----------------------------------------
 
-            ❌ Falhas:
+            ❌ TESTES QUE FALHARAM:
             ${{ env.FAIL_LIST }}
 
             ----------------------------------------
@@ -181,8 +202,11 @@ jobs:
             Execução: #${{ github.run_number }}
             Branch: ${{ github.ref_name }}
 
-            🤖 Automação QA
+            🤖 Jefferson Barbosa
+            Analista de Qualidade
+            
+            Automação QA
 
           attachments: |
-            all-reports/**/*.html
+            all-reports/report.html
             all-reports/**/*.png
