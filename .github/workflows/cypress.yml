@@ -121,13 +121,13 @@ jobs:
           }
 
           if ($env:FAILED -eq 0) {
-            $STATUS_LEVEL = "SUCESSO TOTAL ✅"
+            $STATUS_LEVEL = "SUCESSO TOTAL"
           }
           elseif ($env:FAILED -le 2) {
-            $STATUS_LEVEL = "ATENÇÃO ⚠️"
+            $STATUS_LEVEL = "ATENÇÃO"
           }
           else {
-            $STATUS_LEVEL = "CRÍTICO 🚨"
+            $STATUS_LEVEL = "CRÍTICO"
           }
 
           echo "SUCCESS_RATE=$SUCCESS_RATE" >> $env:GITHUB_ENV
@@ -155,7 +155,7 @@ jobs:
           }
 
           if ($failList.Count -eq 0) {
-            $failList = "Nenhum teste falhou 🎉"
+            $failList = "Nenhum teste falhou"
           }
 
           $failText = $failList -join "`n"
@@ -189,6 +189,7 @@ jobs:
          from: ${{ secrets.EMAIL_USER }}
 
          content_type: text/html
+         convert_markdown: false
          body: |
           <h2>🚀 Execução automática dos testes Cypress finalizada!</h2>
 
