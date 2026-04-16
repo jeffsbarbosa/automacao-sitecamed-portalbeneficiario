@@ -185,7 +185,7 @@ jobs:
          secure: true
          username: ${{ secrets.EMAIL_USER }}
          password: ${{ secrets.EMAIL_PASS }}
-         subject: "Testes automatizados - Site Camed e Portal de Serviços | ${{ env.STATUS_LEVEL }}"
+         subject: "Testes dos Atendimentos Virtuais - Site Camed e Portal de Serviços"
          to: ${{ secrets.EMAIL_TO }}
          from: ${{ secrets.EMAIL_USER }}
 
@@ -193,6 +193,8 @@ jobs:
          html_body: |
           <h2>🚀 Execução dos testes automatizados concluída</h2>
 
+          <p>Olá, bom dia! </p> 
+          <br>
           <p>Os testes automatizados do <b>Site Camed</b> e <b>Portal de Serviços Área Logada</b> foram executados. Abaixo, segue o resumo da execução:</p>
 
           <h3>📊 Resumo da execução</h3>
