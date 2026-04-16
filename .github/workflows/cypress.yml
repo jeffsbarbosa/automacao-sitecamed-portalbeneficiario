@@ -188,9 +188,8 @@ jobs:
          to: ${{ secrets.EMAIL_TO }}
          from: ${{ secrets.EMAIL_USER }}
 
-         content_type: text/html
          convert_markdown: false
-         body: |
+         html_body: |
           <h2>🚀 Execução automática dos testes Cypress finalizada!</h2>
 
           <h3>📊 RESUMO:</h3>
