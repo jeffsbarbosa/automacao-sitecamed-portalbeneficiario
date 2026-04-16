@@ -262,20 +262,7 @@ jobs:
 
           <br>
 
-          <div style="text-align: center; margin: 25px 0;">
-          <a href="https://github.com/jeffsbarbosa/automacao-sitecamed-portalbeneficiario/actions/runs/${{ github.run_id }}" 
-          style="
-           background-color: #007bff;
-           color: white;
-           padding: 12px 20px;
-           text-decoration: none;
-           border-radius: 6px;
-           font-weight: bold;
-           display: inline-block;
-            ">
-          🔎 Ver relatório completo
-          </a>
-          </div>
+    
 
           <p>🤖 Automação de Testes</p>
 
