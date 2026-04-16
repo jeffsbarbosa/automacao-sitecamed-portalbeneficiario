@@ -113,7 +113,7 @@ jobs:
           [int]$FAILED = 0
 
           foreach ($file in $files) {
-          $json = Get-Content $file.FullName -Raw | ConvertFrom-Json
+          $json = Get-Content $file.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
 
           if ($json.stats) {
           $TOTAL += [int]$json.stats.tests
@@ -156,36 +156,48 @@ jobs:
     - name: Listar testes que falharam
       shell: powershell
       run: |
-         $failList = @()
+        $failList = @()
 
-         $files = Get-ChildItem -Path "all-reports" -Recurse -Filter mochawesome*.json -ErrorAction SilentlyContinue
+        $files = Get-ChildItem -Path "all-reports" -Recurse -Filter mochawesome*.json -ErrorAction SilentlyContinue
 
-         foreach ($file in $files) {
-         $json = Get-Content $file.FullName | ConvertFrom-Json
+        foreach ($file in $files) {
+        $json = Get-Content $file.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
 
-          foreach ($result in $json.results) {
-          foreach ($suite in $result.suites) {
-          foreach ($test in $suite.tests) {
-            if ($test.fail -eq $true) {
-              $errorMessage = if ($test.err) { $test.err.message } else { "Erro não identificado" }
-              $failList += "$($test.fullTitle)`n➡️ Erro: $errorMessage`n"
+        if ($json.results) {
+        foreach ($result in $json.results) {
+        foreach ($suite in $result.suites) {
+        foreach ($test in $suite.tests) {
+
+          if ($test.fail -eq $true) {
+
+            $testName = $test.title
+
+            $errorMessage = if ($test.err -and $test.err.message) {
+              ($test.err.message -split "`n")[0]
+            } else {
+              "Erro não identificado"
             }
+
+            $errorMessage = $errorMessage -replace "CypressError:\s*", ""
+
+            $failList += "• $testName`n➡️ $errorMessage`n"
           }
-         }
-         }
-         }
 
-         if ($failList.Count -eq 0) {
-         $failList = "Nenhum teste falhou"
-         }
+        }
+        }
+        }
+        }
+        }
 
-         $failText = $failList -join "`n"
+        if ($failList.Count -eq 0) {
+        $failText = "Nenhum teste falhou"
+        } else {
+        $failText = $failList -join "`n"
+        }
 
-         [System.Text.Encoding]::UTF8.GetBytes($failText) | Out-Null
-
-         "FAIL_LIST<<EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          $failText | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        "FAIL_LIST<<EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        $failText | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        "EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
     - name: Upload relatório HTML
       if: always()
@@ -219,6 +231,7 @@ jobs:
 
          convert_markdown: false
          html_body: |
+          <meta charset="UTF-8">
           <h2>🚀 Execução dos testes automatizados concluída</h2>
 
           <p>Olá, bom dia! </p> 
