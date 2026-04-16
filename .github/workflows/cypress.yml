@@ -1,4 +1,4 @@
-name: Testes Cypress Diário - Site Camed / Portal do Beneficiário Área Logada
+name: Testes Automatizados - Site Camed e Portal de Serviços Área Logada
 
 on:
   schedule:
@@ -30,7 +30,7 @@ jobs:
           try {
             Invoke-WebRequest https://apps.camed.com.br/CamedSaudeServicos -UseBasicParsing
           } catch {
-            Write-Host "Falha no acesso"
+            Write-Host "Falha no acesso ao site"
           }
 
       - name: Rodar testes Cypress
@@ -191,7 +191,7 @@ jobs:
 
          convert_markdown: false
          html_body: |
-          <h2>🚀 Execução dos testes automatizados finalizada</h2>
+          <h2>🚀 Execução dos testes automatizados concluída</h2>
 
           <p>Os testes automatizados do <b>Site Camed</b> e <b>Portal de Serviços</b> foram executados. Abaixo, segue o resumo da execução:</p>
 
@@ -228,7 +228,20 @@ jobs:
           </table>
 
           <p><b>Taxa de sucesso:</b> ${{ env.SUCCESS_RATE }}%</p>
-          <p><b>Status geral:</b> ${{ env.STATUS_LEVEL }}</p>
+          <div style="
+          padding: 12px;
+          border-radius: 6px;
+          margin-top: 10px;
+          font-weight: bold;
+          color: white;
+          background-color: ${{
+          env.FAILED == '0' && '#28a745' ||
+          env.FAILED <= '2' && '#ffc107' ||
+          '#dc3545'
+          }};
+          ">
+          ${{ env.STATUS_LEVEL }}
+          </div>
 
           <hr>
 
