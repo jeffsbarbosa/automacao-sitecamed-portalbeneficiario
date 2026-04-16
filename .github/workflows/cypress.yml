@@ -38,7 +38,7 @@ jobs:
         continue-on-error: true
         with:
           browser: chrome
-          spec: cypress/e2e/TESTES_PERFIL_ASSOCIADO/TESTES_DISPONIBILIDADE_USABILIDADE/MENU_INTERCAMBIO/DISPONIBILIDADE_ITENS.cy.js
+          spec: cypress/e2e/TESTES_PERFIL_ASSOCIADO/TESTES_DISPONIBILIDADE_USABILIDADE/MENU_MEU_PLANO/DISPONIBILIDADE_ITENS.cy.js
           wait-on: ""
 
       # 🔥 GERA HTML DIRETO (SEM MERGE)
@@ -194,8 +194,8 @@ jobs:
           <h2>🚀 Execução dos testes automatizados concluída</h2>
 
           <p>Olá, bom dia! </p> 
-          <br>
-          <p>Os testes automatizados do <b>Site Camed</b> e <b>Portal de Serviços Área Logada</b> foram executados. Abaixo, segue o resumo da execução:</p>
+          
+          <p>Os testes automatizados do <b>Site Camed</b> e <b>Portal de Serviços Área Logada</b> foram executados. Segue abaixo, resumo da execução:</p>
 
           <h3>📊 Resumo da execução</h3>
 
