@@ -224,5 +224,6 @@ jobs:
           Analista de Qualidade
           </p>
 
-          attachments: |
-           all-reports/report.html
+         attachments: |
+          all-reports/report.html
+ 
