@@ -136,33 +136,34 @@ jobs:
       - name: Listar testes que falharam
         shell: powershell
         run: |
-          $failList = @()
+         $failList = @()
 
-          $files = Get-ChildItem -Path "all-reports" -Recurse -Filter mochawesome*.json
+         $files = Get-ChildItem -Path "all-reports" -Recurse -Filter mochawesome*.json
 
-          foreach ($file in $files) {
-            $json = Get-Content $file.FullName | ConvertFrom-Json
+         foreach ($file in $files) {
+         $json = Get-Content $file.FullName | ConvertFrom-Json
 
-            foreach ($result in $json.results) {
-              foreach ($suite in $result.suites) {
-                foreach ($test in $suite.tests) {
-                  if ($test.fail -eq $true) {
-                    $failList += $test.fullTitle
-                  }
-                }
-              }
+          foreach ($result in $json.results) {
+          foreach ($suite in $result.suites) {
+          foreach ($test in $suite.tests) {
+            if ($test.fail -eq $true) {
+              $errorMessage = if ($test.err) { $test.err.message } else { "Erro não identificado" }
+              $failList += "$($test.fullTitle)`n➡️ Erro: $errorMessage`n"
             }
           }
+         }
+         }
+         }
 
-          if ($failList.Count -eq 0) {
-            $failList = "Nenhum teste falhou"
-          }
+         if ($failList.Count -eq 0) {
+         $failList = "Nenhum teste falhou"
+         }
 
-          $failText = $failList -join "`n"
+         $failText = $failList -join "`n"
 
-          echo "FAIL_LIST<<EOF" >> $env:GITHUB_ENV
-          echo "$failText" >> $env:GITHUB_ENV
-          echo "EOF" >> $env:GITHUB_ENV
+         echo "FAIL_LIST<<EOF" >> $env:GITHUB_ENV
+         echo "$failText" >> $env:GITHUB_ENV
+         echo "EOF" >> $env:GITHUB_ENV
 
       - name: Upload relatório HTML
         if: always()
@@ -195,11 +196,36 @@ jobs:
           <p>Os testes automatizados do <b>Site Camed</b> e <b>Portal de Serviços</b> foram executados. Abaixo, segue o resumo da execução:</p>
 
           <h3>📊 Resumo da execução</h3>
-          <ul>
-          <li><b>Total de testes:</b> ${{ env.TOTAL }}</li>
-          <li><b>Testes aprovados:</b> ${{ env.PASSED }}</li>
-          <li><b>Testes com falha:</b> ${{ env.FAILED }}</li>
-          </ul>
+
+          <table style="
+          width: 100%;
+          border-collapse: collapse;
+          text-align: center;
+          margin-top: 10px;
+          font-family: Arial, sans-serif;
+          ">
+
+          <tr style="background-color: #f1f1f1;">
+          <th style="padding: 10px; border: 1px solid #ddd;">Total</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Aprovados</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Falhas</th>
+          </tr>
+
+           <tr>
+           <td style="padding: 12px; border: 1px solid #ddd; font-weight: bold;">
+           ${{ env.TOTAL }}
+          </td>
+
+          <td style="padding: 12px; border: 1px solid #ddd; font-weight: bold; color: #28a745;">
+           ${{ env.PASSED }}
+          </td>
+
+          <td style="padding: 12px; border: 1px solid #ddd; font-weight: bold; color: #dc3545;">
+           ${{ env.FAILED }}
+          </td>
+          </tr>
+
+          </table>
 
           <p><b>Taxa de sucesso:</b> ${{ env.SUCCESS_RATE }}%</p>
           <p><b>Status geral:</b> ${{ env.STATUS_LEVEL }}</p>
@@ -222,6 +248,21 @@ jobs:
           <hr>
 
           <br>
+
+          <div style="text-align: center; margin: 25px 0;">
+          <a href="https://github.com/jeffsbarbosa/automacao-sitecamed-portalbeneficiario/actions/runs/${{ github.run_id }}" 
+          style="
+           background-color: #007bff;
+           color: white;
+           padding: 12px 20px;
+           text-decoration: none;
+           border-radius: 6px;
+           font-weight: bold;
+           display: inline-block;
+            ">
+          🔎 Ver relatório completo
+          </a>
+          </div>
 
           <p>🤖 Automação de Testes</p>
 
