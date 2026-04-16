@@ -69,6 +69,7 @@ jobs:
             cypress/videos
 
   gerar-relatorio-final:
+
     needs: cypress-run
     if: always()
     runs-on: self-hosted
@@ -82,15 +83,22 @@ jobs:
       FAIL_LIST: ""
 
     steps:
-      - name: Baixar relatórios do Cypress
-        uses: actions/download-artifact@v4
-        with:
+    - name: Ajustar encoding UTF-8 (GLOBAL)
+      shell: powershell
+      run: |
+        [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+        $OutputEncoding = [System.Text.Encoding]::UTF8
+
+    #steps:
+    - name: Baixar relatórios do Cypress
+      uses: actions/download-artifact@v4
+      with:
           path: all-reports
 
       # 🔥 AGORA USA DIRETO OS JSONS (SEM MERGE)
-      - name: Consolidar resultados
-        shell: powershell
-        run: |
+    - name: Consolidar resultados
+      shell: powershell
+      run: |
           $files = Get-ChildItem -Path "all-reports" -Recurse -Filter mochawesome*.json
 
           [int]$TOTAL = 0
@@ -111,9 +119,9 @@ jobs:
           echo "PASSED=$PASSED" >> $env:GITHUB_ENV
           echo "FAILED=$FAILED" >> $env:GITHUB_ENV
 
-      - name: Calcular métricas
-        shell: powershell
-        run: |
+    - name: Calcular métricas
+      shell: powershell
+      run: |
           if ($env:TOTAL -eq 0) {
             $SUCCESS_RATE = 0
           } else {
@@ -131,11 +139,11 @@ jobs:
           }
 
           echo "SUCCESS_RATE=$SUCCESS_RATE" >> $env:GITHUB_ENV
-          echo "STATUS_LEVEL=$STATUS_LEVEL" >> $env:GITHUB_ENV
+          "STATUS_LEVEL=$STATUS_LEVEL" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Listar testes que falharam
-        shell: powershell
-        run: |
+    - name: Listar testes que falharam
+      shell: powershell
+      run: |
          $failList = @()
 
          $files = Get-ChildItem -Path "all-reports" -Recurse -Filter mochawesome*.json
@@ -161,25 +169,27 @@ jobs:
 
          $failText = $failList -join "`n"
 
-         echo "FAIL_LIST<<EOF" >> $env:GITHUB_ENV
-         echo "$failText" >> $env:GITHUB_ENV
-         echo "EOF" >> $env:GITHUB_ENV
+         [System.Text.Encoding]::UTF8.GetBytes($failText) | Out-Null
 
-      - name: Upload relatório HTML
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
+         "FAIL_LIST<<EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $failText | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+    - name: Upload relatório HTML
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
           name: relatorio-html
           path: all-reports
 
-      - name: Ajustar encoding UTF-8
-        shell: powershell
-        run: |
+    - name: Ajustar encoding UTF-8
+      shell: powershell
+      run: |
           [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
-      - name: Enviar relatório por email
-        uses: dawidd6/action-send-mail@v3
-        with:
+    - name: Enviar relatório por email
+      uses: dawidd6/action-send-mail@v3
+      with:
          server_address: smtp.gmail.com
          server_port: 465
          secure: true
