@@ -129,29 +129,28 @@ jobs:
     - name: Calcular métricas
       shell: powershell
       run: |
-          if ($env:TOTAL -eq 0) {
-            $SUCCESS_RATE = 0
-          } else {
-            $SUCCESS_RATE = [math]::Round(($env:PASSED / $env:TOTAL) * 100, 2)
-          }
+       if ($env:TOTAL -eq 0) {
+        $SUCCESS_RATE = 0
+       } else {
+        $SUCCESS_RATE = [math]::Round(($env:PASSED / $env:TOTAL) * 100, 2)
+       }
 
-          if ($env:FAILED -eq 0) {
-            $STATUS_LEVEL = "SUCESSO: Nenhuma falha detectada"
-            $STATUS_COLOR = "#28a745"
-          }
-          elseif ($env:FAILED -le 2) {
-            $STATUS_LEVEL = "ATENÇÃO: Falhas pontuais identificadas"
-            $STATUS_COLOR = "#ffc107"
-          }
-          else {
-            $STATUS_LEVEL = "CRÍTICO: Falhas relevantes detectadas"
-            $STATUS_COLOR = "#dc3545"
-          }
+       if ($env:FAILED -eq 0) {
+        $STATUS_LEVEL = "SUCESSO: Nenhuma falha detectada"
+        $STATUS_COLOR = "#28a745"
+       }
+       elseif ($env:FAILED -le 2) {
+        $STATUS_LEVEL = "ATENÇÃO: Falhas pontuais identificadas"
+        $STATUS_COLOR = "#ffc107"
+       }
+       else {
+        $STATUS_LEVEL = "CRÍTICO: Falhas relevantes detectadas"
+        $STATUS_COLOR = "#dc3545"
+       }
 
-          "SUCCESS_RATE=$SUCCESS_RATE" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "STATUS_LEVEL=$STATUS_LEVEL" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "STATUS_COLOR=$STATUS_COLOR" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
+       Add-Content -Path $env:GITHUB_ENV -Value "SUCCESS_RATE=$SUCCESS_RATE"
+       Add-Content -Path $env:GITHUB_ENV -Value "STATUS_LEVEL=$STATUS_LEVEL"
+       Add-Content -Path $env:GITHUB_ENV -Value "STATUS_COLOR=$STATUS_COLOR"
 
     - name: Listar testes que falharam
       shell: powershell
@@ -180,22 +179,28 @@ jobs:
 
             $errorMessage = $errorMessage -replace "CypressError:\s*", ""
 
-            $failList += "• $testName`n➡️ $errorMessage`n"
+            # 🔥 AQUI MUDA TUDO (HTML bonitinho)
+            $failList += @"
+            <li style='margin-bottom:10px;'>
+          <b>$testName</b><br>
+          <span style='color:#dc3545;'>➡️ $errorMessage</span>
+          </li>
+          "@
           }
 
         }
-        }
+         }
         }
         }
         }
 
         if ($failList.Count -eq 0) {
-        $failText = "Nenhum teste falhou"
+        $failText = "<p style='color:#28a745; font-weight:bold;'>Nenhum teste falhou</p>"
         } else {
-        $failText = $failList -join "`n"
+         $failText = "<ul style='padding-left:20px; font-family:Arial;'>$($failList -join "")</ul>"
         }
 
-        "FAIL_LIST<<EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "FAIL_LIST<<EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         $failText | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         "EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
