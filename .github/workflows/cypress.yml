@@ -193,7 +193,7 @@ jobs:
          html_body: |
           <h2>🚀 Execução dos testes automatizados concluída</h2>
 
-          <p>Os testes automatizados do <b>Site Camed</b> e <b>Portal de Serviços</b> foram executados. Abaixo, segue o resumo da execução:</p>
+          <p>Os testes automatizados do <b>Site Camed</b> e <b>Portal de Serviços Área Logada</b> foram executados. Abaixo, segue o resumo da execução:</p>
 
           <h3>📊 Resumo da execução</h3>
 
