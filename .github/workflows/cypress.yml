@@ -195,13 +195,13 @@ jobs:
       uses: dawidd6/action-send-mail@v3
       with:
          server_address: correio.camed.com.br
-         server_port: 25
+         server_port: 587
          secure: false
          username: ${{ secrets.EMAIL_USER }}
          password: ${{ secrets.EMAIL_PASS }}
          subject: "Testes dos Atendimentos Virtuais - Site Camed e Portal de Serviços"
          to: ${{ secrets.EMAIL_TO }}
-         from: ${{ secrets.EMAIL_USER }}
+         from: Jefferson Barbosa <${{ secrets.EMAIL_USER }}>
 
          convert_markdown: false
          html_body: |
