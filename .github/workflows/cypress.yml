@@ -121,13 +121,13 @@ jobs:
           }
 
           if ($env:FAILED -eq 0) {
-            $STATUS_LEVEL = "SUCESSO TOTAL"
+            $STATUS_LEVEL = "SUCESSO: Todos os fluxos dos atendimento virtuais foram testados e estão operando normalmente."
           }
           elseif ($env:FAILED -le 2) {
-            $STATUS_LEVEL = "ATENÇÃO"
+            $STATUS_LEVEL = "ATENÇÃO: Foram identificadas falhas pontuais nos testes."
           }
           else {
-            $STATUS_LEVEL = "CRÍTICO"
+            $STATUS_LEVEL = "CRÍTICO: Foram identificadas falhas que impactam funcionalidades."
           }
 
           echo "SUCCESS_RATE=$SUCCESS_RATE" >> $env:GITHUB_ENV
@@ -184,27 +184,29 @@ jobs:
          secure: true
          username: ${{ secrets.EMAIL_USER }}
          password: ${{ secrets.EMAIL_PASS }}
-         subject: "Resultado Cypress - ${{ env.STATUS_LEVEL }}"
+         subject: "Testes automatizados - Site Camed e Portal de Serviços | ${{ env.STATUS_LEVEL }}"
          to: ${{ secrets.EMAIL_TO }}
          from: ${{ secrets.EMAIL_USER }}
 
          convert_markdown: false
          html_body: |
-          <h2>🚀 Execução automática dos testes Cypress finalizada!</h2>
+          <h2>🚀 Execução dos testes automatizados finalizada</h2>
 
-          <h3>📊 RESUMO:</h3>
+          <p>Os testes automatizados do <b>Site Camed</b> e <b>Portal de Serviços</b> foram executados. Abaixo, segue o resumo da execução:</p>
+
+          <h3>📊 Resumo da execução</h3>
           <ul>
-          <li>✔️ <b>Total:</b> ${{ env.TOTAL }}</li>
-          <li>✅ <b>Passaram:</b> ${{ env.PASSED }}</li>
-          <li>❌ <b>Falharam:</b> ${{ env.FAILED }}</li>
+          <li><b>Total de testes:</b> ${{ env.TOTAL }}</li>
+          <li><b>Testes aprovados:</b> ${{ env.PASSED }}</li>
+          <li><b>Testes com falha:</b> ${{ env.FAILED }}</li>
           </ul>
 
-          <p>📈 <b>Sucesso:</b> ${{ env.SUCCESS_RATE }}%</p>
-          <p>🚨 <b>Status:</b> ${{ env.STATUS_LEVEL }}</p>
+          <p><b>Taxa de sucesso:</b> ${{ env.SUCCESS_RATE }}%</p>
+          <p><b>Status geral:</b> ${{ env.STATUS_LEVEL }}</p>
 
           <hr>
 
-          <h3>❌ TESTES QUE FALHARAM:</h3>
+          <h3>❌ Testes com falha</h3>
           <pre>${{ env.FAIL_LIST }}</pre>
 
           <hr>
@@ -214,12 +216,13 @@ jobs:
 
           <br>
 
-          <p>🤖 Automação QA</p>
+          <p>🤖 Automação de Testes</p>
 
-          <p>—<br>
+          <p>
+          —<br>
           Jefferson Barbosa<br>
-          Analista de Qualidade</p>
+          Analista de Qualidade
+          </p>
 
           attachments: |
-           all-reports/**/*.html
-           all-reports/**/*.png
+           all-reports/report.html
