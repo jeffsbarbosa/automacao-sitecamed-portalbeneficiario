@@ -89,7 +89,6 @@ jobs:
         [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
         $OutputEncoding = [System.Text.Encoding]::UTF8
 
-    #steps:
     - name: Baixar relatórios do Cypress
       uses: actions/download-artifact@v4
       with:
@@ -129,17 +128,22 @@ jobs:
           }
 
           if ($env:FAILED -eq 0) {
-            $STATUS_LEVEL = "SUCESSO: Todos os fluxos dos atendimentos virtuais foram testados e nenhuma falha operacional foi detectada"
+            $STATUS_LEVEL = "SUCESSO: Nenhuma falha detectada"
+            $STATUS_COLOR = "#28a745"
           }
           elseif ($env:FAILED -le 2) {
-            $STATUS_LEVEL = "ATENÇÃO: Foram identificadas falhas pontuais nos testes."
+            $STATUS_LEVEL = "ATENÇÃO: Falhas pontuais identificadas"
+            $STATUS_COLOR = "#ffc107"
           }
           else {
-            $STATUS_LEVEL = "CRÍTICO: Foram identificadas falhas que impactam funcionalidades."
+            $STATUS_LEVEL = "CRÍTICO: Falhas relevantes detectadas"
+            $STATUS_COLOR = "#dc3545"
           }
 
-          echo "SUCCESS_RATE=$SUCCESS_RATE" >> $env:GITHUB_ENV
+          "SUCCESS_RATE=$SUCCESS_RATE" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "STATUS_LEVEL=$STATUS_LEVEL" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "STATUS_COLOR=$STATUS_COLOR" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
 
     - name: Listar testes que falharam
       shell: powershell
