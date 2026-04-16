@@ -227,7 +227,11 @@ jobs:
 
           </table>
 
-          <p><b>Taxa de sucesso:</b> ${{ env.SUCCESS_RATE }}%</p>
+          <p style="font-size: 16px;">
+          <b>📈 Taxa de sucesso:</b> 
+          <span style="color:#28a745; font-weight:bold;">${{ env.SUCCESS_RATE }}%</span>
+          </p>
+
           <div style="
           padding: 12px;
           border-radius: 6px;
@@ -245,24 +249,25 @@ jobs:
 
           <hr>
 
-          <h3>❌ TESTES COM FALHA:</h3>
+          ${{ env.FAILED == '0' && '
+          <h3 style="color: #28a745;">✅ Nenhuma falha identificada</h3>
+          ' || '
+          <h3 style="color: #dc3545;">❌ TESTES COM FALHA:</h3>
 
           <div style="
-           background: #fff5f5;
-           border: 1px solid #f5c6cb;
-           padding: 10px;
-           border-radius: 6px;
-           font-family: Arial, sans-serif;
-           white-space: pre-line;
+          background: #fff5f5;
+          border: 1px solid #f5c6cb;
+          padding: 10px;
+          border-radius: 6px;
+          font-family: Arial, sans-serif;
+          white-space: pre-line;
           ">
-          ${{ env.FAIL_LIST }}
-          </div>
+          ' }}${{ env.FAIL_LIST }}${{ env.FAILED == '0' && '' || '</div>' }}
 
           <hr>
 
           <br>
-
-    
+   
 
           <p>🤖 Automação de Testes</p>
 
