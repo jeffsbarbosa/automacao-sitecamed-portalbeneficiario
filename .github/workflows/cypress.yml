@@ -121,7 +121,7 @@ jobs:
           }
 
           if ($env:FAILED -eq 0) {
-            $STATUS_LEVEL = "SUCESSO: Todos os fluxos dos atendimento virtuais foram testados e estão operando normalmente."
+            $STATUS_LEVEL = "SUCESSO: Todos os fluxos dos atendimentos virtuais foram testados e nenhuma falha operacional foi detectada"
           }
           elseif ($env:FAILED -le 2) {
             $STATUS_LEVEL = "ATENÇÃO: Foram identificadas falhas pontuais nos testes."
@@ -206,13 +206,20 @@ jobs:
 
           <hr>
 
-          <h3>❌ Testes com falha</h3>
-          <pre>${{ env.FAIL_LIST }}</pre>
+          <h3>❌ TESTES COM FALHA:</h3>
+
+          <div style="
+           background: #fff5f5;
+           border: 1px solid #f5c6cb;
+           padding: 10px;
+           border-radius: 6px;
+           font-family: Arial, sans-serif;
+           white-space: pre-line;
+          ">
+          ${{ env.FAIL_LIST }}
+          </div>
 
           <hr>
-
-          <p><b>Execução:</b> #${{ github.run_number }}</p>
-          <p><b>Branch:</b> ${{ github.ref_name }}</p>
 
           <br>
 
