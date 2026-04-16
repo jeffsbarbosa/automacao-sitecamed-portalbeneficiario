@@ -190,6 +190,11 @@ jobs:
       shell: powershell
       run: |
           [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    
+    - name: Ignorar erro SSL
+      shell: powershell
+      run: |
+       "NODE_TLS_REJECT_UNAUTHORIZED=0" >> $env:GITHUB_ENV
 
     - name: Enviar relatório por email
       uses: dawidd6/action-send-mail@v3
@@ -197,6 +202,7 @@ jobs:
          server_address: correio.camed.com.br
          server_port: 587
          secure: false
+         ignore_cert: true
          username: ${{ secrets.EMAIL_USER }}
          password: ${{ secrets.EMAIL_PASS }}
          subject: "Testes dos Atendimentos Virtuais - Site Camed e Portal de Serviços"
