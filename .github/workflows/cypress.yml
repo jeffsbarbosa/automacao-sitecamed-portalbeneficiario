@@ -33,12 +33,15 @@ jobs:
             Write-Host "Falha no acesso ao site"
           }
 
-      - name: Rodar testes Cypress
+      - name: Rodar testes automatizados
         uses: cypress-io/github-action@v6
         continue-on-error: true
         with:
           browser: chrome
-          spec: cypress/e2e/TESTES_PERFIL_ASSOCIADO/TESTES_DISPONIBILIDADE_USABILIDADE/MENU_MEU_PLANO/DISPONIBILIDADE_ITENS.cy.js
+          spec: |
+             cypress/e2e/TESTES_HOMEPAGE/**/*.cy.js,
+             cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/**/*.cy.js,
+             cypress/e2e/TESTES_PERFIL_ASSOCIADO/**/*.cy.js 
           wait-on: ""
 
       # 🔥 GERA HTML DIRETO (SEM MERGE)
