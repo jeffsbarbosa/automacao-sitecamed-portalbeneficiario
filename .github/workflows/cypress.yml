@@ -295,9 +295,17 @@ jobs:
 
           <p>
           —<br>
-          Jefferson Barbosa<br>
-          Analista de Qualidade
-          </p>
+          <hr>
+
+          <p>🤖 Automação de Testes</p>
+
+          <br>
+
+          <div style="margin-top: 20px;">
+          <img src="https://raw.githubusercontent.com/jeffsbarbosa/automacao-sitecamed-portalbeneficiario/refs/heads/main/cypress/assets/assinatura_email1.png"
+          alt="Assinatura Jefferson Barbosa"
+          style="max-width: 450px; width: 100%;">
+          </div>
 
          attachments: |
           all-reports/report.html
