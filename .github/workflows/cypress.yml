@@ -194,9 +194,9 @@ jobs:
     - name: Enviar relatório por email
       uses: dawidd6/action-send-mail@v3
       with:
-         server_address: smtp.gmail.com
-         server_port: 465
-         secure: true
+         server_address: correio.camed.com.br
+         server_port: 25
+         secure: false
          username: ${{ secrets.EMAIL_USER }}
          password: ${{ secrets.EMAIL_PASS }}
          subject: "Testes dos Atendimentos Virtuais - Site Camed e Portal de Serviços"
