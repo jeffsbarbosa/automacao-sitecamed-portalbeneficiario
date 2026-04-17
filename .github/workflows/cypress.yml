@@ -175,7 +175,7 @@ jobs:
 
                       $errorMessage = $errorMessage -replace "CypressError:\s*", ""
 
-                      $failList += "<li style='margin-bottom:10px;'><b>$testName</b><br><span style='color:#dc3545;'>➡️ $errorMessage</span></li>"
+                      $failList += "<li style='margin-bottom:10px;'><b>$testName</b><br><span style='color:#dc3545;'> -> $errorMessage</span></li>"
                     }
 
                   }
@@ -193,7 +193,7 @@ jobs:
           "FAIL_LIST<<EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           $failText | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          
+
       - name: Upload relatório HTML
         if: always()
         uses: actions/upload-artifact@v4
