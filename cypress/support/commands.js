@@ -88,7 +88,12 @@ Cypress.Commands.add('validarPagina', (url, titulo) => {
 })
 
 Cypress.Commands.add('abrirSaudeMental', () => {
-    cy.contains("Saúde Mental").realHover();
+
+  cy.viewport(1280, 800)
+  cy.contains("Saúde Mental", { timeout: 30000 })
+  .should('be.visible')
+  .realHover()
+    
     cy.contains("a", "Saúde Mental")
         .should("be.visible")
         .click();
@@ -96,7 +101,12 @@ Cypress.Commands.add('abrirSaudeMental', () => {
 })
 
 Cypress.Commands.add('abrirSaudePreventiva', () => {
-    cy.contains("Saúde Preventiva").realHover();
+  cy.viewport(1280, 800)
+
+    cy.contains("Saúde Preventiva", { timeout: 30000 })
+    .should('be.visible')
+    .realHover()
+
     cy.contains("a", "Saúde Preventiva")
         .should("be.visible")
         .click();

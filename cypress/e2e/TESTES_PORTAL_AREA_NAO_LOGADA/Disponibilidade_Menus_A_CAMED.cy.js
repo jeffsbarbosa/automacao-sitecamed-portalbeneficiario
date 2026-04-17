@@ -6,7 +6,13 @@ import utilidades from "../../support/PAGES/utilidades";
 describe("Testes de Disponibilidade – Menu A CAMED", () => {
   beforeEach(() => {
     cy.acessarHomeCamedSaude();
-    cy.contains("A Camed").realHover();
+
+    cy.viewport(1280, 800)
+
+   cy.contains("A Camed", { timeout: 30000 })
+  .should('be.visible')
+  .realHover()
+  
   });
 
   it("Deve validar que o menu História está disponível", () => {
@@ -51,8 +57,7 @@ describe("Testes de Disponibilidade – Menu A CAMED", () => {
       utilidades.acessarGovernanca()
 
       cy.contains('Conselho Deliberativo')
-        .click()
-        .invoke("removeAttr", "target");
+        .invoke("removeAttr", "target").click()
 
       //validando um item da nova página aberta
       cy.contains("Conselho Deliberativo").should("be.visible");

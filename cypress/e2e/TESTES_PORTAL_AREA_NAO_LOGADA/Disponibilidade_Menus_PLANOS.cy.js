@@ -5,7 +5,12 @@ import "cypress-real-events/support";
 describe("Testes de Disponibilidade – Menu PLANOS", () => {
   beforeEach(() => {
     cy.acessarHomeCamedSaude();
-    cy.contains("Planos").realHover();
+    
+    cy.viewport(1280, 800)
+
+    cy.contains("Planos", { timeout: 30000 })
+      .should('be.visible')
+      .realHover()
   })
 
 it('Deve validar a disponibilidade do Submenu Nossos Planos', () => {

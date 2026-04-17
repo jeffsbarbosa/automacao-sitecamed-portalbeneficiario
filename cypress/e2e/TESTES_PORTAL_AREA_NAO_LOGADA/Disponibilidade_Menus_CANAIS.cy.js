@@ -5,7 +5,12 @@ import "cypress-real-events/support";
 describe("Testes de Disponibilidade – Menu CANAIS DE ATENDIMENTO", () => {
   beforeEach(() => {
     cy.acessarHomeCamedSaude();
-    cy.contains("Canais de Atendimento").realHover();
+    cy.viewport(1280, 800)
+
+   cy.contains("Canais de Atendimento", { timeout: 30000 })
+  .should('be.visible')
+  .realHover()
+  
   });
 
   it("Deve validar a disponibilidade do submenu FALE CONOSCO", () => {

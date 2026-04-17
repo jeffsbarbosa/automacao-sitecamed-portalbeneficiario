@@ -6,7 +6,12 @@ import utilidades from "../../support/PAGES/utilidades";
 describe("Testes de Disponibilidade – Menu ANS", () => {
   beforeEach(() => {
     cy.acessarHomeCamedSaude();
-    cy.contains('ANS').realHover();
+    cy.viewport(1280, 800)
+
+   cy.contains("ANS", { timeout: 30000 })
+  .should('be.visible')
+  .realHover()
+  
   });
 
   it('Deve validar a disponibilidade do submenu Resultado do IDSS',() => {

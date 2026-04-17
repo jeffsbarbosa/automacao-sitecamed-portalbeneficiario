@@ -6,6 +6,7 @@ describe("Testes de Disponibilidade – Menu SAÚDE MENTAL", () => {
   beforeEach(() => {
     cy.acessarHomeCamedSaude();
     cy.abrirSaudeMental()
+    
   });
 
   it("Deve validar a disponibilidade do item Saúde Mental", () => {

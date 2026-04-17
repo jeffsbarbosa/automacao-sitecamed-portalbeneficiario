@@ -6,7 +6,13 @@ describe("Testes de Disponibilidade – Menu CLINICAMED", () => {
 
   beforeEach(() => {
     cy.acessarHomeCamedSaude();
-    cy.contains("Clinicamed").realHover();
+    
+    cy.viewport(1280, 800)
+
+   cy.contains("Clinicamed", { timeout: 30000 })
+      .should('be.visible')
+      .realHover()
+
   })
 
 it('Deve validar que a tela da Clinicamed está disponível', () => {
