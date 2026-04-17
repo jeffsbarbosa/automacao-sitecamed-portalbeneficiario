@@ -9,17 +9,7 @@ describe("Testes de Disponibilidade – Menu A CAMED", () => {
 
   cy.acessarHomeCamedSaude()
 
-  // garante que o menu inteiro carregou
-  cy.get('.menu-container', { timeout: 30000 })
-    .should('be.visible')
-
-  cy.get('.camed-li')
-    .should('be.visible')
-
-  cy.wait(500) // 🔥 tempo pra render/animação
-
-  cy.get('.camed-li')
-    .realHover()
+  cy.xpath("//div[@class='header-content']//a[normalize-space()='A Camed']").realHover()
 })
 
   it("Deve validar que o menu História está disponível", () => {

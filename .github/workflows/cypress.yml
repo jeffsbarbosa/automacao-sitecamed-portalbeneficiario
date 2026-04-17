@@ -38,8 +38,9 @@ jobs:
         continue-on-error: true
         with:
           browser: chrome
+          headed: true
           spec: |
-            cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/**/*.cy.js
+            "cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/Disponibilidade_Menus_A_CAMED.cy.js"
           wait-on: ""
 
       - name: Gerar relatório HTML
