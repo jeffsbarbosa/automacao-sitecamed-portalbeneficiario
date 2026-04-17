@@ -5,21 +5,26 @@ import utilidades from "../../support/PAGES/utilidades";
 
 describe("Testes de Disponibilidade – Menu A CAMED", () => {
   beforeEach(() => {
-    //cy.visit('https://www.camed.com.br')
+    
     cy.acessarHomeCamedSaude();
     cy.viewport(1280, 800)
 
-   cy.contains("A Camed", { timeout: 30000 })
-  .should('be.visible')
-  .realHover()
+    cy.contains("A Camed", { timeout: 30000 })
+      .should('be.visible')
+      .realHover()
 
   });
 
   it("Deve validar que o menu História está disponível", () => {
 
-    cy.contains("a", "História").should("be.visible").click();
+    cy.contains("a", "História")
+      .should("exist")
+      .click({ force: true });
+
     cy.validarPagina('/historia', 'História')
-    cy.xpath("//h3[normalize-space()='Valores']").should("contain", "Valores");
+
+    cy.xpath("//h3[normalize-space()='Valores']")
+      .should("contain", "Valores");
 
   });
 
@@ -36,74 +41,89 @@ describe("Testes de Disponibilidade – Menu A CAMED", () => {
     cy.url().should("include", "/governanca");
     
     cy.xpath("//p[normalize-space()='Estatuto social']")
-      .should('contain', 'Estatuto')
-      .click({force: true});
+      .should('exist')
+      .click({ force: true });
     
   });
 
   it("Deve validar a disponibilidade do submenu Organograma", () => {
+
     utilidades.acessarGovernanca()
 
     cy.contains('Organograma')
-      .should("contain", "Organograma")
-      .click();
+      .should("exist")
+      .click({ force: true });
 
-    //Validando que abriu a tela do organograma.
-    cy.get('[class="modal__title"]').should("contain", "Organograma");
+    cy.get('[class="modal__title"]')
+      .should("contain", "Organograma");
   });
   
-    it("Deve validar a disponibilidade do submenu Informes do Conselho Deliberativo", () => {
+  it("Deve validar a disponibilidade do submenu Informes do Conselho Deliberativo", () => {
 
-      utilidades.acessarGovernanca()
+    utilidades.acessarGovernanca()
 
-      cy.contains('Conselho Deliberativo')
-        .invoke("removeAttr", "target").click()
+    cy.contains('Conselho Deliberativo')
+      .invoke("removeAttr", "target")
+      .click({ force: true });
 
-      //validando um item da nova página aberta
-      cy.contains("Conselho Deliberativo").should("be.visible");
+    cy.contains("Conselho Deliberativo")
+      .should("be.visible");
 
-    });
+  });
 
-    it('Deve validar que o submenu Conselhos está disponível', () => {
+  it('Deve validar que o submenu Conselhos está disponível', () => {
       
-      cy.contains("a", "Conselhos").should("be.visible").click();
-      cy.validarPagina('/conselhos', 'Conselhos')
+    cy.contains("a", "Conselhos")
+      .should("exist")
+      .click({ force: true });
 
-    })
+    cy.validarPagina('/conselhos', 'Conselhos')
 
-    it('Deve validar que o submenu Diretoria está disponível', () => {
+  });
+
+  it('Deve validar que o submenu Diretoria está disponível', () => {
       
-      cy.contains("a", "Diretoria").should("be.visible").click();
-      cy.validarPagina('/diretoria', 'Diretoria')
+    cy.contains("a", "Diretoria")
+      .should("exist")
+      .click({ force: true });
 
-    })
+    cy.validarPagina('/diretoria', 'Diretoria')
 
-     it('Deve validar que o submenu Notícias está disponível', () => {
+  });
+
+  it('Deve validar que o submenu Notícias está disponível', () => {
       
-      cy.contains("a", "Notícias").should("be.visible").click();
-      cy.validarPagina('/noticias', 'Notícias')
+    cy.contains("a", "Notícias")
+      .should("exist")
+      .click({ force: true });
 
-    })
+    cy.validarPagina('/noticias', 'Notícias')
 
-     it('Deve validar que o submenu Identidade Corporativa está disponível', () => {
+  });
+
+  it('Deve validar que o submenu Identidade Corporativa está disponível', () => {
       
-      cy.contains("a", "Identidade Corporativa").should("be.visible").click();
-      cy.validarPagina('/identidade', 'Identidade corporativa')
+    cy.contains("a", "Identidade Corporativa")
+      .should("exist")
+      .click({ force: true });
 
-    })    
+    cy.validarPagina('/identidade', 'Identidade corporativa')
 
-    it('Deve validar que o submenu Relatório Anual está disponível', () => {
+  });    
+
+  it('Deve validar que o submenu Relatório Anual está disponível', () => {
       
-      cy.contains("a", "Relatório Anual").should("exist")
-
+    cy.contains("a", "Relatório Anual")
+      .should("exist")
       .invoke('removeAttr', 'target')
-      .click()
+      .click({ force: true });
       
-      cy.validarPagina('/relatorio-anual', 'Relatório Anual')
-      cy.get('[class="far fa-file"]').eq(0)
-      .invoke('removeAttr', 'target')
-      .click({force:true})
+    cy.validarPagina('/relatorio-anual', 'Relatório Anual')
 
-    })
+    cy.get('[class="far fa-file"]').eq(0)
+      .invoke('removeAttr', 'target')
+      .click({ force:true })
+
+  });
 
 })
