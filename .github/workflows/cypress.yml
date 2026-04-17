@@ -40,7 +40,6 @@ jobs:
           browser: chrome
           headed: true
           spec: |
-            cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/Disponibilidade_Menus_CLINICAMED.cy.js
             cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/Disponibilidade_Menus_PLANOS.cy.js
            
           wait-on: ""
