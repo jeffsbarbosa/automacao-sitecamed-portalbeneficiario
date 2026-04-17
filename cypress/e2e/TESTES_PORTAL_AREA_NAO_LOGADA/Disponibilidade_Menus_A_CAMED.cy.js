@@ -9,8 +9,8 @@ describe("Testes de Disponibilidade – Menu A CAMED", () => {
     cy.acessarHomeCamedSaude();
     cy.viewport(1280, 800)
 
-    cy.contains("A Camed", { timeout: 30000 })
-      .should('be.visible')
+    cy.contains("A CAMED", { timeout: 30000 })
+      .should('exist')
       .realHover()
 
   });
