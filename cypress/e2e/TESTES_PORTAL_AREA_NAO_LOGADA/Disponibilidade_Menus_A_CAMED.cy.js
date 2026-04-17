@@ -4,16 +4,20 @@ import "cypress-real-events/support";
 import utilidades from "../../support/PAGES/utilidades";
 
 describe("Testes de Disponibilidade – Menu A CAMED", () => {
-  beforeEach(() => {
-    
-    cy.acessarHomeCamedSaude();
-    cy.viewport(1280, 800)
+ beforeEach(() => {
+  cy.viewport(1280, 800)
 
-    cy.contains("A CAMED", { timeout: 30000 })
-      .should('exist')
-      .realHover()
+  cy.acessarHomeCamedSaude()
 
-  });
+  cy.contains("A Camed", { timeout: 30000 })
+    .should('be.visible')
+
+  cy.wait(300)
+
+  cy.contains("A Camed")
+    .closest('li')
+    .realHover()
+})
 
   it("Deve validar que o menu História está disponível", () => {
 
