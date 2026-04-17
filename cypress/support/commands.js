@@ -34,16 +34,6 @@ Cypress.Commands.add('loginValido', () => {
 
 Cypress.Commands.add('acessarHomeCamedSaude', () => {
 
-  // 🔥 Bloqueia tudo que pode travar o load
-  cy.intercept('GET', '**/*.{png,jpg,jpeg,gif,svg,webp}', { statusCode: 200, body: '' })
-  cy.intercept('GET', '**/*.css', { statusCode: 200, body: '' })
-  cy.intercept('GET', '**/*.woff*', { statusCode: 200, body: '' })
-
-  // scripts externos problemáticos
-  cy.intercept('GET', '**/google-analytics/**', { statusCode: 200, body: '' })
-  cy.intercept('GET', '**/gtm.js**', { statusCode: 200, body: '' })
-  cy.intercept('GET', '**/facebook**', { statusCode: 200, body: '' })
-
   // 🚀 VISIT robusto
   cy.visit('https://www.camed.com.br', {
     failOnStatusCode: false,
