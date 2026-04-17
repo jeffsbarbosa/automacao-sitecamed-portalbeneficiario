@@ -7,10 +7,10 @@ describe("Testes de Disponibilidade – Menu CANAIS DE ATENDIMENTO", () => {
     cy.acessarHomeCamedSaude();
     cy.viewport(1280, 800)
 
-   cy.contains("Canais de Atendimento", { timeout: 30000 })
-  .should('be.visible')
-  .realHover()
-  
+    cy.contains("a", "Canais de Atendimento", { timeout: 30000 })
+   .should('be.visible')
+   .realHover()
+
   });
 
   it("Deve validar a disponibilidade do submenu FALE CONOSCO", () => {

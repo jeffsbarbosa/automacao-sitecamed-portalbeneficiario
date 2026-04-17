@@ -8,7 +8,7 @@ describe("Testes de Disponibilidade – Menu PLANOS", () => {
     
     cy.viewport(1280, 800)
 
-    cy.contains("Planos", { timeout: 30000 })
+    cy.contains("a", "Planos", { timeout: 30000 })
       .should('be.visible')
       .realHover()
   })

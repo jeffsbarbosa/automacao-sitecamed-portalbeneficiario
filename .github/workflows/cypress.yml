@@ -40,7 +40,11 @@ jobs:
           browser: chrome
           headed: true
           spec: |
-            cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/Disponibilidade_Menus_A_CAMED.cy.js
+            cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/Disponibilidade_Menus_CANAIS.cy.js
+            cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/Disponibilidade_Menus_CLINICAMED.cy.js
+            cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/Disponibilidade_Menus_PLANOS.cy.js
+            cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/Disponibilidade_Menus_SAUDE_MENTAL.cy.js
+            cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/Disponibilidade_Menus_SAUDE_PREV.cy.js
           wait-on: ""
 
       - name: Gerar relatório HTML

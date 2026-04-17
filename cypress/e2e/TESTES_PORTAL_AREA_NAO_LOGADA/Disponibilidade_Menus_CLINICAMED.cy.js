@@ -9,7 +9,7 @@ describe("Testes de Disponibilidade – Menu CLINICAMED", () => {
     
     cy.viewport(1280, 800)
 
-   cy.contains("Clinicamed", { timeout: 30000 })
+   cy.contains("a", "Clinicamed", { timeout: 30000 })
       .should('be.visible')
       .realHover()
 

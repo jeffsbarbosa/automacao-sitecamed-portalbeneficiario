@@ -84,7 +84,7 @@ Cypress.Commands.add('validarPagina', (url, titulo) => {
 Cypress.Commands.add('abrirSaudeMental', () => {
 
   cy.viewport(1280, 800)
-  cy.contains("Saúde Mental", { timeout: 30000 })
+  cy.contains("a", "Saúde Mental", { timeout: 30000 })
   .should('be.visible')
   .realHover()
     
@@ -97,7 +97,7 @@ Cypress.Commands.add('abrirSaudeMental', () => {
 Cypress.Commands.add('abrirSaudePreventiva', () => {
   cy.viewport(1280, 800)
 
-    cy.contains("Saúde Preventiva", { timeout: 30000 })
+    cy.contains("a", "Saúde Preventiva", { timeout: 30000 })
     .should('be.visible')
     .realHover()
 
