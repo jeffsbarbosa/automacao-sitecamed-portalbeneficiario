@@ -8,13 +8,14 @@ describe("Testes de Disponibilidade – Menu PLANOS", () => {
     
     cy.viewport(1280, 800)
 
-    cy.contains("a", "Planos", { timeout: 30000 })
+    cy.contains("span", "Planos", { timeout: 30000 })
       .should('be.visible')
       .realHover()
   })
 
 it('Deve validar a disponibilidade do Submenu Nossos Planos', () => {
-     cy.contains("a", "Nossos Planos")
+
+     cy.contains("Nossos Planos")
       .should("be.visible")
       .click();
 

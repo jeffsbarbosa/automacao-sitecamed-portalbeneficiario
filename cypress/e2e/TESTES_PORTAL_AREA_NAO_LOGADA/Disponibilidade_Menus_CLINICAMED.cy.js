@@ -16,12 +16,12 @@ describe("Testes de Disponibilidade – Menu CLINICAMED", () => {
   })
 
 it('Deve validar que a tela da Clinicamed está disponível', () => {
-     cy.contains("a", "Clinicamed")
+     cy.contains("Clinicamed")
       .should("be.visible")
       .click();
 
     cy.url().should("include", "/clinicamed");
-    cy.contains('Agendar consulta')
+    cy.contains('Agendar consulta').should('exist')
    
 
 })
