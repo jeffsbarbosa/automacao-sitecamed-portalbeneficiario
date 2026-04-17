@@ -6,19 +6,20 @@ describe("Testes de Disponibilidade – Menu SAÚDE MENTAL", () => {
   beforeEach(() => {
     cy.acessarHomeCamedSaude();
     cy.abrirSaudeMental()
-    
+        
   });
 
   it("Deve validar a disponibilidade do item Saúde Mental", () => {
-    
+            
     cy.validarPagina('/saude-mental', 'Saúde Mental')
     cy.get('[class="saude__mental__title"]').should("be.visible");  
 
   });
 
   it("Deve validar a disponibilidade do item Blitz do Cuidado", () => {
-   
-    cy.get(".card-planos.blitz")
+
+      
+    cy.contains("a", "Blitz do Cuidado")
       .should("be.visible")
       .invoke("removeAttr", "target")
       .click();
@@ -30,8 +31,8 @@ describe("Testes de Disponibilidade – Menu SAÚDE MENTAL", () => {
   });
 
   it("Deve validar disponibilidade do item Jornada do Cuidado", () => {
-   
-    cy.get(".card-planos.jornada")
+    
+    cy.contains("a", "Jornada do Cuidado")
       .should("be.visible")
       .invoke("removeAttr", "target")
       .click();
@@ -43,8 +44,9 @@ describe("Testes de Disponibilidade – Menu SAÚDE MENTAL", () => {
   });
 
   it("Deve validar disponibilidade do item Cuidado Integrado", () => {
-    
-    cy.get(".card-planos.integrado")
+
+     
+    cy.contains("a", "Cuidado Integrado")
       .should("be.visible")
       .invoke("removeAttr", "target")
       .click();
