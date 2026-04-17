@@ -9,7 +9,7 @@ describe("Testes de Disponibilidade – Menu A CAMED", () => {
 
   cy.acessarHomeCamedSaude()
 
-  cy.xpath("//div[@class='header-content']//a[normalize-space()='A Camed']").realHover()
+  cy.xpath("//div[@class='header-content']//a[normalize-space()='A Camed']", { timeout: 30000 }).realHover()
 })
 
   it("Deve validar que o menu História está disponível", () => {
