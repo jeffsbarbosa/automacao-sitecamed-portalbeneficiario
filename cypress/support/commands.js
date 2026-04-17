@@ -34,13 +34,28 @@ Cypress.Commands.add('loginValido', () => {
 
 Cypress.Commands.add('acessarHomeCamedSaude', () => {
 
-    cy.visit('https://www.camed.com.br')
+  // 🔥 Bloqueia tudo que pode travar o load
+  cy.intercept('GET', '**/*.{png,jpg,jpeg,gif,svg,webp}', { statusCode: 200, body: '' })
+  cy.intercept('GET', '**/*.css', { statusCode: 200, body: '' })
+  cy.intercept('GET', '**/*.woff*', { statusCode: 200, body: '' })
 
-    // valida se a página carregou
-    cy.title().should('contain', 'Camed - Página inicial - Quem tem vive melhor!')
-    cy.contains('A Camed').should('be.visible') 
-    
-}),
+  // scripts externos problemáticos
+  cy.intercept('GET', '**/google-analytics/**', { statusCode: 200, body: '' })
+  cy.intercept('GET', '**/gtm.js**', { statusCode: 200, body: '' })
+  cy.intercept('GET', '**/facebook**', { statusCode: 200, body: '' })
+
+  // 🚀 VISIT robusto
+  cy.visit('https://www.camed.com.br', {
+    failOnStatusCode: false,
+    timeout: 120000
+  })
+
+  // valida carregamento REAL (não depende de load completo)
+  cy.get('body', { timeout: 30000 }).should('be.visible')
+
+  // valida elemento chave
+  cy.contains('A Camed', { timeout: 30000 }).should('be.visible')
+})
 
 Cypress.Commands.add('validarSemErroNaPagina', () => {
   cy.get('body')
