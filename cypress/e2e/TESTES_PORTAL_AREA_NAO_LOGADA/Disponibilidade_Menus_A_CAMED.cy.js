@@ -9,13 +9,16 @@ describe("Testes de Disponibilidade – Menu A CAMED", () => {
 
   cy.acessarHomeCamedSaude()
 
-  cy.contains("A Camed", { timeout: 30000 })
+  // garante que o menu inteiro carregou
+  cy.get('.menu-container', { timeout: 30000 })
     .should('be.visible')
 
-  cy.wait(300)
+  cy.get('.camed-li')
+    .should('be.visible')
 
-  cy.contains("A Camed")
-    .closest('li')
+  cy.wait(500) // 🔥 tempo pra render/animação
+
+  cy.get('.camed-li')
     .realHover()
 })
 
