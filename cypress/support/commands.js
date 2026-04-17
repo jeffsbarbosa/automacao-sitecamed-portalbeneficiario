@@ -35,10 +35,14 @@ Cypress.Commands.add('loginValido', () => {
 Cypress.Commands.add('acessarHomeCamedSaude', () => {
 
   // 🚀 VISIT robusto
-  cy.visit('https://www.camed.com.br', {
-    failOnStatusCode: false,
-    timeout: 120000
-  })
+ cy.visit('https://www.camed.com.br', {
+  failOnStatusCode: false,
+  timeout: 120000,
+  onBeforeLoad(win) {
+    // opcional: evitar libs pesadas
+    delete win.fetch
+  }
+})
 
   // valida carregamento REAL (não depende de load completo)
   cy.get('body', { timeout: 30000 }).should('be.visible')
