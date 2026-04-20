@@ -42,7 +42,7 @@ Cypress.Commands.add('acessarHomeCamedSaude', () => {
   // 💥 ESSENCIAL
   cy.contains('Aceitar cookies', { timeout: 10000 })
     .click({ force: true })
-  cy.document().should('exist')
+  cy.document().its('readyState').should('not.eq', 'loading')
 
   cy.get('body').should('be.visible')
 
