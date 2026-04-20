@@ -40,7 +40,9 @@ jobs:
           browser: chrome
           headed: true
           spec: |
-            cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/Disponibilidade_Menus_SAUDE_PREV.cy.js
+            cypress/e2e/TESTES_HOMEPAGE/**/*.cy.js,
+            cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/**/*.cy.js,
+            cypress/e2e/TESTES_PERFIL_ASSOCIADO/**/*.cy.js
            
           wait-on: ""
 
