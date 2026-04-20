@@ -39,9 +39,8 @@ jobs:
         with:
           browser: chrome
           headed: true
-          spec: |
-            
-            cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/**/*.cy.js,
+          spec: |           
+            cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/**/*.cy.js
             
            
           wait-on: ""
