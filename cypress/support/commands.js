@@ -34,23 +34,11 @@ Cypress.Commands.add('loginValido', () => {
 
 Cypress.Commands.add('acessarHomeCamedSaude', () => {
 
-  cy.intercept('**', (req) => {
-    if (
-      req.url.includes('google') ||
-      req.url.includes('analytics') ||
-      req.url.includes('doubleclick') ||
-      req.url.includes('facebook') ||
-      req.url.includes('hotjar')
-    ) {
-      req.destroy()
-    }
-  })
-
   cy.visit('https://www.camed.com.br', {
     timeout: 180000,
     failOnStatusCode: false,
-    retryOnNetworkFailure: true,
-    retryOnStatusCodeFailure: true
+    //retryOnNetworkFailure: true,
+    //retryOnStatusCodeFailure: true
   })
 
   cy.get('body', { timeout: 30000 }).should('be.visible')

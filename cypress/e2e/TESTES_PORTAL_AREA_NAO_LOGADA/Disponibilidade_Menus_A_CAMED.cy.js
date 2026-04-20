@@ -6,17 +6,7 @@ import utilidades from "../../support/PAGES/utilidades";
 describe("Testes de Disponibilidade – Menu A CAMED", () => {
  beforeEach(() => {
   cy.viewport(1280, 800)
-  //cy.acessarHomeCamedSaude()
-cy.intercept('POST', '**/google-analytics/**', { statusCode: 204 })
-cy.intercept('GET', '**/gtm.js**', { statusCode: 204 })
-cy.intercept('GET', '**/analytics**', { statusCode: 204 })
-
- cy.visit('https://www.camed.com.br', {
-  timeout: 120000,
-  failOnStatusCode: false
-})
-
-cy.get('body', { timeout: 30000 }).should('be.visible')
+  cy.acessarHomeCamedSaude()
 
 cy.contains('a', 'A Camed', { timeout: 30000 }).realHover()
 })
