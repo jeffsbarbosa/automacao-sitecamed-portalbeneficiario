@@ -34,17 +34,16 @@ Cypress.Commands.add('loginValido', () => {
 
 Cypress.Commands.add('acessarHomeCamedSaude', () => {
 
-  cy.visit('https://www.camed.com.br', {
-    timeout: 180000,
-    failOnStatusCode: false
+  cy.origin('https://www.camed.com.br', () => {
+
+    cy.visit('/', {
+      failOnStatusCode: false
+    })
+
+    cy.document().its('readyState').should('not.eq', 'loading')
+    cy.get('body').should('be.visible')
+
   })
-
-  // 💥 ESSENCIAL
-  cy.contains('Aceitar cookies', { timeout: 10000 })
-    .click({ force: true })
-  cy.document().its('readyState').should('not.eq', 'loading')
-
-  cy.get('body').should('be.visible')
 
 })
 
