@@ -6,8 +6,8 @@ import utilidades from "../../support/PAGES/utilidades";
 describe("Testes de Disponibilidade – Menu A CAMED", () => {
  beforeEach(() => {
   cy.viewport(1280, 800)
-  cy.acessarHomeCamedSaude()
-//cy.visit('https://www.camed.com.br')
+  //cy.acessarHomeCamedSaude()
+ cy.visit('https://www.camed.com.br')
 
 cy.contains('a', 'A Camed', { timeout: 30000 }).realHover()
 })
