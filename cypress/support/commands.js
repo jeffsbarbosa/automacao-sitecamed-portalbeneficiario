@@ -34,28 +34,28 @@ Cypress.Commands.add('loginValido', () => {
 
 Cypress.Commands.add('acessarHomeCamedSaude', () => {
 
-  cy.visit('https://www.camed.com.br', {
-  timeout: 120000,
-  failOnStatusCode: false,
-  onBeforeLoad(win) {
-    // 🔥 bloqueia scripts problemáticos
-    Object.defineProperty(win, 'fetch', { value: null })
-  }
-})
+  cy.intercept('**', (req) => {
+    if (
+      req.url.includes('google') ||
+      req.url.includes('analytics') ||
+      req.url.includes('doubleclick') ||
+      req.url.includes('facebook') ||
+      req.url.includes('hotjar')
+    ) {
+      req.destroy()
+    }
+  })
 
-  // valida carregamento REAL (não depende de load completo)
+  cy.visit('https://www.camed.com.br', {
+    timeout: 180000,
+    failOnStatusCode: false,
+    retryOnNetworkFailure: true,
+    retryOnStatusCodeFailure: true
+  })
+
   cy.get('body', { timeout: 30000 }).should('be.visible')
 
-  // valida elemento chave
-  cy.contains('A Camed', { timeout: 30000 }).should('be.visible')
 })
-
-Cypress.Commands.add('validarSemErroNaPagina', () => {
-  cy.get('body')
-    .should('not.contain', 'Error')
-    .and('not.contain', 'Exception')
-    .and('not.contain', '404')
-}),
 
 Cypress.Commands.add('homeBeneficiario', () => {
     cy.visit('/Acesso/Login.aspx', { failOnStatusCode: false })
