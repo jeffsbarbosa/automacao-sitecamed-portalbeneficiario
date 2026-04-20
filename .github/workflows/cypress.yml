@@ -39,7 +39,8 @@ jobs:
         with:
           browser: chrome
           headed: true
-          spec: |           
+          spec: | 
+            cypress/e2e/TESTES_HOMEPAGE/**/*.cy.js          
             cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/**/*.cy.js
             cypress/e2e/TESTES_PERFIL_ASSOCIADO/**/*.cy.js
             
