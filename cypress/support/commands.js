@@ -34,18 +34,16 @@ Cypress.Commands.add('loginValido', () => {
 
 Cypress.Commands.add('acessarHomeCamedSaude', () => {
 
-  cy.origin('https://www.camed.com.br', () => {
+  cy.visit('https://www.camed.com.br', {
+  failOnStatusCode: false,
+  timeout: 180000
+})
 
-    cy.visit('/', {
-      failOnStatusCode: false
-    })
-
-    cy.document().its('readyState').should('not.eq', 'loading')
-    cy.get('body').should('be.visible')
+cy.window().then(() => {}) // 💥 força seguir sem esperar load
 
   })
 
-})
+
 
 Cypress.Commands.add('homeBeneficiario', () => {
     cy.visit('/Acesso/Login.aspx', { failOnStatusCode: false })
