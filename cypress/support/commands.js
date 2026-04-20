@@ -34,13 +34,12 @@ Cypress.Commands.add('loginValido', () => {
 
 Cypress.Commands.add('acessarHomeCamedSaude', () => {
 
-  // 🚀 VISIT robusto
- cy.visit('https://www.camed.com.br', {
-  failOnStatusCode: false,
+  cy.visit('https://www.camed.com.br', {
   timeout: 120000,
+  failOnStatusCode: false,
   onBeforeLoad(win) {
-    // opcional: evitar libs pesadas
-    delete win.fetch
+    // 🔥 bloqueia scripts problemáticos
+    Object.defineProperty(win, 'fetch', { value: null })
   }
 })
 
