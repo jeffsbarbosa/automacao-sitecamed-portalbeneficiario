@@ -249,7 +249,7 @@ jobs:
             ">
 
             <tr style="background-color: #f1f1f1;">
-            <th style="padding: 10px; border: 1px solid #ddd;">Total</th>
+            <th style="padding: 10px; border: 1px solid #ddd;">Total de Cenários Testados</th>
             <th style="padding: 10px; border: 1px solid #ddd;">Aprovados</th>
             <th style="padding: 10px; border: 1px solid #ddd;">Falhas</th>
             </tr>
