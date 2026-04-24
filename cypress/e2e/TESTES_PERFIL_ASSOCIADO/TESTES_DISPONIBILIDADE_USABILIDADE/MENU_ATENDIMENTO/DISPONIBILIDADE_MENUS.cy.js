@@ -22,34 +22,6 @@ it('Disponibilidade submenu Autorizações', () => {
 
 })
 
-it('Disponibilidade submenu Clinicamed', () => {
-
-  cy.xpath("//p[normalize-space()='CliniCamed']")
-      .should('contain', 'CliniCamed')
-      .click()
-
-    //validar que a página carregou corretamente:
-    cy.url().should('include', '/CamedSaudeServicos/Servicos/Beneficiario/CliniCamedAgendaVirtual.aspx')
-    cy.get('h3').should('contain', 'CliniCamed Agenda Virtual')
-
-    //validar redirecionamento para o healthmap
-
-    cy.get('#idlinkCliniCamed')
-      .should('contain', 'ACESSAR')
-      .invoke('removeAttr', 'target')
-      .click()
-    
-    //validando que foi aberto o healthmap
-
-    cy.origin('https://camed.healthmap.com.br', () => {
-    
-    cy.get('[placeholder="Login"]')
-      .should('be.visible')
-    
-  })   
-
-})
-
 it('Disponibilidade submenu Protocolo de Atendimento', () => {
 
     cy.xpath("//p[normalize-space()='Protocolo de Atendimento']")

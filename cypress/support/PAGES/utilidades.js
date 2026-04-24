@@ -8,15 +8,15 @@ class utilidades {
   }
 
   abrirMenuIntercambio(){
-    cy.xpath("(//a[@class='nav-link'])[18]").click()
+    cy.contains("a", 'Intercâmbio').click()
   }
 
   abrirMenuFinanceiro() {
-    cy.xpath("(//a[@class='nav-link'])[7]").click()
+    cy.contains("a", "Financeiro").click()
   }
 
   abrirMenuAtendimento() {
-    cy.xpath("(//a[@class='nav-link'])[2]").click()
+    cy.contains("a", "Atendimento").click()
   }
 
   abrirSubmenuExtratosFaturas() {
@@ -82,6 +82,12 @@ class utilidades {
   abrirFaleConosco(){
     cy.contains("p", "Fale Conosco").click();
     
+  }
+
+  abrirMenuCliniCamed(){
+      cy.xpath("//p[normalize-space()='CliniCamed']")
+    .should("contain", "CliniCamed")
+    .click();
   }
 
    
