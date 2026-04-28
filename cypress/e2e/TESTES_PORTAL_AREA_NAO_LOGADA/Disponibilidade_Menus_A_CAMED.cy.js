@@ -38,8 +38,7 @@ describe("Testes de Disponibilidade – Menu A CAMED", () => {
     utilidades.acessarGovernanca()
        
     cy.url().should("include", "/governanca");
-    
-    cy.xpath("//p[normalize-space()='Estatuto social']")
+    cy.contains("p", "Estatuto Social")
       .should('exist')
       .click({ force: true });
     
