@@ -248,23 +248,36 @@ jobs:
             <!-- CONTAINER -->
             <table role="presentation" width="800" border="0" cellspacing="0" cellpadding="0" style="width:800px; max-width:800px; background-color:#ffffff; border:1px solid #dddddd;">
 
-            <!-- HEADER -->
+            <!-- HEADER AJUSTADO COM LOGO -->
             <tr>
-              <td style="background-color:#0d6efd; padding:28px 30px;">
+              <td style="background-color:#0d6efd; padding:22px 28px;">
                 <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
                   <tr>
-                    <td style="font-family:Arial, Helvetica, sans-serif; color:#ffffff; font-size:24px; font-weight:bold; line-height:30px;">
-                      Execução dos testes automatizados concluída
+
+                    <!-- LOGO -->
+                    <td width="95" valign="middle" align="left">
+                      <img src="https://raw.githubusercontent.com/jeffsbarbosa/automacao-sitecamed-portalbeneficiario/main/cypress/assets/logo_camed_saude.png"
+                           alt="Logo Camed Saúde"
+                           width="72"
+                           style="display:block; border:0; width:72px; max-width:72px; height:auto;">
                     </td>
-                  </tr>
-                  <tr>
-                    <td style="font-family:Arial, Helvetica, sans-serif; color:#dbeafe; font-size:14px; padding-top:8px;">
-                      Relatório consolidado da execução automática da suíte de testes
+
+                    <!-- TEXTO -->
+                    <td valign="middle" style="font-family:Arial, Helvetica, sans-serif;">
+                      <div style="color:#ffffff; font-size:24px; font-weight:bold; line-height:30px;">
+                        Execução dos testes automatizados concluída
+                      </div>
+                      <div style="color:#dbeafe; font-size:14px; padding-top:8px;">
+                        Relatório consolidado da execução automática da suíte de testes
+                      </div>
                     </td>
+
                   </tr>
                 </table>
               </td>
             </tr>
+
+            <!-- RESTANTE DO BODY PERMANECE EXATAMENTE IGUAL -->
 
             <!-- BODY -->
             <tr>
