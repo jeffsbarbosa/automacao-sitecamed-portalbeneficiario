@@ -232,56 +232,124 @@ jobs:
           convert_markdown: false
           html_body: |
             <meta charset="UTF-8">
-            <h2>🚀 Execução dos testes automatizados concluída</h2>
-
-            <p>Olá, bom dia! </p> 
-
-            <p>Os testes automatizados do <b>Site Camed</b> e <b>Portal de Serviços Área Logada</b> foram executados. Segue abaixo, resumo da execução:</p>
-
-            <h3>📊 Resumo da execução</h3>
-
-            <table style="
-            width: 100%;
-            border-collapse: collapse;
-            text-align: center;
-            margin-top: 10px;
-            font-family: Arial, sans-serif;
-            ">
-
-            <tr style="background-color: #f1f1f1;">
-            <th style="padding: 10px; border: 1px solid #ddd;">Total de Cenários Testados</th>
-            <th style="padding: 10px; border: 1px solid #ddd;">Aprovados</th>
-            <th style="padding: 10px; border: 1px solid #ddd;">Falhas</th>
-            </tr>
-
-             <tr>
-             <td style="padding: 12px; border: 1px solid #ddd; font-weight: bold;">
-             ${{ env.TOTAL }}
-            </td>
-
-            <td style="padding: 12px; border: 1px solid #ddd; font-weight: bold; color: #28a745;">
-             ${{ env.PASSED }}
-            </td>
-
-            <td style="padding: 12px; border: 1px solid #ddd; font-weight: bold; color: #dc3545;">
-             ${{ env.FAILED }}
-            </td>
-            </tr>
-
-            </table>
-
-            <p style="font-size: 16px;">
-            <b>📈 Taxa de sucesso:</b> 
-            <span style="color:#28a745; font-weight:bold;">${{ env.SUCCESS_RATE }}%</span>
-            </p>
 
             <div style="
-            padding: 12px;
-            border-radius: 6px;
-            margin-top: 10px;
-            font-weight: bold;
-            color: white;
-            background-color: ${{
+            margin:0;
+            padding:30px 0;
+            background:#f4f6f8;
+            font-family:Arial, Helvetica, sans-serif;
+            ">
+
+            <div style="
+            max-width:820px;
+            margin:0 auto;
+            background:#ffffff;
+            border-radius:16px;
+            overflow:hidden;
+            box-shadow:0 4px 18px rgba(0,0,0,0.08);
+            ">
+
+            <!-- HEADER -->
+            <div style="
+            background:linear-gradient(90deg,#0d6efd,#0b5ed7);
+            color:#ffffff;
+            padding:28px 32px;
+            ">
+            <h1 style="margin:0; font-size:26px; font-weight:700;">
+            🚀 Execução dos testes automatizados concluída
+            </h1>
+            <p style="margin:8px 0 0 0; font-size:15px; opacity:0.95;">
+            Relatório consolidado da execução automática da suíte de testes
+            </p>
+            </div>
+
+            <!-- BODY -->
+            <div style="padding:32px;">
+
+            <p style="font-size:16px; color:#333; margin-top:0;">
+            Olá,
+            </p>
+
+            <p style="font-size:15px; color:#555; line-height:1.6;">
+            A execução automática dos testes referentes ao
+            <b>Site Camed</b> e <b>Portal de Serviços – Área Logada</b>
+            foi concluída com sucesso. Confira abaixo os principais indicadores
+            do ciclo executado.
+            </p>
+
+            <!-- CARDS -->
+            <table width="100%" cellpadding="8" cellspacing="0" style="margin-top:24px;">
+            <tr>
+            <td width="33%">
+              <div style="
+                background:#f8f9fa;
+                border-radius:12px;
+                padding:18px;
+                text-align:center;
+                border:1px solid #e9ecef;
+              ">
+                <div style="font-size:13px; color:#6c757d;">Total Executado</div>
+                <div style="font-size:30px; font-weight:bold; color:#212529;">
+                  ${{ env.TOTAL }}
+                </div>
+              </div>
+            </td>
+
+            <td width="33%">
+              <div style="
+                background:#f0fff4;
+                border-radius:12px;
+                padding:18px;
+                text-align:center;
+                border:1px solid #d4edda;
+              ">
+                <div style="font-size:13px; color:#6c757d;">Aprovados</div>
+                <div style="font-size:30px; font-weight:bold; color:#28a745;">
+                  ${{ env.PASSED }}
+                </div>
+              </div>
+            </td>
+
+            <td width="33%">
+              <div style="
+                background:#fff5f5;
+                border-radius:12px;
+                padding:18px;
+                text-align:center;
+                border:1px solid #f5c6cb;
+              ">
+                <div style="font-size:13px; color:#6c757d;">Falhas</div>
+                <div style="font-size:30px; font-weight:bold; color:#dc3545;">
+                  ${{ env.FAILED }}
+                </div>
+              </div>
+            </td>
+            </tr>
+            </table>
+
+            <!-- TAXA -->
+            <div style="
+            margin-top:24px;
+            padding:18px;
+            background:#f8f9fa;
+            border-radius:12px;
+            text-align:center;
+            ">
+            <span style="font-size:15px; color:#555;">Taxa de sucesso</span><br>
+            <span style="font-size:34px; font-weight:bold; color:#28a745;">
+            ${{ env.SUCCESS_RATE }}%
+            </span>
+            </div>
+
+            <!-- STATUS -->
+            <div style="
+            margin-top:24px;
+            padding:16px;
+            border-radius:12px;
+            text-align:center;
+            font-weight:bold;
+            color:#ffffff;
+            background-color:${{
             env.FAILED == '0' && '#28a745' ||
             env.FAILED <= '2' && '#ffc107' ||
             '#dc3545'
@@ -290,40 +358,54 @@ jobs:
             ${{ env.STATUS_LEVEL }}
             </div>
 
-            <hr>
+            <!-- FALHAS -->
+            <div style="margin-top:28px;">
 
             ${{ env.FAILED == '0' && '
-            <h3 style="color: #28a745;">✅ Nenhuma falha identificada</h3>
-            ' || '
-            <h3 style="color: #dc3545;">❌ TESTES COM FALHA:</h3>
-
             <div style="
-            background: #fff5f5;
-            border: 1px solid #f5c6cb;
-            padding: 10px;
-            border-radius: 6px;
-            font-family: Arial, sans-serif;
-            white-space: pre-line;
+            background:#f0fff4;
+            border-left:5px solid #28a745;
+            padding:18px;
+            border-radius:10px;
             ">
-            ' }}${{ env.FAIL_LIST }}${{ env.FAILED == '0' && '' || '</div>' }}
+            <h3 style="margin:0; color:#28a745;">✅ Nenhuma falha identificada</h3>
+            <p style="margin:8px 0 0 0; color:#444;">
+              Todos os cenários executados foram concluídos com sucesso.
+            </p>
+            </div>
+            ' || '
+            <div style="
+            background:#fff8f8;
+            border-left:5px solid #dc3545;
+            padding:18px;
+            border-radius:10px;
+            ">
+            <h3 style="margin:0; color:#dc3545;">❌ Falhas detectadas</h3>
+            <p style="margin:8px 0 14px 0; color:#555;">
+              Os seguintes cenários apresentaram inconsistências durante a execução:
+            </p>
+            <div style="font-size:14px; color:#333;">
+              ' }}${{ env.FAIL_LIST }}${{ env.FAILED == '0' && '' || '</div></div>' }}
 
-            <hr>
-
-            <br>
-               
-            <hr>
-
-            <p>🤖 Automação de Testes</p>
-
-            <hr>
-
-            <br>
-
-            <div style="margin-top: 20px;">
-            <img src="https://raw.githubusercontent.com/jeffsbarbosa/automacao-sitecamed-portalbeneficiario/refs/heads/main/cypress/assets/assinatura_email1.png"
-            alt="Assinatura Jefferson Barbosa"
-            style="max-width: 450px; width: 100%;">
             </div>
 
-          attachments: |
-            all-reports/report.html
+            <!-- RODAPÉ -->
+            <div style="
+            margin-top:32px;
+            padding-top:20px;
+            border-top:1px solid #e9ecef;
+            ">
+            <p style="font-size:14px; color:#6c757d; margin-bottom:18px;">
+            Este relatório foi gerado automaticamente pelo pipeline de testes.
+            </p>
+
+            <div style="margin-top:18px;">
+            <img src="https://raw.githubusercontent.com/jeffsbarbosa/automacao-sitecamed-portalbeneficiario/refs/heads/main/cypress/assets/assinatura_email1.png"
+              alt="Assinatura Jefferson Barbosa"
+              style="max-width:380px; width:100%;">
+            </div>
+            </div>
+
+            </div>
+            </div>
+            </div>
