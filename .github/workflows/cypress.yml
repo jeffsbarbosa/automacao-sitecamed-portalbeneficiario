@@ -227,6 +227,7 @@ jobs:
           password: ${{ secrets.EMAIL_PASS }}
           subject: "Testes dos Atendimentos Virtuais - Site Camed e Portal de Serviços"
           to: ${{ secrets.EMAIL_TO }}
+          cc: ${{ secrets.EMAIL_CC }}
           from: Jefferson Barbosa <${{ secrets.EMAIL_USER }}>
 
           convert_markdown: false
