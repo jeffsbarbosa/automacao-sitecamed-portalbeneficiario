@@ -27,7 +27,7 @@ it("Disponibilidade Para Agendar uma Consulta - Atendimento Presencial e Procura
 
   cy.get('h3').should('contain', 'solicitação de consulta');
 
-  cy.get('#ContentPlaceHolder1_ddlPaciente').select(1);
+  cy.get('#ContentPlaceHolder1_ddlPaciente').select(0);
 
   cy.get('#ContentPlaceHolder1_rbPresencial').should('be.checked');
 
@@ -91,7 +91,7 @@ it("Disponibilidade Para Agendar uma Consulta - Atendimento Presencial e Procura
 
   cy.get('h3').should('contain', 'solicitação de consulta');
 
-  cy.get('#ContentPlaceHolder1_ddlPaciente').select(1);
+  cy.get('#ContentPlaceHolder1_ddlPaciente').select(0);
 
 //escolhendo a opção de atendimento Online
   cy.get('#ContentPlaceHolder1_rbOnline').check()
