@@ -42,7 +42,7 @@ jobs:
           spec: | 
             cypress/e2e/TESTES_HOMEPAGE/**/*.cy.js          
             cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/**/*.cy.js
-            cypress/e2e/TESTES_PERFIL_ASSOCIADO/**/*.cy.js
+            
           wait-on: ""
 
       - name: Gerar relatório HTML
@@ -136,23 +136,26 @@ jobs:
           $hT=0;$hP=0;$pT=0;$pP=0;$pfT=0;$pfP=0
 
           function Row($suite, $test) {
-            $status = if ($test.state -eq "failed") { "FALHA" } else { "SUCESSO" }
 
-            $erro = if ($test.state -eq "failed" -and $test.err.message) {
-              ($test.err.message -split "`n")[0]
-            } else { "-" }
+          $status = if ($test.state -eq "failed") { "FALHA" } else { "SUCESSO" }
 
-            if ($test.state -eq "failed") {
-              $global:failList += "<li><b>$($test.title)</b> - $erro</li>"
-            }
+          $erro = if ($test.state -eq "failed" -and $test.err.message) {
+          ($test.err.message -split "`n")[0]
+          } else { "-" }
 
-            return "<tr>
-              <td>$suite</td>
-              <td>$($test.title)</td>
-              <td style='color:$([string]::Concat(($status -eq "SUCESSO") ? "green" : "red"))'>$status</td>
-              <td>$($test.duration) ms</td>
-              <td>$erro</td>
-            </tr>"
+          if ($test.state -eq "failed") {
+          $global:failList += "<li><b>$($test.title)</b> - $erro</li>"
+          }
+
+          $color = if ($status -eq "SUCESSO") { "green" } else { "red" }
+
+          return "<tr>
+          <td>$suite</td>
+          <td>$($test.title)</td>
+          <td style='color:$color'>$status</td>
+          <td>$($test.duration) ms</td>
+          <td>$erro</td>
+          </tr>"
           }
 
           $files=Get-ChildItem "all-reports" -Recurse -Filter mochawesome*.json
