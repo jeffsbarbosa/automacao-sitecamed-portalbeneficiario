@@ -91,12 +91,13 @@ jobs:
       - name: Baixar relatórios
         uses: actions/download-artifact@v4
         with:
+          name: relatorio-cypress
           path: all-reports
 
       - name: Consolidar resultados
         shell: powershell
         run: |
-          $files = Get-ChildItem "all-reports" -Recurse -Filter mochawesome*.json
+          $files = Get-ChildItem "all-reports" -Recurse -Include mochawesome*.json -File -ErrorAction SilentlyContinue
 
           $TOTAL=0;$PASSED=0;$FAILED=0
 
