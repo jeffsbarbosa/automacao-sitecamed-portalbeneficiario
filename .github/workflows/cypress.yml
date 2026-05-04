@@ -43,27 +43,22 @@ jobs:
             cypress/e2e/TESTES_HOMEPAGE/**/*.cy.js          
             cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/**/*.cy.js
             cypress/e2e/TESTES_PERFIL_ASSOCIADO/**/*.cy.js
-            
-           
           wait-on: ""
 
       - name: Gerar relatório HTML
         if: always()
         shell: powershell
         run: |
-          $files = Get-ChildItem -Path "cypress/reports" -Filter "*.json" | Select-Object -ExpandProperty FullName
+          $files = Get-ChildItem -Path "cypress/reports" -Filter "*.json"
 
-          if (-not $files -or $files.Count -eq 0) {
-            Write-Error "Nenhum arquivo JSON encontrado em cypress/reports!"
+          if (-not $files) {
+            Write-Error "Nenhum JSON encontrado!"
             exit 1
           }
 
-          Write-Host "Arquivos encontrados:"
-          $files
+          npx marge $files.FullName --reportDir cypress/reports --reportFilename report
 
-          npx marge $files --reportDir cypress/reports --reportFilename report
-
-      - name: Upload dos relatórios (HTML + evidências)
+      - name: Upload dos relatórios
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -85,15 +80,15 @@ jobs:
       SUCCESS_RATE: 0
       STATUS_LEVEL: ""
       FAIL_LIST: ""
+      TABLE_HOMEPAGE: ""
+      TABLE_PORTAL: ""
+      TABLE_PERFIL: ""
+      MODULE_HOME_RATE: ""
+      MODULE_PORTAL_RATE: ""
+      MODULE_PERFIL_RATE: ""
 
     steps:
-      - name: Ajustar encoding UTF-8 (GLOBAL)
-        shell: powershell
-        run: |
-          [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-          $OutputEncoding = [System.Text.Encoding]::UTF8
-
-      - name: Baixar relatórios do Cypress
+      - name: Baixar relatórios
         uses: actions/download-artifact@v4
         with:
           path: all-reports
@@ -101,25 +96,15 @@ jobs:
       - name: Consolidar resultados
         shell: powershell
         run: |
-          $files = Get-ChildItem -Path "all-reports" -Recurse -Filter mochawesome*.json -ErrorAction SilentlyContinue
+          $files = Get-ChildItem "all-reports" -Recurse -Filter mochawesome*.json
 
-          if (-not $files -or $files.Count -eq 0) {
-            Write-Error "Nenhum JSON encontrado para consolidação!"
-            exit 1
-          }
-
-          [int]$TOTAL = 0
-          [int]$PASSED = 0
-          [int]$FAILED = 0
+          $TOTAL=0;$PASSED=0;$FAILED=0
 
           foreach ($file in $files) {
-            $json = Get-Content $file.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
-
-            if ($json.stats) {
-              $TOTAL += [int]$json.stats.tests
-              $PASSED += [int]$json.stats.passes
-              $FAILED += [int]$json.stats.failures
-            }
+            $json = Get-Content $file.FullName -Raw | ConvertFrom-Json
+            $TOTAL += $json.stats.tests
+            $PASSED += $json.stats.passes
+            $FAILED += $json.stats.failures
           }
 
           echo "TOTAL=$TOTAL" >> $env:GITHUB_ENV
@@ -129,94 +114,90 @@ jobs:
       - name: Calcular métricas
         shell: powershell
         run: |
-          if ($env:TOTAL -eq 0) {
-            $SUCCESS_RATE = 0
-          } else {
-            $SUCCESS_RATE = [math]::Round(($env:PASSED / $env:TOTAL) * 100, 2)
-          }
+          $rate = if ($env:TOTAL -eq 0) {0} else {[math]::Round(($env:PASSED/$env:TOTAL)*100,2)}
 
           if ($env:FAILED -eq 0) {
-            $STATUS_LEVEL = "SUCESSO: Nenhuma falha detectada"
-            $STATUS_COLOR = "#28a745"
-          }
-          elseif ($env:FAILED -le 2) {
-            $STATUS_LEVEL = "ATENÇÃO: Falhas pontuais identificadas"
-            $STATUS_COLOR = "#ffc107"
-          }
-          else {
-            $STATUS_LEVEL = "CRÍTICO: Falhas relevantes detectadas"
-            $STATUS_COLOR = "#dc3545"
+            $status="SUCESSO"
+          } elseif ($env:FAILED -le 2) {
+            $status="ATENÇÃO"
+          } else {
+            $status="CRÍTICO"
           }
 
-          Add-Content -Path $env:GITHUB_ENV -Value "SUCCESS_RATE=$SUCCESS_RATE"
-          Add-Content -Path $env:GITHUB_ENV -Value "STATUS_LEVEL=$STATUS_LEVEL"
-          Add-Content -Path $env:GITHUB_ENV -Value "STATUS_COLOR=$STATUS_COLOR"
+          echo "SUCCESS_RATE=$rate" >> $env:GITHUB_ENV
+          echo "STATUS_LEVEL=$status" >> $env:GITHUB_ENV
 
-      # 🔥 ÚNICO TRECHO ALTERADO (CORRIGIDO)
-      - name: Listar testes que falharam
+      - name: Montar relatório premium
         shell: powershell
         run: |
-          $failList = @()
+          $home=@();$portal=@();$perfil=@();$fail=@()
 
-          $files = Get-ChildItem -Path "all-reports" -Recurse -Filter mochawesome*.json -ErrorAction SilentlyContinue
+          $hT=0;$hP=0;$pT=0;$pP=0;$pfT=0;$pfP=0
 
-          foreach ($file in $files) {
-            $json = Get-Content $file.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
+          function Row($suite,$test){
+            $status = if ($test.state -eq "failed") {"<span style='color:#dc3545;'>🔴</span>"} else {"<span style='color:#28a745;'>🟢</span>"}
+            $time=[math]::Round($test.duration/1000,2)
+            $error = if ($test.state -eq "failed"){($test.err.message -split "`n")[0]} else {"-"}
 
-            if ($json.results) {
-              foreach ($result in $json.results) {
-                foreach ($suite in $result.suites) {
-                  foreach ($test in $suite.tests) {
+            if ($test.state -eq "failed"){ $fail += "<li>$($test.title)</li>" }
 
-                    if ($test.fail -eq $true) {
+            return "<tr>
+            <td>$suite</td>
+            <td>$($test.title)</td>
+            <td>$status</td>
+            <td>${time}s</td>
+            <td>$error</td>
+            </tr>"
+          }
 
-                      $testName = $test.title
+          $files=Get-ChildItem "all-reports" -Recurse -Filter mochawesome*.json
 
-                      $errorMessage = if ($test.err -and $test.err.message) {
-                        ($test.err.message -split "`n")[0]
-                      } else {
-                        "Erro não identificado"
-                      }
+          foreach ($f in $files){
+            $json=Get-Content $f.FullName -Raw|ConvertFrom-Json
 
-                      $errorMessage = $errorMessage -replace "CypressError:\s*", ""
+            foreach ($r in $json.results){
+              foreach ($s in $r.suites){
+                foreach ($t in $s.tests){
 
-                      $failList += "<li style='margin-bottom:10px;'><b>$testName</b><br><span style='color:#dc3545;'> -> $errorMessage</span></li>"
-                    }
-
+                  if ($f.FullName -like "*HOMEPAGE*"){
+                    $home+=Row $s.title $t;$hT++;if($t.state -ne "failed"){$hP++}
                   }
+                  elseif ($f.FullName -like "*PORTAL*"){
+                    $portal+=Row $s.title $t;$pT++;if($t.state -ne "failed"){$pP++}
+                  }
+                  else{
+                    $perfil+=Row $s.title $t;$pfT++;if($t.state -ne "failed"){$pfP++}
+                  }
+
                 }
               }
             }
           }
 
-          if ($failList.Count -eq 0) {
-            $failText = "<p style='color:#28a745; font-weight:bold;'>Nenhum teste falhou</p>"
-          } else {
-            $failText = "<ul style='padding-left:20px; font-family:Arial;'>$($failList -join '')</ul>"
+          function Rate($p,$t){ if($t -eq 0){0}else{[math]::Round(($p/$t)*100,2)} }
+
+          echo "MODULE_HOME_RATE=$(Rate $hP $hT)" >> $env:GITHUB_ENV
+          echo "MODULE_PORTAL_RATE=$(Rate $pP $pT)" >> $env:GITHUB_ENV
+          echo "MODULE_PERFIL_RATE=$(Rate $pfP $pfT)" >> $env:GITHUB_ENV
+
+          function Table($rows){
+            "<table style='border-collapse:collapse;width:100%;font-size:13px'>
+            <tr style='background:#f1f3f5'>
+            <th>Suite</th><th>Cenário</th><th>Status</th><th>Tempo</th><th>Erro</th>
+            </tr>$($rows -join '')</table>"
           }
 
-          "FAIL_LIST<<EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          $failText | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "TABLE_HOMEPAGE=$(Table $home)" >> $env:GITHUB_ENV
+          echo "TABLE_PORTAL=$(Table $portal)" >> $env:GITHUB_ENV
+          echo "TABLE_PERFIL=$(Table $perfil)" >> $env:GITHUB_ENV
 
-      - name: Upload relatório HTML
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: relatorio-html
-          path: all-reports
+          if($fail.Count -eq 0){
+            echo "FAIL_LIST=<p style='color:green'>Nenhuma falha</p>" >> $env:GITHUB_ENV
+          } else {
+            echo "FAIL_LIST=<ul>$($fail -join '')</ul>" >> $env:GITHUB_ENV
+          }
 
-      - name: Ajustar encoding UTF-8
-        shell: powershell
-        run: |
-          [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-
-      - name: Ignorar erro SSL
-        shell: powershell
-        run: |
-          "NODE_TLS_REJECT_UNAUTHORIZED=0" >> $env:GITHUB_ENV
-
-      - name: Enviar relatório por email
+      - name: Enviar email
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: correio.camed.com.br
@@ -225,185 +206,29 @@ jobs:
           ignore_cert: true
           username: ${{ secrets.EMAIL_USER }}
           password: ${{ secrets.EMAIL_PASS }}
-          subject: "Testes dos Atendimentos Virtuais - Site Camed e Portal de Serviços"
+          subject: "Relatório Premium de Testes"
           to: ${{ secrets.EMAIL_TO }}
           cc: ${{ secrets.EMAIL_CC }}
           from: Jefferson Barbosa <${{ secrets.EMAIL_USER }}>
 
-          convert_markdown: false
           html_body: |
-            <!DOCTYPE html>
-            <html>
-            <head>
-            <meta charset="UTF-8">
-            <meta http-equiv="X-UA-Compatible" content="IE=edge">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Relatório de Execução</title>
-            </head>
-            <body style="margin:0; padding:0; background-color:#f4f6f8;">
+            <h2>📊 Relatório de Execução</h2>
 
-            <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#f4f6f8;">
-            <tr>
-            <td align="center" style="padding:30px 15px;">
+            <p><b>Total:</b> ${{ env.TOTAL }}</p>
+            <p><b>Sucesso:</b> ${{ env.PASSED }}</p>
+            <p><b>Falhas:</b> ${{ env.FAILED }}</p>
+            <p><b>Taxa:</b> ${{ env.SUCCESS_RATE }}%</p>
 
-            <!-- CONTAINER -->
-            <table role="presentation" width="800" border="0" cellspacing="0" cellpadding="0" style="width:800px; max-width:800px; background-color:#ffffff; border:1px solid #dddddd;">
+            <h3>Status: ${{ env.STATUS_LEVEL }}</h3>
 
-            <!-- HEADER -->
-            <tr>
-              <td style="background-color:#0d6efd; padding:28px 30px;">
-                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
-                  <tr>
-                    <td style="font-family:Arial, Helvetica, sans-serif; color:#ffffff; font-size:24px; font-weight:bold; line-height:30px;">
-                      Execução dos testes automatizados concluída
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="font-family:Arial, Helvetica, sans-serif; color:#dbeafe; font-size:14px; padding-top:8px;">
-                      Relatório consolidado da execução automática da suíte de testes
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
+            <h3>❌ Falhas</h3>
+            ${{ env.FAIL_LIST }}
 
-            <!-- BODY -->
-            <tr>
-              <td style="padding:30px; font-family:Arial, Helvetica, sans-serif;">
+            <h3>🏠 Homepage (${{ env.MODULE_HOME_RATE }}%)</h3>
+            ${{ env.TABLE_HOMEPAGE }}
 
-                <p style="margin:0 0 15px 0; font-size:16px; color:#333333;">Olá,</p>
+            <h3>🌐 Portal (${{ env.MODULE_PORTAL_RATE }}%)</h3>
+            ${{ env.TABLE_PORTAL }}
 
-                <p style="margin:0 0 25px 0; font-size:15px; line-height:24px; color:#555555;">
-                  A execução automática dos testes referentes ao
-                  <strong>Site Camed</strong> e <strong>Portal de Serviços – Área Logada</strong>
-                  foi concluída. Confira abaixo os principais indicadores do ciclo executado.
-                </p>
-
-                <!-- KPI CARDS -->
-                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
-                  <tr>
-
-                    <td width="32%" valign="top">
-                      <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="border:1px solid #dddddd;">
-                        <tr>
-                          <td align="center" style="padding:18px;">
-                            <div style="font-size:13px; color:#666666;">Total Executado</div>
-                            <div style="font-size:32px; font-weight:bold; color:#212529;">${{ env.TOTAL }}</div>
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-
-                    <td width="2%"></td>
-
-                    <td width="32%" valign="top">
-                      <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="border:1px solid #c3e6cb; background-color:#f0fff4;">
-                        <tr>
-                          <td align="center" style="padding:18px;">
-                            <div style="font-size:13px; color:#666666;">Aprovados</div>
-                            <div style="font-size:32px; font-weight:bold; color:#28a745;">${{ env.PASSED }}</div>
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-
-                    <td width="2%"></td>
-
-                    <td width="32%" valign="top">
-                      <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="border:1px solid #f5c6cb; background-color:#fff5f5;">
-                        <tr>
-                          <td align="center" style="padding:18px;">
-                            <div style="font-size:13px; color:#666666;">Falhas</div>
-                            <div style="font-size:32px; font-weight:bold; color:#dc3545;">${{ env.FAILED }}</div>
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-
-                  </tr>
-                </table>
-
-                <!-- SUCCESS RATE -->
-                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top:22px; border:1px solid #dddddd; background-color:#f8f9fa;">
-                  <tr>
-                    <td align="center" style="padding:18px;">
-                      <div style="font-size:14px; color:#555555;">Taxa de sucesso</div>
-                      <div style="font-size:36px; font-weight:bold; color:#28a745;">${{ env.SUCCESS_RATE }}%</div>
-                    </td>
-                  </tr>
-                </table>
-
-                <!-- STATUS -->
-                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top:22px;">
-                  <tr>
-                    <td align="center" style="
-                      padding:16px;
-                      font-size:16px;
-                      font-weight:bold;
-                      color:#ffffff;
-                      background-color:${{
-                        env.FAILED == '0' && '#28a745' ||
-                        env.FAILED <= '2' && '#ffc107' ||
-                        '#dc3545'
-                      }};
-                    ">
-                      ${{ env.STATUS_LEVEL }}
-                    </td>
-                  </tr>
-                </table>
-
-                <!-- DETAILS -->
-                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top:24px;">
-                  <tr>
-                    <td style="
-                      padding:18px;
-                      border-left:5px solid ${{
-                        env.FAILED == '0' && '#28a745' || '#dc3545'
-                      }};
-                      background-color:${{
-                        env.FAILED == '0' && '#f0fff4' || '#fff8f8'
-                      }};
-                    ">
-                      ${{ env.FAILED == '0' && '
-                      <div style="font-size:20px; font-weight:bold; color:#28a745;">Nenhuma falha identificada</div>
-                      <div style="margin-top:10px; font-size:14px; color:#444444;">
-                        Todos os cenários executados foram concluídos com sucesso.
-                      </div>
-                      ' || '
-                      <div style="font-size:20px; font-weight:bold; color:#dc3545;">Falhas detectadas</div>
-                      <div style="margin-top:10px; font-size:14px; color:#555555;">
-                        Os seguintes cenários apresentaram inconsistências:
-                      </div>
-                      <div style="margin-top:12px; font-size:14px; color:#333333;">
-                      ' }}${{ env.FAIL_LIST }}${{ env.FAILED == '0' && '' || '</div>' }}
-                    </td>
-                  </tr>
-                </table>
-
-                <!-- FOOTER -->
-                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top:28px; border-top:1px solid #dddddd;">
-                  <tr>
-                    <td style="padding-top:18px;">
-                      <p style="margin:0 0 15px 0; font-size:13px; color:#777777;">
-                        Este relatório foi gerado automaticamente pelo pipeline de testes.
-                      </p>
-
-                      <img src="https://raw.githubusercontent.com/jeffsbarbosa/automacao-sitecamed-portalbeneficiario/refs/heads/main/cypress/assets/assinatura_email1.png"
-                        alt="Assinatura"
-                        width="360"
-                        style="display:block; border:0; width:360px; max-width:100%; height:auto;">
-                    </td>
-                  </tr>
-                </table>
-
-              </td>
-            </tr>
-
-            </table>
-
-            </td>
-            </tr>
-            </table>
-
-            </body>
-            </html>
+            <h3>🔐 Perfil (${{ env.MODULE_PERFIL_RATE }}%)</h3>
+            ${{ env.TABLE_PERFIL }}
