@@ -127,26 +127,30 @@ jobs:
           echo "SUCCESS_RATE=$rate" >> $env:GITHUB_ENV
           echo "STATUS_LEVEL=$status" >> $env:GITHUB_ENV
 
-      - name: Montar relatório premium
+      - name: Montagem de Relatório
         shell: powershell
         run: |
-          $home=@();$portal=@();$perfil=@();$fail=@()
+          $home=@();$portal=@();$perfil=@();$failList=@()
 
           $hT=0;$hP=0;$pT=0;$pP=0;$pfT=0;$pfP=0
 
-          function Row($suite,$test){
-            $status = if ($test.state -eq "failed") {"<span style='color:#dc3545;'>🔴</span>"} else {"<span style='color:#28a745;'>🟢</span>"}
-            $time=[math]::Round($test.duration/1000,2)
-            $error = if ($test.state -eq "failed"){($test.err.message -split "`n")[0]} else {"-"}
+          function Row($suite, $test) {
+            $status = if ($test.state -eq "failed") { "FALHA" } else { "SUCESSO" }
 
-            if ($test.state -eq "failed"){ $fail += "<li>$($test.title)</li>" }
+            $erro = if ($test.state -eq "failed" -and $test.err.message) {
+              ($test.err.message -split "`n")[0]
+            } else { "-" }
+
+            if ($test.state -eq "failed") {
+              $global:failList += "<li><b>$($test.title)</b> - $erro</li>"
+            }
 
             return "<tr>
-            <td>$suite</td>
-            <td>$($test.title)</td>
-            <td>$status</td>
-            <td>${time}s</td>
-            <td>$error</td>
+              <td>$suite</td>
+              <td>$($test.title)</td>
+              <td style='color:$([string]::Concat(($status -eq "SUCESSO") ? "green" : "red"))'>$status</td>
+              <td>$($test.duration) ms</td>
+              <td>$erro</td>
             </tr>"
           }
 
@@ -187,14 +191,22 @@ jobs:
             </tr>$($rows -join '')</table>"
           }
 
-          echo "TABLE_HOMEPAGE=$(Table $home)" >> $env:GITHUB_ENV
-          echo "TABLE_PORTAL=$(Table $portal)" >> $env:GITHUB_ENV
-          echo "TABLE_PERFIL=$(Table $perfil)" >> $env:GITHUB_ENV
+          "TABLE_HOMEPAGE<<EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          (Table $home) | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-          if($fail.Count -eq 0){
+          "TABLE_PORTAL<<EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          (Table $portal) | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+          "TABLE_PERFIL<<EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          (Table $perfil) | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+          if($failList.Count -eq 0){
             echo "FAIL_LIST=<p style='color:green'>Nenhuma falha</p>" >> $env:GITHUB_ENV
           } else {
-            echo "FAIL_LIST=<ul>$($fail -join '')</ul>" >> $env:GITHUB_ENV
+            echo "FAIL_LIST=<ul>$($failList -join '')</ul>" >> $env:GITHUB_ENV
           }
 
       - name: Enviar email
