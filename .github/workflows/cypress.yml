@@ -99,22 +99,36 @@ jobs:
       - name: Consolidar resultados
         shell: powershell
         run: |
-          $files = Get-ChildItem "all-reports" -Recurse -Filter mochawesome*.json
+            $files = Get-ChildItem -Path "all-reports" -Recurse -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.Extension -eq ".json" }
 
-          [int]$TOTAL = 0
-          [int]$PASSED = 0
-          [int]$FAILED = 0
+            if (-not $files -or $files.Count -eq 0) {
+            Write-Error "Nenhum JSON encontrado em all-reports"
+            exit 1
+            }
 
-          foreach ($file in $files) {
+            [int]$TOTAL = 0
+            [int]$PASSED = 0
+            [int]$FAILED = 0
+
+            foreach ($file in $files) {
+            try {
             $json = Get-Content $file.FullName -Raw | ConvertFrom-Json
-            $TOTAL += $json.stats.tests
-            $PASSED += $json.stats.passes
-            $FAILED += $json.stats.failures
-          }
 
-          echo "TOTAL=$TOTAL" >> $env:GITHUB_ENV
-          echo "PASSED=$PASSED" >> $env:GITHUB_ENV
-          echo "FAILED=$FAILED" >> $env:GITHUB_ENV
+            if ($json.stats) {
+            $TOTAL += [int]$json.stats.tests
+            $PASSED += [int]$json.stats.passes
+            $FAILED += [int]$json.stats.failures
+            }
+
+            } catch {
+            Write-Host "Ignorando arquivo inválido: $($file.FullName)"
+            }
+            }
+
+            echo "TOTAL=$TOTAL" >> $env:GITHUB_ENV
+            echo "PASSED=$PASSED" >> $env:GITHUB_ENV
+            echo "FAILED=$FAILED" >> $env:GITHUB_ENV
 
       - name: Calcular métricas
         shell: powershell
