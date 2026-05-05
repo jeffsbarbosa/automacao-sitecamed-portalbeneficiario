@@ -41,7 +41,11 @@ jobs:
           headed: true
           spec: | 
             cypress/e2e/TESTES_HOMEPAGE/**/*.cy.js          
+            cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/**/*.cy.js
+            cypress/e2e/TESTES_PERFIL_ASSOCIADO/**/*.cy.js
             
+           
+          wait-on: ""
 
       - name: Gerar relatório HTML
         if: always()
@@ -50,13 +54,16 @@ jobs:
           $files = Get-ChildItem -Path "cypress/reports" -Filter "*.json" | Select-Object -ExpandProperty FullName
 
           if (-not $files -or $files.Count -eq 0) {
-            Write-Error "Nenhum arquivo JSON encontrado!"
+            Write-Error "Nenhum arquivo JSON encontrado em cypress/reports!"
             exit 1
           }
 
+          Write-Host "Arquivos encontrados:"
+          $files
+
           npx marge $files --reportDir cypress/reports --reportFilename report
 
-      - name: Upload dos relatórios
+      - name: Upload dos relatórios (HTML + evidências)
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -76,20 +83,17 @@ jobs:
       PASSED: 0
       FAILED: 0
       SUCCESS_RATE: 0
-      TABLE_HOME: ""
-      TABLE_PORTAL: ""
-      TABLE_PERFIL: ""
-      RATE_HOME: ""
-      RATE_PORTAL: ""
-      RATE_PERFIL: ""
+      STATUS_LEVEL: ""
+      FAIL_LIST: ""
 
     steps:
-      - name: Ajustar encoding UTF-8
+      - name: Ajustar encoding UTF-8 (GLOBAL)
         shell: powershell
         run: |
           [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+          $OutputEncoding = [System.Text.Encoding]::UTF8
 
-      - name: Baixar relatórios
+      - name: Baixar relatórios do Cypress
         uses: actions/download-artifact@v4
         with:
           path: all-reports
@@ -97,11 +101,10 @@ jobs:
       - name: Consolidar resultados
         shell: powershell
         run: |
-          $files = Get-ChildItem -Path "all-reports" -Recurse -File -ErrorAction SilentlyContinue |
-          Where-Object { $_.Extension -eq ".json" }
+          $files = Get-ChildItem -Path "all-reports" -Recurse -Filter mochawesome*.json -ErrorAction SilentlyContinue
 
           if (-not $files -or $files.Count -eq 0) {
-            Write-Error "Nenhum JSON encontrado em all-reports"
+            Write-Error "Nenhum JSON encontrado para consolidação!"
             exit 1
           }
 
@@ -110,16 +113,12 @@ jobs:
           [int]$FAILED = 0
 
           foreach ($file in $files) {
-            try {
-              $json = Get-Content $file.FullName -Raw | ConvertFrom-Json
+            $json = Get-Content $file.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
 
-              if ($json.stats) {
-                $TOTAL += [int]$json.stats.tests
-                $PASSED += [int]$json.stats.passes
-                $FAILED += [int]$json.stats.failures
-              }
-            } catch {
-              Write-Host "Ignorando arquivo inválido: $($file.FullName)"
+            if ($json.stats) {
+              $TOTAL += [int]$json.stats.tests
+              $PASSED += [int]$json.stats.passes
+              $FAILED += [int]$json.stats.failures
             }
           }
 
@@ -130,117 +129,94 @@ jobs:
       - name: Calcular métricas
         shell: powershell
         run: |
-          $rate = if ($env:TOTAL -eq 0) {0} else {[math]::Round(($env:PASSED/$env:TOTAL)*100,2)}
-          echo "SUCCESS_RATE=$rate" >> $env:GITHUB_ENV
+          if ($env:TOTAL -eq 0) {
+            $SUCCESS_RATE = 0
+          } else {
+            $SUCCESS_RATE = [math]::Round(($env:PASSED / $env:TOTAL) * 100, 2)
+          }
 
-      - name: Montar tabelas por módulo (via spec)
+          if ($env:FAILED -eq 0) {
+            $STATUS_LEVEL = "SUCESSO: Nenhuma falha detectada"
+            $STATUS_COLOR = "#28a745"
+          }
+          elseif ($env:FAILED -le 2) {
+            $STATUS_LEVEL = "ATENÇÃO: Falhas pontuais identificadas"
+            $STATUS_COLOR = "#ffc107"
+          }
+          else {
+            $STATUS_LEVEL = "CRÍTICO: Falhas relevantes detectadas"
+            $STATUS_COLOR = "#dc3545"
+          }
+
+          Add-Content -Path $env:GITHUB_ENV -Value "SUCCESS_RATE=$SUCCESS_RATE"
+          Add-Content -Path $env:GITHUB_ENV -Value "STATUS_LEVEL=$STATUS_LEVEL"
+          Add-Content -Path $env:GITHUB_ENV -Value "STATUS_COLOR=$STATUS_COLOR"
+
+      # 🔥 ÚNICO TRECHO ALTERADO (CORRIGIDO)
+      - name: Listar testes que falharam
         shell: powershell
         run: |
-      
-         $homeFail=@();$homePass=@()
-         $portalFail=@();$portalPass=@()
-         $perfilFail=@();$perfilPass=@()
+          $failList = @()
 
-         $hT=0;$hP=0;$pT=0;$pP=0;$pfT=0;$pfP=0
+          $files = Get-ChildItem -Path "all-reports" -Recurse -Filter mochawesome*.json -ErrorAction SilentlyContinue
 
-         function Row($suite, $test) {
+          foreach ($file in $files) {
+            $json = Get-Content $file.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
 
-         $status = if ($test.state -eq "failed") { "FALHA" } else { "SUCESSO" }
+            if ($json.results) {
+              foreach ($result in $json.results) {
+                foreach ($suite in $result.suites) {
+                  foreach ($test in $suite.tests) {
 
-         $erro = if ($test.state -eq "failed" -and $test.err.message) {
-          ($test.err.message -split "`n")[0]
-         } else { "-" }
+                    if ($test.fail -eq $true) {
 
-        $color = if ($status -eq "SUCESSO") { "#2e7d32" } else { "#c62828" }
-        $bg = if ($status -eq "SUCESSO") { "#e8f5e9" } else { "#ffebee" }
+                      $testName = $test.title
 
-        return "<tr style='background:$bg'>
-          <td>$suite</td>
-          <td>$($test.title)</td>
-          <td style='color:$color;font-weight:bold'>$status</td>
-          <td>$($test.duration) ms</td>
-          <td>$erro</td>
-        </tr>"
-      }
+                      $errorMessage = if ($test.err -and $test.err.message) {
+                        ($test.err.message -split "`n")[0]
+                      } else {
+                        "Erro não identificado"
+                      }
 
-      $files = Get-ChildItem "all-reports" -Recurse -File -ErrorAction SilentlyContinue |
-        Where-Object { $_.Extension -eq ".json" -and $_.Name -like "mochawesome*" }
+                      $errorMessage = $errorMessage -replace "CypressError:\s*", ""
 
-      foreach ($f in $files) {
+                      $failList += "<li style='margin-bottom:10px;'><b>$testName</b><br><span style='color:#dc3545;'> -> $errorMessage</span></li>"
+                    }
 
-        try {
-          $json = Get-Content $f.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
-        } catch {
-          Write-Host "Ignorando JSON inválido: $($f.FullName)"
-          continue
-        }
-
-        foreach ($r in $json.results) {
-
-          $filePath = $r.file.ToLower()
-
-          foreach ($s in $r.suites) {
-            foreach ($t in $s.tests) {
-
-              $row = Row $s.title $t
-
-              if ($filePath -like "*testes_homepage*") {
-                $hT++
-                if ($t.state -eq "failed") { $homeFail += $row } else { $homePass += $row; $hP++ }
+                  }
+                }
               }
-              elseif ($filePath -like "*testes_portal_area_nao_logada*") {
-                $pT++
-                if ($t.state -eq "failed") { $portalFail += $row } else { $portalPass += $row; $pP++ }
-              }
-              elseif ($filePath -like "*testes_perfil_associado*") {
-                $pfT++
-                if ($t.state -eq "failed") { $perfilFail += $row } else { $perfilPass += $row; $pfP++ }
-              }
-
             }
           }
-        }
-      }
 
-      function Rate($p,$t){
-        if($t -eq 0){0}else{[math]::Round(($p/$t)*100,2)}
-      }
+          if ($failList.Count -eq 0) {
+            $failText = "<p style='color:#28a745; font-weight:bold;'>Nenhum teste falhou</p>"
+          } else {
+            $failText = "<ul style='padding-left:20px; font-family:Arial;'>$($failList -join '')</ul>"
+          }
 
-      echo "RATE_HOME=$(Rate $hP $hT)" >> $env:GITHUB_ENV
-      echo "RATE_PORTAL=$(Rate $pP $pT)" >> $env:GITHUB_ENV
-      echo "RATE_PERFIL=$(Rate $pfP $pfT)" >> $env:GITHUB_ENV
+          "FAIL_LIST<<EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $failText | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-      function Table($fail,$pass){
-        $rows = ($fail + $pass) -join ''
-        "<table style='border-collapse:collapse;width:100%;font-size:13px;font-family:Arial'>
-          <tr style='background:#212529;color:#ffffff'>
-            <th>Suite</th>
-            <th>Cenário</th>
-            <th>Status</th>
-            <th>Tempo</th>
-            <th>Erro</th>
-          </tr>
-          $rows
-        </table>"
-      }
+      - name: Upload relatório HTML
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-html
+          path: all-reports
 
-      $home = Table $homeFail $homePass
-      $portal = Table $portalFail $portalPass
-      $perfil = Table $perfilFail $perfilPass
+      - name: Ajustar encoding UTF-8
+        shell: powershell
+        run: |
+          [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
-      "TABLE_HOME<<EOF" >> $env:GITHUB_ENV
-      $home >> $env:GITHUB_ENV
-      "EOF" >> $env:GITHUB_ENV
+      - name: Ignorar erro SSL
+        shell: powershell
+        run: |
+          "NODE_TLS_REJECT_UNAUTHORIZED=0" >> $env:GITHUB_ENV
 
-      "TABLE_PORTAL<<EOF" >> $env:GITHUB_ENV
-      $portal >> $env:GITHUB_ENV
-      "EOF" >> $env:GITHUB_ENV
-
-      "TABLE_PERFIL<<EOF" >> $env:GITHUB_ENV
-      $perfil >> $env:GITHUB_ENV
-      "EOF" >> $env:GITHUB_ENV
-
-      - name: Enviar email
+      - name: Enviar relatório por email
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: correio.camed.com.br
@@ -249,35 +225,105 @@ jobs:
           ignore_cert: true
           username: ${{ secrets.EMAIL_USER }}
           password: ${{ secrets.EMAIL_PASS }}
-          subject: "Testes Automatizados - Site Camed e Portal do Beneficiário"
+          subject: "Testes dos Atendimentos Virtuais - Site Camed e Portal de Serviços"
           to: ${{ secrets.EMAIL_TO }}
           from: Jefferson Barbosa <${{ secrets.EMAIL_USER }}>
 
+          convert_markdown: false
           html_body: |
             <meta charset="UTF-8">
-
             <h2>🚀 Execução dos testes automatizados concluída</h2>
 
-            <h3>📊 Resumo</h3>
+            <p>Olá, bom dia! </p> 
 
-            <table style="width:100%;border-collapse:collapse;text-align:center">
-              <tr><th>Total</th><th>Aprovados</th><th>Falhas</th><th>Taxa</th></tr>
-              <tr>
-                <td>${{ env.TOTAL }}</td>
-                <td style="color:#28a745">${{ env.PASSED }}</td>
-                <td style="color:#dc3545">${{ env.FAILED }}</td>
-                <td>${{ env.SUCCESS_RATE }}%</td>
-              </tr>
+            <p>Os testes automatizados do <b>Site Camed</b> e <b>Portal de Serviços Área Logada</b> foram executados. Segue abaixo, resumo da execução:</p>
+
+            <h3>📊 Resumo da execução</h3>
+
+            <table style="
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            margin-top: 10px;
+            font-family: Arial, sans-serif;
+            ">
+
+            <tr style="background-color: #f1f1f1;">
+            <th style="padding: 10px; border: 1px solid #ddd;">Total de Cenários Testados</th>
+            <th style="padding: 10px; border: 1px solid #ddd;">Aprovados</th>
+            <th style="padding: 10px; border: 1px solid #ddd;">Falhas</th>
+            </tr>
+
+             <tr>
+             <td style="padding: 12px; border: 1px solid #ddd; font-weight: bold;">
+             ${{ env.TOTAL }}
+            </td>
+
+            <td style="padding: 12px; border: 1px solid #ddd; font-weight: bold; color: #28a745;">
+             ${{ env.PASSED }}
+            </td>
+
+            <td style="padding: 12px; border: 1px solid #ddd; font-weight: bold; color: #dc3545;">
+             ${{ env.FAILED }}
+            </td>
+            </tr>
+
             </table>
 
-            <h3>🏠 Homepage (${{ env.RATE_HOME }}%)</h3>
-            ${{ env.TABLE_HOME }}
+            <p style="font-size: 16px;">
+            <b>📈 Taxa de sucesso:</b> 
+            <span style="color:#28a745; font-weight:bold;">${{ env.SUCCESS_RATE }}%</span>
+            </p>
 
-            <h3>🌐 Portal (${{ env.RATE_PORTAL }}%)</h3>
-            ${{ env.TABLE_PORTAL }}
+            <div style="
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-weight: bold;
+            color: white;
+            background-color: ${{
+            env.FAILED == '0' && '#28a745' ||
+            env.FAILED <= '2' && '#ffc107' ||
+            '#dc3545'
+            }};
+            ">
+            ${{ env.STATUS_LEVEL }}
+            </div>
 
-            <h3>🔐 Perfil (${{ env.RATE_PERFIL }}%)</h3>
-            ${{ env.TABLE_PERFIL }}
+            <hr>
+
+            ${{ env.FAILED == '0' && '
+            <h3 style="color: #28a745;">✅ Nenhuma falha identificada</h3>
+            ' || '
+            <h3 style="color: #dc3545;">❌ TESTES COM FALHA:</h3>
+
+            <div style="
+            background: #fff5f5;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: Arial, sans-serif;
+            white-space: pre-line;
+            ">
+            ' }}${{ env.FAIL_LIST }}${{ env.FAILED == '0' && '' || '</div>' }}
+
+            <hr>
+
+            <br>
+               
+            <hr>
+
+            <p>🤖 Automação de Testes</p>
+
+            <hr>
+
+            <br>
+
+            <div style="margin-top: 20px;">
+            <img src="https://raw.githubusercontent.com/jeffsbarbosa/automacao-sitecamed-portalbeneficiario/refs/heads/main/cypress/assets/assinatura_email1.png"
+            alt="Assinatura Jefferson Barbosa"
+            style="max-width: 450px; width: 100%;">
+            </div>
 
           attachments: |
             all-reports/report.html
