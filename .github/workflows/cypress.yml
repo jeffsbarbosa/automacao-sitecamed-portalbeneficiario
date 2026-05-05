@@ -41,8 +41,7 @@ jobs:
           headed: true
           spec: | 
             cypress/e2e/TESTES_HOMEPAGE/**/*.cy.js          
-            cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/**/*.cy.js
-            cypress/e2e/TESTES_PERFIL_ASSOCIADO/**/*.cy.js
+            
 
       - name: Gerar relatório HTML
         if: always()
@@ -77,7 +76,6 @@ jobs:
       PASSED: 0
       FAILED: 0
       SUCCESS_RATE: 0
-      STATUS_LEVEL: ""
       TABLE_HOME: ""
       TABLE_PORTAL: ""
       TABLE_PERFIL: ""
@@ -99,36 +97,35 @@ jobs:
       - name: Consolidar resultados
         shell: powershell
         run: |
-            $files = Get-ChildItem -Path "all-reports" -Recurse -File -ErrorAction SilentlyContinue |
-            Where-Object { $_.Extension -eq ".json" }
+          $files = Get-ChildItem -Path "all-reports" -Recurse -File -ErrorAction SilentlyContinue |
+          Where-Object { $_.Extension -eq ".json" }
 
-            if (-not $files -or $files.Count -eq 0) {
+          if (-not $files -or $files.Count -eq 0) {
             Write-Error "Nenhum JSON encontrado em all-reports"
             exit 1
-            }
+          }
 
-            [int]$TOTAL = 0
-            [int]$PASSED = 0
-            [int]$FAILED = 0
+          [int]$TOTAL = 0
+          [int]$PASSED = 0
+          [int]$FAILED = 0
 
-            foreach ($file in $files) {
+          foreach ($file in $files) {
             try {
-            $json = Get-Content $file.FullName -Raw | ConvertFrom-Json
+              $json = Get-Content $file.FullName -Raw | ConvertFrom-Json
 
-            if ($json.stats) {
-            $TOTAL += [int]$json.stats.tests
-            $PASSED += [int]$json.stats.passes
-            $FAILED += [int]$json.stats.failures
-            }
-
+              if ($json.stats) {
+                $TOTAL += [int]$json.stats.tests
+                $PASSED += [int]$json.stats.passes
+                $FAILED += [int]$json.stats.failures
+              }
             } catch {
-            Write-Host "Ignorando arquivo inválido: $($file.FullName)"
+              Write-Host "Ignorando arquivo inválido: $($file.FullName)"
             }
-            }
+          }
 
-            echo "TOTAL=$TOTAL" >> $env:GITHUB_ENV
-            echo "PASSED=$PASSED" >> $env:GITHUB_ENV
-            echo "FAILED=$FAILED" >> $env:GITHUB_ENV
+          echo "TOTAL=$TOTAL" >> $env:GITHUB_ENV
+          echo "PASSED=$PASSED" >> $env:GITHUB_ENV
+          echo "FAILED=$FAILED" >> $env:GITHUB_ENV
 
       - name: Calcular métricas
         shell: powershell
@@ -139,9 +136,7 @@ jobs:
       - name: Montar tabelas por módulo (via spec)
         shell: powershell
         run: |
-    
-         Add-Type -AssemblyName System.Web
-
+      
          $homeFail=@();$homePass=@()
          $portalFail=@();$portalPass=@()
          $perfilFail=@();$perfilPass=@()
@@ -153,107 +148,97 @@ jobs:
          $status = if ($test.state -eq "failed") { "FALHA" } else { "SUCESSO" }
 
          $erro = if ($test.state -eq "failed" -and $test.err.message) {
-         ($test.err.message -split "`n")[0]
+          ($test.err.message -split "`n")[0]
          } else { "-" }
 
-         $color = if ($status -eq "SUCESSO") { "#2e7d32" } else { "#c62828" }
-         $bg = if ($status -eq "SUCESSO") { "#e8f5e9" } else { "#ffebee" }
+        $color = if ($status -eq "SUCESSO") { "#2e7d32" } else { "#c62828" }
+        $bg = if ($status -eq "SUCESSO") { "#e8f5e9" } else { "#ffebee" }
 
-         return "<tr style='background:$bg'>
-         <td>$suite</td>
-         <td>$($test.title)</td>
-         <td style='color:$color;font-weight:bold'>$status</td>
-         <td>$($test.duration) ms</td>
-         <td>$erro</td>
-         </tr>"
-         }
+        return "<tr style='background:$bg'>
+          <td>$suite</td>
+          <td>$($test.title)</td>
+          <td style='color:$color;font-weight:bold'>$status</td>
+          <td>$($test.duration) ms</td>
+          <td>$erro</td>
+        </tr>"
+      }
 
-         $files = Get-ChildItem "all-reports" -Recurse -File -ErrorAction SilentlyContinue |
-         Where-Object { $_.Extension -eq ".json" -and $_.Name -like "mochawesome*" }
+      $files = Get-ChildItem "all-reports" -Recurse -File -ErrorAction SilentlyContinue |
+        Where-Object { $_.Extension -eq ".json" -and $_.Name -like "mochawesome*" }
 
-         foreach ($f in $files) {
+      foreach ($f in $files) {
 
-         try {
-         $json = Get-Content $f.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
-         } catch {
-         Write-Host "Ignorando JSON inválido: $($f.FullName)"
-         continue
-         }
+        try {
+          $json = Get-Content $f.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
+        } catch {
+          Write-Host "Ignorando JSON inválido: $($f.FullName)"
+          continue
+        }
 
-         foreach ($r in $json.results) {
+        foreach ($r in $json.results) {
 
-         $filePath = $r.file.ToLower()
+          $filePath = $r.file.ToLower()
 
-         foreach ($s in $r.suites) {
-          foreach ($t in $s.tests) {
+          foreach ($s in $r.suites) {
+            foreach ($t in $s.tests) {
 
-            $row = Row $s.title $t
+              $row = Row $s.title $t
 
-            if ($filePath -like "*testes_homepage*") {
-              $hT++
-              if ($t.state -eq "failed") { $homeFail += $row } else { $homePass += $row; $hP++ }
+              if ($filePath -like "*testes_homepage*") {
+                $hT++
+                if ($t.state -eq "failed") { $homeFail += $row } else { $homePass += $row; $hP++ }
+              }
+              elseif ($filePath -like "*testes_portal_area_nao_logada*") {
+                $pT++
+                if ($t.state -eq "failed") { $portalFail += $row } else { $portalPass += $row; $pP++ }
+              }
+              elseif ($filePath -like "*testes_perfil_associado*") {
+                $pfT++
+                if ($t.state -eq "failed") { $perfilFail += $row } else { $perfilPass += $row; $pfP++ }
+              }
+
             }
-            elseif ($filePath -like "*testes_portal_area_nao_logada*") {
-              $pT++
-              if ($t.state -eq "failed") { $portalFail += $row } else { $portalPass += $row; $pP++ }
-            }
-            elseif ($filePath -like "*testes_perfil_associado*") {
-              $pfT++
-              if ($t.state -eq "failed") { $perfilFail += $row } else { $perfilPass += $row; $pfP++ }
-            }
+          }
+        }
+      }
 
-          }
-          }
-          }
-          }
+      function Rate($p,$t){
+        if($t -eq 0){0}else{[math]::Round(($p/$t)*100,2)}
+      }
 
-          function Rate($p,$t){
-          if($t -eq 0){0}else{[math]::Round(($p/$t)*100,2)}
-          }
+      echo "RATE_HOME=$(Rate $hP $hT)" >> $env:GITHUB_ENV
+      echo "RATE_PORTAL=$(Rate $pP $pT)" >> $env:GITHUB_ENV
+      echo "RATE_PERFIL=$(Rate $pfP $pfT)" >> $env:GITHUB_ENV
 
-          echo "RATE_HOME=$(Rate $hP $hT)" >> $env:GITHUB_ENV
-          echo "RATE_PORTAL=$(Rate $pP $pT)" >> $env:GITHUB_ENV
-          echo "RATE_PERFIL=$(Rate $pfP $pfT)" >> $env:GITHUB_ENV
-
-          function Table($fail,$pass){
-          $rows = ($fail + $pass) -join ''
-          "<table style='border-collapse:collapse;width:100%;font-size:13px;font-family:Arial'>
+      function Table($fail,$pass){
+        $rows = ($fail + $pass) -join ''
+        "<table style='border-collapse:collapse;width:100%;font-size:13px;font-family:Arial'>
           <tr style='background:#212529;color:#ffffff'>
-          <th>Suite</th>
-          <th>Cenário</th>
-          <th>Status</th>
-          <th>Tempo</th>
-          <th>Erro</th>
+            <th>Suite</th>
+            <th>Cenário</th>
+            <th>Status</th>
+            <th>Tempo</th>
+            <th>Erro</th>
           </tr>
           $rows
-          </table>"
-          }
+        </table>"
+      }
 
-          $homeTable   = Table $homeFail $homePass
-          $portalTable = Table $portalFail $portalPass
-          $perfilTable = Table $perfilFail $perfilPass
+      $home = Table $homeFail $homePass
+      $portal = Table $portalFail $portalPass
+      $perfil = Table $perfilFail $perfilPass
 
-          $homeBlock = @"
-          TABLE_HOME<<EOF
-          $homeTable
-          EOF
-          "@
+      "TABLE_HOME<<EOF" >> $env:GITHUB_ENV
+      $home >> $env:GITHUB_ENV
+      "EOF" >> $env:GITHUB_ENV
 
-          $portalBlock = @"
-          TABLE_PORTAL<<EOF
-          $portalTable
-          EOF
-          "@
+      "TABLE_PORTAL<<EOF" >> $env:GITHUB_ENV
+      $portal >> $env:GITHUB_ENV
+      "EOF" >> $env:GITHUB_ENV
 
-          $perfilBlock = @"
-          TABLE_PERFIL<<EOF
-          $perfilTable
-          EOF
-          "@
-
-          Add-Content -Path $env:GITHUB_ENV -Value $homeBlock
-          Add-Content -Path $env:GITHUB_ENV -Value $portalBlock
-          Add-Content -Path $env:GITHUB_ENV -Value $perfilBlock
+      "TABLE_PERFIL<<EOF" >> $env:GITHUB_ENV
+      $perfil >> $env:GITHUB_ENV
+      "EOF" >> $env:GITHUB_ENV
 
       - name: Enviar email
         uses: dawidd6/action-send-mail@v3
@@ -271,71 +256,28 @@ jobs:
           html_body: |
             <meta charset="UTF-8">
 
-            <table style="width:100%;border-collapse:collapse;font-family:Arial">
-              <tr style="background:#212529;color:#ffffff">
-                <th style="padding:12px;text-align:left">
-                  🛡️ Quality Assurance | Site Camed & Área Logada
-                </th>
-              </tr>
-            </table>
-
-            <br>
-
             <h2>🚀 Execução dos testes automatizados concluída</h2>
 
-            <p>Olá, bom dia! </p> 
+            <h3>📊 Resumo</h3>
 
-            <p>Os testes automatizados do <b>Site Camed</b> e <b>Portal de Serviços Área Logada</b> foram executados. Segue abaixo, resumo da execução:</p>
-
-              <h3>📊 Resumo da execução</h3>
-
-            <table style="width:100%;border-collapse:collapse;text-align:center;font-family:Arial">
-              <tr style="background:#f1f1f1;">
-                <th>Total</th><th>Aprovados</th><th>Falhas</th><th>Taxa</th>
-              </tr>
+            <table style="width:100%;border-collapse:collapse;text-align:center">
+              <tr><th>Total</th><th>Aprovados</th><th>Falhas</th><th>Taxa</th></tr>
               <tr>
-                <td><b>${{ env.TOTAL }}</b></td>
-                <td style="color:#28a745"><b>${{ env.PASSED }}</b></td>
-                <td style="color:#dc3545"><b>${{ env.FAILED }}</b></td>
-                <td><b>${{ env.SUCCESS_RATE }}%</b></td>
+                <td>${{ env.TOTAL }}</td>
+                <td style="color:#28a745">${{ env.PASSED }}</td>
+                <td style="color:#dc3545">${{ env.FAILED }}</td>
+                <td>${{ env.SUCCESS_RATE }}%</td>
               </tr>
             </table>
-
-            <br>
 
             <h3>🏠 Homepage (${{ env.RATE_HOME }}%)</h3>
             ${{ env.TABLE_HOME }}
 
-            <br>
-
-            <h3>🌐 Portal Área Não Logada (${{ env.RATE_PORTAL }}%)</h3>
+            <h3>🌐 Portal (${{ env.RATE_PORTAL }}%)</h3>
             ${{ env.TABLE_PORTAL }}
 
-            <br>
-
-            <h3>🔐 Perfil Associado (${{ env.RATE_PERFIL }}%)</h3>
+            <h3>🔐 Perfil (${{ env.RATE_PERFIL }}%)</h3>
             ${{ env.TABLE_PERFIL }}
-
-            <hr>
-
-            <br>
-               
-            <hr>
-
-            <p>🤖 Automação de Testes</p>
-
-            <hr>
-
-            <br>
-
-
-            <br>
-
-            <div style="margin-top: 20px;">
-            <img src="https://raw.githubusercontent.com/jeffsbarbosa/automacao-sitecamed-portalbeneficiario/refs/heads/main/cypress/assets/assinatura_email1.png"
-            alt="Assinatura Jefferson Barbosa"
-            style="max-width: 450px; width: 100%;">
-            </div>
 
           attachments: |
             all-reports/report.html
