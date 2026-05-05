@@ -236,7 +236,6 @@ jobs:
           </tr>"
           }
 
-          # 🔥 FUNÇÃO NOVA (corrige o problema)
           function Process-Suite($suite, $filePath) {
 
           foreach ($t in $suite.tests) {
@@ -305,17 +304,17 @@ jobs:
           $portalTable = Table $portalFail $portalPass
           $perfilTable = Table $perfilFail $perfilPass
 
-          "TABLE_HOME<<EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          $homeTable | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Add-Content -Path $env:GITHUB_ENV -Value "TABLE_HOME<<EOF"
+          Add-Content -Path $env:GITHUB_ENV -Value $homeTable
+          Add-Content -Path $env:GITHUB_ENV -Value "EOF"
 
-          "TABLE_PORTAL<<EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          $portalTable | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Add-Content -Path $env:GITHUB_ENV -Value "TABLE_PORTAL<<EOF"
+          Add-Content -Path $env:GITHUB_ENV -Value $portalTable
+          Add-Content -Path $env:GITHUB_ENV -Value "EOF"
 
-          "TABLE_PERFIL<<EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          $perfilTable | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Add-Content -Path $env:GITHUB_ENV -Value "TABLE_PERFIL<<EOF"
+          Add-Content -Path $env:GITHUB_ENV -Value $perfilTable
+          Add-Content -Path $env:GITHUB_ENV -Value "EOF"
 
       - name: Upload relatório HTML
         if: always()
