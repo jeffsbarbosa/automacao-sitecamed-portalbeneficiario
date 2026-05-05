@@ -218,58 +218,69 @@ jobs:
 
           function Row($suite, $test) {
 
-            $status = if ($test.state -eq "failed") { "FALHA" } else { "SUCESSO" }
+          $status = if ($test.state -eq "failed") { "FALHA" } else { "SUCESSO" }
 
-            $erro = if ($test.state -eq "failed" -and $test.err.message) {
-              ($test.err.message -split "`n")[0]
-            } else { "-" }
+          $erro = if ($test.state -eq "failed" -and $test.err.message) {
+          ($test.err.message -split "`n")[0]
+          } else { "-" }
 
-            $color = if ($status -eq "SUCESSO") { "#2e7d32" } else { "#c62828" }
-            $bg = if ($status -eq "SUCESSO") { "#e8f5e9" } else { "#ffebee" }
+          $color = if ($status -eq "SUCESSO") { "#2e7d32" } else { "#c62828" }
+          $bg = if ($status -eq "SUCESSO") { "#e8f5e9" } else { "#ffebee" }
 
-            return "<tr style='background:$bg'>
-              <td>$suite</td>
-              <td>$($test.title)</td>
-              <td style='color:$color;font-weight:bold'>$status</td>
-              <td>$($test.duration) ms</td>
-              <td>$erro</td>
-            </tr>"
+          return "<tr style='background:$bg'>
+          <td>$suite</td>
+          <td>$($test.title)</td>
+          <td style='color:$color;font-weight:bold'>$status</td>
+          <td>$($test.duration) ms</td>
+          <td>$erro</td>
+          </tr>"
+          }
+
+          # 🔥 FUNÇÃO NOVA (corrige o problema)
+          function Process-Suite($suite, $filePath) {
+
+          foreach ($t in $suite.tests) {
+
+          $row = Row $suite.title $t
+
+          if ($filePath -like "*testes_homepage*") {
+          $hT++
+          if ($t.state -eq "failed") { $homeFail += $row } else { $homePass += $row; $hP++ }
+          }
+          elseif ($filePath -like "*testes_portal_area_nao_logada*") {
+          $pT++
+          if ($t.state -eq "failed") { $portalFail += $row } else { $portalPass += $row; $pP++ }
+          }
+          elseif ($filePath -like "*testes_perfil_associado*") {
+          $pfT++
+          if ($t.state -eq "failed") { $perfilFail += $row } else { $perfilPass += $row; $pfP++ }
+          }
+
+          }
+
+          foreach ($child in $suite.suites) {
+          Process-Suite $child $filePath
+          }
           }
 
           $files = Get-ChildItem "all-reports" -Recurse -Filter mochawesome*.json
 
           foreach ($f in $files) {
-            $json = Get-Content $f.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
+          $json = Get-Content $f.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
 
-            foreach ($r in $json.results) {
+          foreach ($r in $json.results) {
 
-              $filePath = $r.file.ToLower()
+          $filePath = $r.file.ToLower()
 
-              foreach ($s in $r.suites) {
-                foreach ($t in $s.tests) {
+          foreach ($s in $r.suites) {
+          Process-Suite $s $filePath
+          }
 
-                  $row = Row $s.title $t
-
-                  if ($filePath -like "*testes_homepage*") {
-                    $hT++
-                    if ($t.state -eq "failed") { $homeFail += $row } else { $homePass += $row; $hP++ }
-                  }
-                  elseif ($filePath -like "*testes_portal_area_nao_logada*") {
-                    $pT++
-                    if ($t.state -eq "failed") { $portalFail += $row } else { $portalPass += $row; $pP++ }
-                  }
-                  elseif ($filePath -like "*testes_perfil_associado*") {
-                    $pfT++
-                    if ($t.state -eq "failed") { $perfilFail += $row } else { $perfilPass += $row; $pfP++ }
-                  }
-
-                }
-              }
-            }
+          }
           }
 
           function Rate($p,$t){
-            if($t -eq 0){0}else{[math]::Round(($p/$t)*100,2)}
+          if($t -eq 0){0}else{[math]::Round(($p/$t)*100,2)}
           }
 
           echo "RATE_HOME=$(Rate $hP $hT)" >> $env:GITHUB_ENV
@@ -277,17 +288,17 @@ jobs:
           echo "RATE_PERFIL=$(Rate $pfP $pfT)" >> $env:GITHUB_ENV
 
           function Table($fail,$pass){
-            $rows = ($fail + $pass) -join ''
-            "<table style='border-collapse:collapse;width:100%;font-size:13px;font-family:Arial'>
-              <tr style='background:#212529;color:#ffffff'>
-                <th>Suite</th>
-                <th>Cenário</th>
-                <th>Status</th>
-                <th>Tempo</th>
-                <th>Erro</th>
-              </tr>
-              $rows
-            </table>"
+          $rows = ($fail + $pass) -join ''
+          "<table style='border-collapse:collapse;width:100%;font-size:13px;font-family:Arial'>
+          <tr style='background:#212529;color:#ffffff'>
+          <th>Suite</th>
+          <th>Cenário</th>
+          <th>Status</th>
+          <th>Tempo</th>
+          <th>Erro</th>
+          </tr>
+          $rows
+          </table>"
           }
 
           $homeTable   = Table $homeFail $homePass
