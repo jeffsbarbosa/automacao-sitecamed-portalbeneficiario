@@ -40,10 +40,10 @@ jobs:
           browser: chrome
           headed: true
           spec: | 
-            cypress/e2e/TESTES_HOMEPAGE/**/*.cy.js          
-           
-            
-           
+            cypress/e2e/TESTES_HOMEPAGE/**/*.cy.js   
+            cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/**/*.cy.js
+            cypress/e2e/TESTES_PERFIL_ASSOCIADO/**/*.cy.js                
+                    
           wait-on: ""
 
       - name: Gerar relatório HTML
@@ -349,7 +349,7 @@ jobs:
           convert_markdown: false
           html_body: |
             <meta charset="UTF-8">
-            <h2>🛡️ Qualidade validada com sucesso</h2>
+            <h2>🛡️ Relatório de Execução dos Testes Automatizados</h2>
 
             <p>Prezados,</p>
 
