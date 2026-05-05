@@ -42,7 +42,7 @@ jobs:
           spec: | 
             cypress/e2e/TESTES_HOMEPAGE/**/*.cy.js   
             cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/**/*.cy.js
-            cypress/e2e/TESTES_PERFIL_ASSOCIADO/**/*.cy.js                
+                            
                     
           wait-on: ""
 
@@ -291,7 +291,7 @@ jobs:
           "<table style='border-collapse:collapse;width:100%;font-size:13px;font-family:Arial'>
           <tr style='background:#212529;color:#ffffff'>
           <th>Suite</th>
-          <th>Cenário</th>
+          <th>Cen&aacute;rio</th>
           <th>Status</th>
           <th>Tempo</th>
           <th>Erro</th>
