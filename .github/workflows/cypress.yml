@@ -139,94 +139,121 @@ jobs:
       - name: Montar tabelas por módulo (via spec)
         shell: powershell
         run: |
-          Add-Type -AssemblyName System.Web
+    
+         Add-Type -AssemblyName System.Web
 
-          $homeFail=@();$homePass=@()
-          $portalFail=@();$portalPass=@()
-          $perfilFail=@();$perfilPass=@()
+         $homeFail=@();$homePass=@()
+         $portalFail=@();$portalPass=@()
+         $perfilFail=@();$perfilPass=@()
 
-          $hT=0;$hP=0;$pT=0;$pP=0;$pfT=0;$pfP=0
+         $hT=0;$hP=0;$pT=0;$pP=0;$pfT=0;$pfP=0
 
-          function Row($suite, $test) {
-            $status = if ($test.state -eq "failed") { "FALHA" } else { "SUCESSO" }
+         function Row($suite, $test) {
 
-            $erro = if ($test.state -eq "failed" -and $test.err.message) {
-              ($test.err.message -split "`n")[0]
-            } else { "-" }
+         $status = if ($test.state -eq "failed") { "FALHA" } else { "SUCESSO" }
 
-            $color = if ($status -eq "SUCESSO") { "#2e7d32" } else { "#c62828" }
-            $bg = if ($status -eq "SUCESSO") { "#e8f5e9" } else { "#ffebee" }
+         $erro = if ($test.state -eq "failed" -and $test.err.message) {
+         ($test.err.message -split "`n")[0]
+         } else { "-" }
 
-            return "<tr style='background:$bg'>
-            <td>$suite</td>
-            <td>$($test.title)</td>
-            <td style='color:$color;font-weight:bold'>$status</td>
-            <td>$($test.duration) ms</td>
-            <td>$erro</td>
-            </tr>"
-          }
+         $color = if ($status -eq "SUCESSO") { "#2e7d32" } else { "#c62828" }
+         $bg = if ($status -eq "SUCESSO") { "#e8f5e9" } else { "#ffebee" }
 
-          $files = Get-ChildItem "all-reports" -Recurse -Filter mochawesome*.json
+         return "<tr style='background:$bg'>
+         <td>$suite</td>
+         <td>$($test.title)</td>
+         <td style='color:$color;font-weight:bold'>$status</td>
+         <td>$($test.duration) ms</td>
+         <td>$erro</td>
+         </tr>"
+         }
 
-          foreach ($f in $files){
-            $json = Get-Content $f.FullName -Raw | ConvertFrom-Json
+         $files = Get-ChildItem "all-reports" -Recurse -File -ErrorAction SilentlyContinue |
+         Where-Object { $_.Extension -eq ".json" -and $_.Name -like "mochawesome*" }
 
-            foreach ($r in $json.results){
+         foreach ($f in $files) {
 
-              $filePath = $r.file.ToLower()
+         try {
+         $json = Get-Content $f.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
+         } catch {
+         Write-Host "Ignorando JSON inválido: $($f.FullName)"
+         continue
+         }
 
-              foreach ($s in $r.suites){
-                foreach ($t in $s.tests){
+         foreach ($r in $json.results) {
 
-                  $row = Row $s.title $t
+         $filePath = $r.file.ToLower()
 
-                  if ($filePath -like "*testes_homepage*"){
-                    $hT++
-                    if($t.state -eq "failed"){ $homeFail += $row } else { $homePass += $row; $hP++ }
-                  }
-                  elseif ($filePath -like "*testes_portal_area_nao_logada*"){
-                    $pT++
-                    if($t.state -eq "failed"){ $portalFail += $row } else { $portalPass += $row; $pP++ }
-                  }
-                  elseif ($filePath -like "*testes_perfil_associado*"){
-                    $pfT++
-                    if($t.state -eq "failed"){ $perfilFail += $row } else { $perfilPass += $row; $pfP++ }
-                  }
+         foreach ($s in $r.suites) {
+          foreach ($t in $s.tests) {
 
-                }
-              }
+            $row = Row $s.title $t
+
+            if ($filePath -like "*testes_homepage*") {
+              $hT++
+              if ($t.state -eq "failed") { $homeFail += $row } else { $homePass += $row; $hP++ }
             }
+            elseif ($filePath -like "*testes_portal_area_nao_logada*") {
+              $pT++
+              if ($t.state -eq "failed") { $portalFail += $row } else { $portalPass += $row; $pP++ }
+            }
+            elseif ($filePath -like "*testes_perfil_associado*") {
+              $pfT++
+              if ($t.state -eq "failed") { $perfilFail += $row } else { $perfilPass += $row; $pfP++ }
+            }
+
+          }
+          }
+          }
           }
 
-          function Rate($p,$t){ if($t -eq 0){0}else{[math]::Round(($p/$t)*100,2)} }
+          function Rate($p,$t){
+          if($t -eq 0){0}else{[math]::Round(($p/$t)*100,2)}
+          }
 
           echo "RATE_HOME=$(Rate $hP $hT)" >> $env:GITHUB_ENV
           echo "RATE_PORTAL=$(Rate $pP $pT)" >> $env:GITHUB_ENV
           echo "RATE_PERFIL=$(Rate $pfP $pfT)" >> $env:GITHUB_ENV
 
           function Table($fail,$pass){
-            $rows = ($fail + $pass) -join ''
-            "<table style='border-collapse:collapse;width:100%;font-size:13px'>
-            <tr style='background:#212529;color:#ffffff'>
-            <th>Suite</th><th>Cenário</th><th>Status</th><th>Tempo</th><th>Erro</th>
-            </tr>$rows</table>"
+          $rows = ($fail + $pass) -join ''
+          "<table style='border-collapse:collapse;width:100%;font-size:13px;font-family:Arial'>
+          <tr style='background:#212529;color:#ffffff'>
+          <th>Suite</th>
+          <th>Cenário</th>
+          <th>Status</th>
+          <th>Tempo</th>
+          <th>Erro</th>
+          </tr>
+          $rows
+          </table>"
           }
 
-          $homeTable = Table $homeFail $homePass
+          $homeTable   = Table $homeFail $homePass
           $portalTable = Table $portalFail $portalPass
           $perfilTable = Table $perfilFail $perfilPass
 
-          Add-Content -Path $env:GITHUB_ENV -Value "TABLE_HOME<<EOF"
-          Add-Content -Path $env:GITHUB_ENV -Value $homeTable
-          Add-Content -Path $env:GITHUB_ENV -Value "EOF"
+          $homeBlock = @"
+          TABLE_HOME<<EOF
+          $homeTable
+          EOF
+          "@
 
-          Add-Content -Path $env:GITHUB_ENV -Value "TABLE_PORTAL<<EOF"
-          Add-Content -Path $env:GITHUB_ENV -Value $portalTable
-          Add-Content -Path $env:GITHUB_ENV -Value "EOF"
+          $portalBlock = @"
+          TABLE_PORTAL<<EOF
+          $portalTable
+          EOF
+          "@
 
-          Add-Content -Path $env:GITHUB_ENV -Value "TABLE_PERFIL<<EOF"
-          Add-Content -Path $env:GITHUB_ENV -Value $perfilTable
-          Add-Content -Path $env:GITHUB_ENV -Value "EOF"
+          $perfilBlock = @"
+          TABLE_PERFIL<<EOF
+          $perfilTable
+          EOF
+          "@
+
+          Add-Content -Path $env:GITHUB_ENV -Value $homeBlock
+          Add-Content -Path $env:GITHUB_ENV -Value $portalBlock
+          Add-Content -Path $env:GITHUB_ENV -Value $perfilBlock
 
       - name: Enviar email
         uses: dawidd6/action-send-mail@v3
