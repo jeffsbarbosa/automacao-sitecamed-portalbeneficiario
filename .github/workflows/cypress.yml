@@ -30,7 +30,7 @@ jobs:
           try {
             Invoke-WebRequest https://apps.camed.com.br/CamedSaudeServicos -UseBasicParsing
           } catch {
-            Write-Host "Falha no acesso ao site"
+            Write-Host "Falha no acesso ao site (monitoramento apenas)"
           }
 
       - name: Rodar testes automatizados
@@ -42,14 +42,12 @@ jobs:
           spec: | 
             cypress/e2e/TESTES_HOMEPAGE/**/*.cy.js          
             cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/**/*.cy.js
-            
-          wait-on: ""
 
       - name: Gerar relatório HTML
         if: always()
         shell: powershell
         run: |
-          $files = Get-ChildItem -Path "cypress/reports" -Filter "*.json"
+          $files = Get-ChildItem -Path "cypress/reports" -Filter "mochawesome*.json"
 
           if (-not $files) {
             Write-Error "Nenhum JSON encontrado!"
@@ -115,11 +113,15 @@ jobs:
       - name: Calcular métricas
         shell: powershell
         run: |
-          $rate = if ($env:TOTAL -eq 0) {0} else {[math]::Round(($env:PASSED/$env:TOTAL)*100,2)}
+          $total = [int]$env:TOTAL
+          $passed = [int]$env:PASSED
+          $failed = [int]$env:FAILED
 
-          if ($env:FAILED -eq 0) {
+          $rate = if ($total -eq 0) {0} else {[math]::Round(($passed/$total)*100,2)}
+
+          if ($failed -eq 0) {
             $status="SUCESSO"
-          } elseif ($env:FAILED -le 2) {
+          } elseif ($failed -le 2) {
             $status="ATENÇÃO"
           } else {
             $status="CRÍTICO"
@@ -131,34 +133,40 @@ jobs:
       - name: Montagem de Relatório
         shell: powershell
         run: |
-          $home=@();$portal=@();$perfil=@();$failList=@()
+          [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+          Add-Type -AssemblyName System.Web
+
+          $homeList=@();$portal=@();$perfil=@();$failList=@()
 
           $hT=0;$hP=0;$pT=0;$pP=0;$pfT=0;$pfP=0
 
           function Row($suite, $test) {
 
-          $status = if ($test.state -eq "failed") { "FALHA" } else { "SUCESSO" }
+            $status = if ($test.state -eq "failed") { "FALHA" } else { "SUCESSO" }
 
-          $erro = if ($test.state -eq "failed" -and $test.err.message) {
-          ($test.err.message -split "`n")[0]
-          } else { "-" }
+            $erro = if ($test.state -eq "failed" -and $test.err.message) {
+              ($test.err.message -split "`n")[0]
+            } else { "-" }
 
-          if ($test.state -eq "failed") {
-          $global:failList += "<li><b>$($test.title)</b> - $erro</li>"
+            $title = [System.Web.HttpUtility]::HtmlEncode($test.title)
+            $erroSafe = [System.Web.HttpUtility]::HtmlEncode($erro)
+
+            if ($test.state -eq "failed") {
+              $global:failList += "<li><b>$title</b> - $erroSafe</li>"
+            }
+
+            $color = if ($status -eq "SUCESSO") { "green" } else { "red" }
+
+            return "<tr>
+            <td>$suite</td>
+            <td>$title</td>
+            <td style='color:$($color)'>$status</td>
+            <td>$($test.duration) ms</td>
+            <td>$erroSafe</td>
+            </tr>"
           }
 
-          $color = if ($status -eq "SUCESSO") { "green" } else { "red" }
-
-          return "<tr>
-          <td>$suite</td>
-          <td>$($test.title)</td>
-          <td style='color:$color'>$status</td>
-          <td>$($test.duration) ms</td>
-          <td>$erro</td>
-          </tr>"
-          }
-
-          $files=Get-ChildItem "all-reports" -Recurse -Filter mochawesome*.json
+          $files=Get-ChildItem "all-reports" -Recurse -Filter "mochawesome*.json"
 
           foreach ($f in $files){
             $json=Get-Content $f.FullName -Raw|ConvertFrom-Json
@@ -168,7 +176,7 @@ jobs:
                 foreach ($t in $s.tests){
 
                   if ($f.FullName -like "*HOMEPAGE*"){
-                    $home+=Row $s.title $t;$hT++;if($t.state -ne "failed"){$hP++}
+                    $homeList+=Row $s.title $t;$hT++;if($t.state -ne "failed"){$hP++}
                   }
                   elseif ($f.FullName -like "*PORTAL*"){
                     $portal+=Row $s.title $t;$pT++;if($t.state -ne "failed"){$pP++}
@@ -196,7 +204,7 @@ jobs:
           }
 
           "TABLE_HOMEPAGE<<EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          (Table $home) | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          (Table $homeList) | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
           "TABLE_PORTAL<<EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
