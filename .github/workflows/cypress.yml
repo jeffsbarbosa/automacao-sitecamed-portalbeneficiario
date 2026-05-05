@@ -84,6 +84,13 @@ jobs:
       SUCCESS_RATE: 0
       STATUS_LEVEL: ""
       FAIL_LIST: ""
+      TABLE_HOME: ""
+      TABLE_PORTAL: ""
+      TABLE_PERFIL: ""
+      RATE_HOME: ""
+      RATE_PORTAL: ""
+      RATE_PERFIL: ""
+
 
     steps:
       - name: Ajustar encoding UTF-8 (GLOBAL)
@@ -198,6 +205,107 @@ jobs:
           $failText | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
+      - name: Montar tabelas por módulo
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName System.Web
+
+          $homeFail=@();$homePass=@()
+          $portalFail=@();$portalPass=@()
+          $perfilFail=@();$perfilPass=@()
+
+          $hT=0;$hP=0;$pT=0;$pP=0;$pfT=0;$pfP=0
+
+          function Row($suite, $test) {
+
+            $status = if ($test.state -eq "failed") { "FALHA" } else { "SUCESSO" }
+
+            $erro = if ($test.state -eq "failed" -and $test.err.message) {
+              ($test.err.message -split "`n")[0]
+            } else { "-" }
+
+            $color = if ($status -eq "SUCESSO") { "#2e7d32" } else { "#c62828" }
+            $bg = if ($status -eq "SUCESSO") { "#e8f5e9" } else { "#ffebee" }
+
+            return "<tr style='background:$bg'>
+              <td>$suite</td>
+              <td>$($test.title)</td>
+              <td style='color:$color;font-weight:bold'>$status</td>
+              <td>$($test.duration) ms</td>
+              <td>$erro</td>
+            </tr>"
+          }
+
+          $files = Get-ChildItem "all-reports" -Recurse -Filter mochawesome*.json
+
+          foreach ($f in $files) {
+            $json = Get-Content $f.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
+
+            foreach ($r in $json.results) {
+
+              $filePath = $r.file.ToLower()
+
+              foreach ($s in $r.suites) {
+                foreach ($t in $s.tests) {
+
+                  $row = Row $s.title $t
+
+                  if ($filePath -like "*testes_homepage*") {
+                    $hT++
+                    if ($t.state -eq "failed") { $homeFail += $row } else { $homePass += $row; $hP++ }
+                  }
+                  elseif ($filePath -like "*testes_portal_area_nao_logada*") {
+                    $pT++
+                    if ($t.state -eq "failed") { $portalFail += $row } else { $portalPass += $row; $pP++ }
+                  }
+                  elseif ($filePath -like "*testes_perfil_associado*") {
+                    $pfT++
+                    if ($t.state -eq "failed") { $perfilFail += $row } else { $perfilPass += $row; $pfP++ }
+                  }
+
+                }
+              }
+            }
+          }
+
+          function Rate($p,$t){
+            if($t -eq 0){0}else{[math]::Round(($p/$t)*100,2)}
+          }
+
+          echo "RATE_HOME=$(Rate $hP $hT)" >> $env:GITHUB_ENV
+          echo "RATE_PORTAL=$(Rate $pP $pT)" >> $env:GITHUB_ENV
+          echo "RATE_PERFIL=$(Rate $pfP $pfT)" >> $env:GITHUB_ENV
+
+          function Table($fail,$pass){
+            $rows = ($fail + $pass) -join ''
+            "<table style='border-collapse:collapse;width:100%;font-size:13px;font-family:Arial'>
+              <tr style='background:#212529;color:#ffffff'>
+                <th>Suite</th>
+                <th>Cenário</th>
+                <th>Status</th>
+                <th>Tempo</th>
+                <th>Erro</th>
+              </tr>
+              $rows
+            </table>"
+          }
+
+          $homeTable   = Table $homeFail $homePass
+          $portalTable = Table $portalFail $portalPass
+          $perfilTable = Table $perfilFail $perfilPass
+
+          "TABLE_HOME<<EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $homeTable | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+          "TABLE_PORTAL<<EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $portalTable | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+          "TABLE_PERFIL<<EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $perfilTable | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "EOF" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
       - name: Upload relatório HTML
         if: always()
         uses: actions/upload-artifact@v4
@@ -224,20 +332,22 @@ jobs:
           ignore_cert: true
           username: ${{ secrets.EMAIL_USER }}
           password: ${{ secrets.EMAIL_PASS }}
-          subject: "Testes dos Atendimentos Virtuais - Site Camed e Portal de Serviços"
+          subject: "Testes de Disponibilidade - Site Camed e Portal de Serviços"
           to: ${{ secrets.EMAIL_TO }}
           from: Jefferson Barbosa <${{ secrets.EMAIL_USER }}>
 
           convert_markdown: false
           html_body: |
             <meta charset="UTF-8">
-            <h2>🚀 Execução dos testes automatizados concluída</h2>
+            <h2>🛡️ Qualidade validada com sucesso</h2>
 
-            <p>Olá, bom dia! </p> 
+            <p>Prezados,</p>
 
-            <p>Os testes automatizados do <b>Site Camed</b> e <b>Portal de Serviços Área Logada</b> foram executados. Segue abaixo, resumo da execução:</p>
+            <p>A validação automatizada do <b>Site Camed</b> e do <b>Portal de Serviços (Área Logada)</b> foi concluída.</p>
 
-            <h3>📊 Resumo da execução</h3>
+            <p>Os resultados abaixo refletem o comportamento atual da aplicação com base nos cenários validados.</p>
+
+            <h3>📊 Visão geral da execução</h3>
 
             <table style="
             width: 100%;
@@ -309,8 +419,26 @@ jobs:
             <hr>
 
             <br>
+            
+
+            <h3>🏠 Homepage (${{ env.RATE_HOME }}%)</h3>
+            ${{ env.TABLE_HOME }}
+
+            <br>
+
+            <h3>🌐 Portal Área Não Logada (${{ env.RATE_PORTAL }}%)</h3>
+            ${{ env.TABLE_PORTAL }}
+
+            <br>
+
+            <h3>🔐 Perfil Associado (${{ env.RATE_PERFIL }}%)</h3>
+            ${{ env.TABLE_PERFIL }}
+
+            <hr>
                
             <hr>
+
+            
 
             <p>🤖 Automação de Testes</p>
 
