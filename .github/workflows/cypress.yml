@@ -218,86 +218,92 @@ jobs:
 
           function Row($suite, $test) {
 
-          $status = if ($test.state -eq "failed") { "FALHA" } else { "SUCESSO" }
+            $status = if ($test.state -eq "failed") { "FALHA" } else { "SUCESSO" }
 
-          $erro = if ($test.state -eq "failed" -and $test.err.message) {
-            ($test.err.message -split "`n")[0]
-          } else { "-" }
+            $erro = if ($test.state -eq "failed" -and $test.err.message) {
+              ($test.err.message -split "`n")[0]
+            } else { "-" }
 
-          $color = if ($status -eq "SUCESSO") { "#2e7d32" } else { "#c62828" }
-          $bg = if ($status -eq "SUCESSO") { "#e8f5e9" } else { "#ffebee" }
+            $color = if ($status -eq "SUCESSO") { "#2e7d32" } else { "#c62828" }
+            $bg = if ($status -eq "SUCESSO") { "#e8f5e9" } else { "#ffebee" }
 
-          return "<tr style='background:$bg'>
-          <td style='border:1px solid #ddd;padding:6px'>$suite</td>
-          <td style='border:1px solid #ddd;padding:6px'>$($test.title)</td>
-          <td style='border:1px solid #ddd;padding:6px;color:$color;font-weight:bold'>$status</td>
-          <td style='border:1px solid #ddd;padding:6px'>$($test.duration) ms</td>
-          <td style='border:1px solid #ddd;padding:6px'>$erro</td>
-          </tr>"
+            return "<tr style='background:$bg'>
+            <td style='border:1px solid #ddd;padding:6px'>$suite</td>
+            <td style='border:1px solid #ddd;padding:6px'>$($test.title)</td>
+            <td style='border:1px solid #ddd;padding:6px;color:$color;font-weight:bold'>$status</td>
+            <td style='border:1px solid #ddd;padding:6px'>$($test.duration) ms</td>
+            <td style='border:1px solid #ddd;padding:6px'>$erro</td>
+            </tr>"
           }
 
           function Process-Suite($suite, $filePath) {
 
-          foreach ($t in $suite.tests) {
+            # ✅ processa testes do nível atual
+            if ($suite.tests) {
+              foreach ($t in $suite.tests) {
 
-          $row = Row $suite.title $t
+                $row = Row $suite.title $t
 
-          $filePath = if ($filePath) { $filePath.ToLower() } else { "" }
+                # 🔥 CLASSIFICAÇÃO CORRETA (baseada no caminho do arquivo)
+                if ($filePath -match "testes_homepage") {
+                  $hT++
+                  if ($t.state -eq "failed") { $homeFail += $row } else { $homePass += $row; $hP++ }
+                }
+                elseif ($filePath -match "testes_portal_area_nao_logada") {
+                  $pT++
+                  if ($t.state -eq "failed") { $portalFail += $row } else { $portalPass += $row; $pP++ }
+                }
+                elseif ($filePath -match "testes_perfil_associado") {
+                  $pfT++
+                  if ($t.state -eq "failed") { $perfilFail += $row } else { $perfilPass += $row; $pfP++ }
+                }
 
-          if ($filePath -match "testes_homepage") {
-            $hT++
-            if ($t.state -eq "failed") { $homeFail += $row } else { $homePass += $row; $hP++ }
-          }
-          elseif ($filePath -match "testes_portal_area_nao_logada") {
-            $pT++
-            if ($t.state -eq "failed") { $portalFail += $row } else { $portalPass += $row; $pP++ }
-          }
-          elseif ($filePath -match "testes_perfil_associado") {
-            $pfT++
-            if ($t.state -eq "failed") { $perfilFail += $row } else { $perfilPass += $row; $pfP++ }
-          }
+              }
+            }
 
-          }
-
-          foreach ($child in $suite.suites) {
-          Process-Suite $child $filePath
-          }
+            # 🔁 recursividade (garante pegar todos níveis)
+            if ($suite.suites) {
+              foreach ($child in $suite.suites) {
+                Process-Suite $child $filePath
+              }
+            }
           }
 
           $files = Get-ChildItem "all-reports" -Recurse -Filter mochawesome*.json
 
           foreach ($f in $files) {
-          $json = Get-Content $f.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
+            $json = Get-Content $f.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
 
-          foreach ($r in $json.results) {
+            foreach ($r in $json.results) {
 
-          $filePath = if ($r.file) { $r.file.ToLower() } else { "" }
+              # 🔥 ESSA LINHA É A MAIS IMPORTANTE
+              $filePath = ($r.file | Out-String).ToLower()
 
-          foreach ($s in $r.suites) {
-          Process-Suite $s $filePath
-          }
+              foreach ($s in $r.suites) {
+                Process-Suite $s $filePath
+              }
 
-          }
+            }
           }
 
           function Table($fail,$pass){
 
-          $rows = ($fail + $pass) -join ''
+            $rows = ($fail + $pass) -join ''
 
-          if ([string]::IsNullOrEmpty($rows)) {
-            $rows = "<tr><td colspan='5' style='padding:10px;text-align:center;color:#666'>Nenhum cenário executado</td></tr>"
-          }
+            if ([string]::IsNullOrEmpty($rows)) {
+              $rows = "<tr><td colspan='5' style='padding:10px;text-align:center;color:#666'>Nenhum cenário executado</td></tr>"
+            }
 
-          "<table style='border-collapse:collapse;width:100%;font-size:13px;font-family:Arial;margin-top:10px'>
-          <tr style='background:#212529;color:#ffffff'>
-          <th style='border:1px solid #ddd;padding:8px'>Suite</th>
-          <th style='border:1px solid #ddd;padding:8px'>Cen&aacute;rio</th>
-          <th style='border:1px solid #ddd;padding:8px'>Status</th>
-          <th style='border:1px solid #ddd;padding:8px'>Tempo</th>
-          <th style='border:1px solid #ddd;padding:8px'>Erro</th>
-          </tr>
-          $rows
-          </table>"
+            "<table style='border-collapse:collapse;width:100%;font-size:13px;font-family:Arial;margin-top:10px'>
+            <tr style='background:#212529;color:#ffffff'>
+            <th style='border:1px solid #ddd;padding:8px'>Suite</th>
+            <th style='border:1px solid #ddd;padding:8px'>Cen&aacute;rio</th>
+            <th style='border:1px solid #ddd;padding:8px'>Status</th>
+            <th style='border:1px solid #ddd;padding:8px'>Tempo</th>
+            <th style='border:1px solid #ddd;padding:8px'>Erro</th>
+            </tr>
+            $rows
+            </table>"
           }
 
           $homeTable   = Table $homeFail $homePass
@@ -315,7 +321,6 @@ jobs:
           Add-Content -Path $env:GITHUB_ENV -Value "TABLE_PERFIL<<EOF"
           Add-Content -Path $env:GITHUB_ENV -Value $perfilTable
           Add-Content -Path $env:GITHUB_ENV -Value "EOF"
-
       - name: Upload relatório HTML
         if: always()
         uses: actions/upload-artifact@v4
