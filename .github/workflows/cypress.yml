@@ -271,7 +271,7 @@ jobs:
 
           foreach ($r in $json.results) {
 
-          $filePath = $f.FullName.ToLower()
+          $filePath = if ($r.file) { $r.file.ToLower() } else { "" }
 
           foreach ($s in $r.suites) {
           Process-Suite $s $filePath
