@@ -221,18 +221,18 @@ jobs:
           $status = if ($test.state -eq "failed") { "FALHA" } else { "SUCESSO" }
 
           $erro = if ($test.state -eq "failed" -and $test.err.message) {
-          ($test.err.message -split "`n")[0]
+            ($test.err.message -split "`n")[0]
           } else { "-" }
 
           $color = if ($status -eq "SUCESSO") { "#2e7d32" } else { "#c62828" }
           $bg = if ($status -eq "SUCESSO") { "#e8f5e9" } else { "#ffebee" }
 
           return "<tr style='background:$bg'>
-          <td>$suite</td>
-          <td>$($test.title)</td>
-          <td style='color:$color;font-weight:bold'>$status</td>
-          <td>$($test.duration) ms</td>
-          <td>$erro</td>
+          <td style='border:1px solid #ddd;padding:6px'>$suite</td>
+          <td style='border:1px solid #ddd;padding:6px'>$($test.title)</td>
+          <td style='border:1px solid #ddd;padding:6px;color:$color;font-weight:bold'>$status</td>
+          <td style='border:1px solid #ddd;padding:6px'>$($test.duration) ms</td>
+          <td style='border:1px solid #ddd;padding:6px'>$erro</td>
           </tr>"
           }
 
@@ -269,7 +269,7 @@ jobs:
 
           foreach ($r in $json.results) {
 
-          $filePath = $r.file.ToLower()
+          $filePath = $f.FullName.ToLower()
 
           foreach ($s in $r.suites) {
           Process-Suite $s $filePath
@@ -278,23 +278,21 @@ jobs:
           }
           }
 
-          function Rate($p,$t){
-          if($t -eq 0){0}else{[math]::Round(($p/$t)*100,2)}
+          function Table($fail,$pass){
+
+          $rows = ($fail + $pass) -join ''
+
+          if ([string]::IsNullOrEmpty($rows)) {
+            $rows = "<tr><td colspan='5' style='padding:10px;text-align:center;color:#666'>Nenhum cenário executado</td></tr>"
           }
 
-          echo "RATE_HOME=$(Rate $hP $hT)" >> $env:GITHUB_ENV
-          echo "RATE_PORTAL=$(Rate $pP $pT)" >> $env:GITHUB_ENV
-          echo "RATE_PERFIL=$(Rate $pfP $pfT)" >> $env:GITHUB_ENV
-
-          function Table($fail,$pass){
-          $rows = ($fail + $pass) -join ''
-          "<table style='border-collapse:collapse;width:100%;font-size:13px;font-family:Arial'>
+          "<table style='border-collapse:collapse;width:100%;font-size:13px;font-family:Arial;margin-top:10px'>
           <tr style='background:#212529;color:#ffffff'>
-          <th>Suite</th>
-          <th>Cen&aacute;rio</th>
-          <th>Status</th>
-          <th>Tempo</th>
-          <th>Erro</th>
+          <th style='border:1px solid #ddd;padding:8px'>Suite</th>
+          <th style='border:1px solid #ddd;padding:8px'>Cen&aacute;rio</th>
+          <th style='border:1px solid #ddd;padding:8px'>Status</th>
+          <th style='border:1px solid #ddd;padding:8px'>Tempo</th>
+          <th style='border:1px solid #ddd;padding:8px'>Erro</th>
           </tr>
           $rows
           </table>"
