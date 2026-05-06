@@ -242,17 +242,19 @@ jobs:
 
           $row = Row $suite.title $t
 
-          if ($filePath -like "*testes_homepage*") {
-          $hT++
-          if ($t.state -eq "failed") { $homeFail += $row } else { $homePass += $row; $hP++ }
+          $filePath = if ($filePath) { $filePath.ToLower() } else { "" }
+
+          if ($filePath -match "testes_homepage") {
+            $hT++
+            if ($t.state -eq "failed") { $homeFail += $row } else { $homePass += $row; $hP++ }
           }
-          elseif ($filePath -like "*testes_portal_area_nao_logada*") {
-          $pT++
-          if ($t.state -eq "failed") { $portalFail += $row } else { $portalPass += $row; $pP++ }
+          elseif ($filePath -match "testes_portal_area_nao_logada") {
+            $pT++
+            if ($t.state -eq "failed") { $portalFail += $row } else { $portalPass += $row; $pP++ }
           }
-          elseif ($filePath -like "*testes_perfil_associado*") {
-          $pfT++
-          if ($t.state -eq "failed") { $perfilFail += $row } else { $perfilPass += $row; $pfP++ }
+          elseif ($filePath -match "testes_perfil_associado") {
+            $pfT++
+            if ($t.state -eq "failed") { $perfilFail += $row } else { $perfilPass += $row; $pfP++ }
           }
 
           }
