@@ -276,6 +276,15 @@ jobs:
 
             foreach ($r in $json.results) {
 
+            Write-Host "=========================="
+            Write-Host "JSON FILE:"
+            Write-Host $f.FullName
+
+            Write-Host "RESULT FILE:"
+            Write-Host $r.file
+
+            Write-Host "=========================="
+
               # 🔥 ESSA LINHA É A MAIS IMPORTANTE
               $filePath = $f.FullName.ToLower()
 
