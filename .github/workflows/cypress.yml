@@ -42,9 +42,7 @@ jobs:
           spec: | 
             cypress/e2e/TESTES_HOMEPAGE/**/*.cy.js   
             cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/**/*.cy.js
-            cypress/e2e/TESTES_PERFIL_ASSOCIADO/**/*.cy.js
-
-                            
+            cypress/e2e/TESTES_PERFIL_ASSOCIADO/**/*.cy.js                            
                     
           wait-on: ""
 
@@ -299,7 +297,7 @@ jobs:
             }
           }
 
-          $files = Get-ChildItem "all-reports" -Recurse -Filter mochawesome*.json
+          $files = Get-ChildItem "all-reports" -Recurse -File -Filter mochawesome*.json -ErrorAction SilentlyContinue
 
           foreach ($f in $files) {
 
