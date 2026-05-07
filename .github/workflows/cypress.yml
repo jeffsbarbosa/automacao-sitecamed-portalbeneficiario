@@ -214,7 +214,9 @@ jobs:
           $portalFail=@();$portalPass=@()
           $perfilFail=@();$perfilPass=@()
 
-          $hT=0;$hP=0;$pT=0;$pP=0;$pfT=0;$pfP=0
+          $hT=0;$hP=0
+          $pT=0;$pP=0
+          $pfT=0;$pfP=0
 
           function Row($suite, $test) {
 
@@ -222,7 +224,9 @@ jobs:
 
             $erro = if ($test.state -eq "failed" -and $test.err.message) {
               ($test.err.message -split "`n")[0]
-            } else { "-" }
+            } else {
+              "-"
+            }
 
             $color = if ($status -eq "SUCESSO") { "#2e7d32" } else { "#c62828" }
             $bg = if ($status -eq "SUCESSO") { "#e8f5e9" } else { "#ffebee" }
@@ -238,62 +242,99 @@ jobs:
 
           function Process-Suite($suite, $filePath) {
 
-            # ✅ processa testes do nível atual
-            if ($suite.tests) {
-              foreach ($t in $suite.tests) {
-
-                $row = Row $suite.title $t
-
-                # 🔥 CLASSIFICAÇÃO CORRETA (baseada no caminho do arquivo)
-                if ($filePath -match "testes_homepage") {
-                  $hT++
-                  if ($t.state -eq "failed") { $homeFail += $row } else { $homePass += $row; $hP++ }
-                }
-                elseif ($filePath -match "testes_portal_area_nao_logada") {
-                  $pT++
-                  if ($t.state -eq "failed") { $portalFail += $row } else { $portalPass += $row; $pP++ }
-                }
-                elseif ($filePath -match "testes_perfil_associado") {
-                  $pfT++
-                  if ($t.state -eq "failed") { $perfilFail += $row } else { $perfilPass += $row; $pfP++ }
-                }
-
-              }
+            if ($null -eq $suite) {
+              return
             }
 
-            # 🔁 recursividade (garante pegar todos níveis)
-            if ($suite.suites) {
-              foreach ($child in $suite.suites) {
-                Process-Suite $child $filePath
+            foreach ($t in $suite.tests) {
+
+              $row = Row $suite.title $t
+
+              if ($filePath -like "*testes_homepage*") {
+
+                $script:hT++
+
+                if ($t.state -eq "failed") {
+                  $script:homeFail += $row
+                }
+                else {
+                  $script:homePass += $row
+                  $script:hP++
+                }
+
               }
+              elseif ($filePath -like "*testes_portal_area_nao_logada*") {
+
+                $script:pT++
+
+                if ($t.state -eq "failed") {
+                  $script:portalFail += $row
+                }
+                else {
+                  $script:portalPass += $row
+                  $script:pP++
+                }
+
+              }
+              elseif ($filePath -like "*testes_perfil_associado*") {
+
+                $script:pfT++
+
+                if ($t.state -eq "failed") {
+                  $script:perfilFail += $row
+                }
+                else {
+                  $script:perfilPass += $row
+                  $script:pfP++
+                }
+
+              }
+
+            }
+
+            foreach ($child in $suite.suites) {
+              Process-Suite $child $filePath
             }
           }
 
           $files = Get-ChildItem "all-reports" -Recurse -Filter mochawesome*.json
 
           foreach ($f in $files) {
+
             $json = Get-Content $f.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
 
             foreach ($r in $json.results) {
 
-            Write-Host "=========================="
-            Write-Host "JSON FILE:"
-            Write-Host $f.FullName
+              Write-Host "=========================="
+              Write-Host "JSON FILE:"
+              Write-Host $f.FullName
 
-            Write-Host "RESULT FILE:"
-            Write-Host $r.file
+              Write-Host "RESULT FILE:"
+              Write-Host $r.file
 
-            Write-Host "=========================="
+              Write-Host "=========================="
 
-              # 🔥 ESSA LINHA É A MAIS IMPORTANTE
-              $filePath = $f.FullName.ToLower()
+              $filePath = ($r.file | Out-String).ToLower()
 
-              foreach ($s in $r.suites) {
-                Process-Suite $s $filePath
+              if ($null -ne $r.suites) {
+                Process-Suite $r.suites $filePath
               }
 
             }
           }
+
+          function Rate($p,$t) {
+
+            if ($t -eq 0) {
+              return 0
+            }
+
+            return [math]::Round(($p / $t) * 100, 2)
+          }
+
+          echo "RATE_HOME=$(Rate $hP $hT)" >> $env:GITHUB_ENV
+          echo "RATE_PORTAL=$(Rate $pP $pT)" >> $env:GITHUB_ENV
+          echo "RATE_PERFIL=$(Rate $pfP $pfT)" >> $env:GITHUB_ENV
 
           function Table($fail,$pass){
 
@@ -303,7 +344,7 @@ jobs:
               $rows = "<tr><td colspan='5' style='padding:10px;text-align:center;color:#666'>Nenhum cenário executado</td></tr>"
             }
 
-            "<table style='border-collapse:collapse;width:100%;font-size:13px;font-family:Arial;margin-top:10px'>
+            return "<table style='border-collapse:collapse;width:100%;font-size:13px;font-family:Arial;margin-top:10px'>
             <tr style='background:#212529;color:#ffffff'>
             <th style='border:1px solid #ddd;padding:8px'>Suite</th>
             <th style='border:1px solid #ddd;padding:8px'>Cen&aacute;rio</th>
