@@ -277,7 +277,7 @@ jobs:
             foreach ($r in $json.results) {
 
               # 🔥 ESSA LINHA É A MAIS IMPORTANTE
-              $filePath = ($r.file | Out-String).ToLower()
+              $filePath = $f.FullName.ToLower()
 
               foreach ($s in $r.suites) {
                 Process-Suite $s $filePath
