@@ -40,8 +40,10 @@ jobs:
           browser: chrome
           headed: true
           spec: | 
-            cypress/e2e/TESTES_HOMEPAGE/**/*.cy.js   
-            cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/**/*.cy.js
+           # cypress/e2e/TESTES_HOMEPAGE/**/*.cy.js   
+           # cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/**/*.cy.js
+            cypress/e2e/TESTES_PERFIL_ASSOCIADO/**/*.cy.js
+
                             
                     
           wait-on: ""
@@ -371,6 +373,7 @@ jobs:
           Add-Content -Path $env:GITHUB_ENV -Value "TABLE_PERFIL<<EOF"
           Add-Content -Path $env:GITHUB_ENV -Value $perfilTable
           Add-Content -Path $env:GITHUB_ENV -Value "EOF"
+
       - name: Upload relatório HTML
         if: always()
         uses: actions/upload-artifact@v4
