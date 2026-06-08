@@ -21,16 +21,31 @@ Cypress.Commands.add('loginBeneficiario', (cpf, senha) => {
 })
 
 Cypress.Commands.add('loginValido', () => {
- 
+
+  const cpf = Cypress.env('CPF_ASSOCIADO')
+  const senha = Cypress.env('SENHA_ASSOCIADO')
+
+  if (cpf && senha) {
+
+    cy.loginBeneficiario(cpf, senha)
+
+  } else {
+
     cy.fixture('usuariovalido').then((user) => {
+
       cy.loginBeneficiario(
         user.beneficiario.cpf,
-        user.beneficiario.senha)
-   
+        user.beneficiario.senha
+      )
 
-    cy.url().should('not.include', '/login')
-  })
+    })
+
+  }
+
+  cy.url().should('not.include', '/login')
+
 })
+
 
 Cypress.Commands.add('acessarHomeCamedSaude', () => {
 
