@@ -36,6 +36,11 @@ jobs:
       - name: Rodar testes automatizados
         uses: cypress-io/github-action@v6
         continue-on-error: true
+
+        env:
+          CYPRESS_CPF_ASSOCIADO: ${{ secrets.cpf_associado }}
+          CYPRESS_SENHA_ASSOCIADO: ${{ secrets.senha_associado }}        
+        
         with:
           browser: chrome
           headed: true
