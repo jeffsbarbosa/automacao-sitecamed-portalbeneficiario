@@ -1,0 +1,16 @@
+name: Relatório Semanal
+
+on:
+  schedule:
+    - cron: "0 12 * * 0"
+
+  workflow_dispatch:
+
+jobs:
+  validar:
+    runs-on: self-hosted
+
+    steps:
+      - name: Teste
+        run: |
+          echo Workflow semanal criado
