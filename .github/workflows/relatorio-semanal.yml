@@ -11,16 +11,21 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Baixar código
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Instalar Node.js
-        uses: actions/setup-node@v4
+      - name: Rodar testes automatizados
+        uses: cypress-io/github-action@v6
+
+        env:
+          CYPRESS_CPF_ASSOCIADO: ${{ secrets.cpf_associado }}
+          CYPRESS_SENHA_ASSOCIADO: ${{ secrets.senha_associado }}
+
         with:
-          node-version: 20
-
-      - name: Instalar dependências
-        run: npm install
-
-      - name: Executar Testes Automatizados
-        run: npm run cy:run
+          browser: chrome
+          headed: true
+          wait-on: ""
+          spec: |
+            cypress/e2e/TESTES_HOMEPAGE/**/*.cy.js,
+            cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/**/*.cy.js,
+            cypress/e2e/TESTES_PERFIL_ASSOCIADO/**/*.cy.js
