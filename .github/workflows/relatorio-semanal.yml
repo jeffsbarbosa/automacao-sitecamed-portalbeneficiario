@@ -11,6 +11,13 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Teste
-        run: |
-          echo Workflow semanal criado
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar dependências
+        run: npm install
