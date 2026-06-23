@@ -2,7 +2,7 @@ name: Testes Automatizados - Site Camed e Portal de Serviços Área Logada
 
 on:
   schedule:
-    - cron: "0 9 * * *"
+    - cron: "0 8 * * *"
   workflow_dispatch:
 
 jobs:
