@@ -31,6 +31,8 @@ jobs:
             Invoke-WebRequest https://apps.camed.com.br/CamedSaudeServicos -UseBasicParsing
           } catch {
             Write-Host "Falha no acesso ao site"
+
+            exit 1
           }
 
       - name: Rodar testes automatizados
