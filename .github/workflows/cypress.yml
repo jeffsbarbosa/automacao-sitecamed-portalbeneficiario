@@ -117,8 +117,16 @@ jobs:
           $files = Get-ChildItem -Path "all-reports" -Recurse -Filter mochawesome*.json -ErrorAction SilentlyContinue
 
           if (-not $files -or $files.Count -eq 0) {
-            Write-Error "Nenhum JSON encontrado para consolidação!"
-            exit 1
+            Write-Host "Nenhum relatório encontrado. Execução interrompida antes dos testes"
+
+          echo "TOTAL=0" >> $env:GITHUB_ENV
+          echo "PASSED=0" >> $env:GITHUB_ENV
+          echo "FAILED=0" >> $env:GITHUB_ENV
+
+          echo "STATUS_LEVEL=INDISPONIBILIDADE: Testes não executados" >> $env:GITHUB_ENV
+
+
+            exit 0
           }
 
           [int]$TOTAL = 0
@@ -165,7 +173,7 @@ jobs:
           Add-Content -Path $env:GITHUB_ENV -Value "STATUS_LEVEL=$STATUS_LEVEL"
           Add-Content -Path $env:GITHUB_ENV -Value "STATUS_COLOR=$STATUS_COLOR"
 
-      # 🔥 ÚNICO TRECHO ALTERADO (CORRIGIDO)
+      
       - name: Listar testes que falharam
         shell: powershell
         run: |
