@@ -404,6 +404,13 @@ jobs:
         run: |
           "NODE_TLS_REJECT_UNAUTHORIZED=0" >> $env:GITHUB_ENV
 
+      - name: Validar caminho do HTML
+        shell: powershell
+        run: |
+          Write-Host "Procurando relatório..."
+
+          Get-ChildItem all-reports -Recurse -Filter report.html
+
       - name: Enviar relatório por email
         uses: dawidd6/action-send-mail@v3
         with:
