@@ -1,21 +1,32 @@
-name: Relatório Semanal
+name: Relatório Semanal - Cypress
 
 on:
   schedule:
-    - cron: "0 12 * * 0"
-
+    - cron: "0 12 * * 0"  # Domingo 12:00 UTC
   workflow_dispatch:
 
 jobs:
-  validar:
+  relatorio-semanal:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout
+      - name: Checkout do repositório
         uses: actions/checkout@v4
 
-      - name: Rodar testes automatizados
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Criar pasta de relatórios
+        run: mkdir -p cypress/reports
+
+      - name: Rodar testes automatizados (Cypress)
         uses: cypress-io/github-action@v6
+        continue-on-error: true
 
         env:
           CYPRESS_CPF_ASSOCIADO: ${{ secrets.cpf_associado }}
@@ -23,9 +34,36 @@ jobs:
 
         with:
           browser: chrome
-          headed: true
-          wait-on: ""
+          headed: false
           spec: |
             cypress/e2e/TESTES_HOMEPAGE/**/*.cy.js,
             cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/**/*.cy.js,
             cypress/e2e/TESTES_PERFIL_ASSOCIADO/**/*.cy.js
+
+          wait-on: ""
+
+      - name: Gerar relatório HTML (Mochawesome)
+        if: always()
+        shell: powershell
+        run: |
+          $files = Get-ChildItem -Path "cypress/reports" -Filter "*.json" -ErrorAction SilentlyContinue
+
+          if (-not $files) {
+            Write-Host "Nenhum JSON encontrado para gerar relatório"
+            exit 0
+          }
+
+          $fileList = $files.FullName -join " "
+
+          npx mochawesome-merge $fileList > cypress/reports/report.json
+          npx marge cypress/reports/report.json -f relatorio-semanal -o cypress/reports
+
+      - name: Upload relatório semanal
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-semanal
+          path: |
+            cypress/reports
+            cypress/screenshots
+            cypress/videos

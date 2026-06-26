@@ -75,7 +75,8 @@ jobs:
         with:
           name: relatorio-cypress
           path: |
-            cypress/reports
+            cypress/reports/mochawesome*.json
+            cypress/reports/report.html
             cypress/screenshots
             cypress/videos
 
