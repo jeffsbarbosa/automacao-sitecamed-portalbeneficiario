@@ -417,6 +417,30 @@ jobs:
             $historico |
               ConvertTo-Json -Depth 3 |
               Set-Content $arquivo -Encoding UTF8
+
+      - name: Publicar histórico no GitHub
+        shell: powershell
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git remote set-url origin https://x-access-token:$env:GH_PAT@github.com/${{ github.repository }}.git
+
+          git add historico/
+
+          git diff --cached --quiet
+
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "Nenhuma alteração no histórico."
+            exit 0
+          }
+
+          git commit -m "Atualiza histórico da execução $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+
+          git push origin main
       
       - name: Upload relatório HTML
         if: always()
