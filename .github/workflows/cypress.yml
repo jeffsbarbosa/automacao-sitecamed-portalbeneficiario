@@ -393,15 +393,23 @@ jobs:
         run: |
 
            $historico = @{
-              data = (Get-Date).ToString("yyyy-MM-dd")
-              total = [int]$env:TOTAL
-              passed = [int]$env:PASSED
-              failed = [int]$env:FAILED
-              successRate = [double]$env:SUCCESS_RATE
-              homepage = [double]$env:RATE_HOME
-              portal = [double]$env:RATE_PORTAL
-              perfil = [double]$env:RATE_PERFIL
-            }
+               data         = (Get-Date).ToString("yyyy-MM-dd")
+               hora         = (Get-Date).ToString("HH:mm:ss")
+               workflow     = "Testes Automatizados"
+               runner       = "self-hosted"
+
+               total        = [int]$env:TOTAL
+               passed       = [int]$env:PASSED
+               failed       = [int]$env:FAILED
+
+               successRate  = [double]$env:SUCCESS_RATE
+
+               homepage     = [double]$env:RATE_HOME
+               portal       = [double]$env:RATE_PORTAL
+               perfil       = [double]$env:RATE_PERFIL
+
+               status       = $env:STATUS_LEVEL
+              }
 
             $data = Get-Date -Format "yyyy-MM-dd"
             $arquivo = "historico/$data.json"
@@ -409,7 +417,7 @@ jobs:
             $historico |
               ConvertTo-Json -Depth 3 |
               Set-Content $arquivo -Encoding UTF8
-
+      
       - name: Upload relatório HTML
         if: always()
         uses: actions/upload-artifact@v4
