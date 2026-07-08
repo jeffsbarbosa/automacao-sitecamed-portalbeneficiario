@@ -174,7 +174,7 @@ jobs:
           Add-Content -Path $env:GITHUB_ENV -Value "STATUS_LEVEL=$STATUS_LEVEL"
           Add-Content -Path $env:GITHUB_ENV -Value "STATUS_COLOR=$STATUS_COLOR"
 
-      
+         
       - name: Listar testes que falharam
         shell: powershell
         run: |
@@ -387,6 +387,28 @@ jobs:
           Add-Content -Path $env:GITHUB_ENV -Value "TABLE_PERFIL<<EOF"
           Add-Content -Path $env:GITHUB_ENV -Value $perfilTable
           Add-Content -Path $env:GITHUB_ENV -Value "EOF"
+
+      - name: Gerar histórico da execução
+        shell: powershell
+        run: |
+
+           $historico = @{
+              data = (Get-Date).ToString("yyyy-MM-dd")
+              total = [int]$env:TOTAL
+              passed = [int]$env:PASSED
+              failed = [int]$env:FAILED
+              successRate = [double]$env:SUCCESS_RATE
+              homepage = [double]$env:RATE_HOME
+              portal = [double]$env:RATE_PORTAL
+              perfil = [double]$env:RATE_PERFIL
+            }
+
+            $data = Get-Date -Format "yyyy-MM-dd"
+            $arquivo = "historico/$data.json"
+
+            $historico |
+              ConvertTo-Json -Depth 3 |
+              Set-Content $arquivo -Encoding UTF8
 
       - name: Upload relatório HTML
         if: always()
