@@ -112,3 +112,7 @@ jobs:
             cypress/reports
             cypress/screenshots
             cypress/videos
+        
+      - name: Gerar dashboard
+        shell: powershell
+        run: ./scripts/gerar-dashboard.ps1
