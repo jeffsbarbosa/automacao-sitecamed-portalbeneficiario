@@ -37,6 +37,60 @@ jobs:
             Write-Host "Portal......: $($json.portal)%"
             Write-Host "Perfil......: $($json.perfil)%"
           }
+
+      - name: Calcular resumo semanal
+        shell: powershell
+        run: |
+
+          $arquivos = Get-ChildItem historico -Filter *.json | Sort-Object Name
+
+          $dias = 0
+          $total = 0
+          $passed = 0
+          $failed = 0
+          $somaSucesso = 0
+
+          $melhor = $null
+          $pior = $null
+
+          foreach ($arquivo in $arquivos) {
+
+            $json = Get-Content $arquivo.FullName -Raw | ConvertFrom-Json
+
+            $dias++
+
+            $total += [int]$json.total
+            $passed += [int]$json.passed
+            $failed += [int]$json.failed
+
+            $somaSucesso += [double]$json.successRate
+
+            if ($null -eq $melhor -or $json.successRate -gt $melhor.successRate) {
+              $melhor = $json
+            }
+
+            if ($null -eq $pior -or $json.successRate -lt $pior.successRate) {
+              $pior = $json
+            }
+          }
+
+          $media = [math]::Round($somaSucesso / $dias,2)
+
+          Write-Host ""
+          Write-Host "==============================="
+          Write-Host "RESUMO SEMANAL"
+          Write-Host "==============================="
+          Write-Host "Dias analisados : $dias"
+          Write-Host "Total cenários  : $total"
+          Write-Host "Aprovados       : $passed"
+          Write-Host "Falhas          : $failed"
+          Write-Host "Média sucesso   : $media%"
+          Write-Host ""
+          Write-Host "Melhor dia:"
+          Write-Host "$($melhor.data) - $($melhor.successRate)%"
+          Write-Host ""
+          Write-Host "Pior dia:"
+          Write-Host "$($pior.data) - $($pior.successRate)%"
             
       - name: Configurar Node.js
         uses: actions/setup-node@v4
