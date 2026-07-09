@@ -38,28 +38,6 @@ jobs:
             Write-Host "Perfil......: $($json.perfil)%"
           }
             
-      - name: Ler último histórico
-        shell: powershell
-        run: |
-
-          $ultimo = Get-ChildItem historico -Filter *.json |
-                    Sort-Object Name |
-                    Select-Object -Last 1
-
-          if ($null -eq $ultimo) {
-            Write-Host "Nenhum histórico encontrado."
-            exit 0
-          }
-
-          Write-Host "Arquivo encontrado:"
-          Write-Host $ultimo.Name
-
-          Write-Host ""
-
-          Write-Host "Conteúdo:"
-
-          Get-Content $ultimo.FullName
-
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
