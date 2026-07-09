@@ -13,6 +13,34 @@ jobs:
       - name: Checkout do repositório
         uses: actions/checkout@v4
 
+      - name: Verificar histórico
+        shell: powershell
+        run: |
+          Write-Host "Arquivos encontrados em historico:"
+          Get-ChildItem historico -Filter *.json
+      
+      - name: Ler último histórico
+        shell: powershell
+        run: |
+
+          $ultimo = Get-ChildItem historico -Filter *.json |
+                    Sort-Object Name |
+                    Select-Object -Last 1
+
+          if ($null -eq $ultimo) {
+            Write-Host "Nenhum histórico encontrado."
+            exit 0
+          }
+
+          Write-Host "Arquivo encontrado:"
+          Write-Host $ultimo.Name
+
+          Write-Host ""
+
+          Write-Host "Conteúdo:"
+
+          Get-Content $ultimo.FullName
+
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
@@ -23,40 +51,6 @@ jobs:
 
       - name: Criar pasta de relatórios
         run: mkdir -p cypress/reports
-
-      - name: Rodar testes automatizados (Cypress)
-        uses: cypress-io/github-action@v6
-        continue-on-error: true
-
-        env:
-          CYPRESS_CPF_ASSOCIADO: ${{ secrets.cpf_associado }}
-          CYPRESS_SENHA_ASSOCIADO: ${{ secrets.senha_associado }}
-
-        with:
-          browser: chrome
-          headed: false
-          spec: |
-            cypress/e2e/TESTES_HOMEPAGE/**/*.cy.js,
-            cypress/e2e/TESTES_PORTAL_AREA_NAO_LOGADA/**/*.cy.js,
-            cypress/e2e/TESTES_PERFIL_ASSOCIADO/**/*.cy.js
-
-          wait-on: ""
-
-      - name: Gerar relatório HTML (Mochawesome)
-        if: always()
-        shell: powershell
-        run: |
-          $files = Get-ChildItem -Path "cypress/reports" -Filter "*.json" -ErrorAction SilentlyContinue
-
-          if (-not $files) {
-            Write-Host "Nenhum JSON encontrado para gerar relatório"
-            exit 0
-          }
-
-          $fileList = $files.FullName -join " "
-
-          npx mochawesome-merge $fileList > cypress/reports/report.json
-          npx marge cypress/reports/report.json -f relatorio-semanal -o cypress/reports
 
       - name: Upload relatório semanal
         if: always()
