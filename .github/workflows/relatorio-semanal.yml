@@ -18,7 +18,26 @@ jobs:
         run: |
           Write-Host "Arquivos encontrados em historico:"
           Get-ChildItem historico -Filter *.json
-      
+
+      - name: Ler históricos
+        shell: powershell
+        run: |
+          $arquivos = Get-ChildItem historico -Filter *.json | Sort-Object Name
+
+          foreach ($arquivo in $arquivos) {
+
+            $json = Get-Content $arquivo.FullName -Raw | ConvertFrom-Json
+
+            Write-Host "========================"
+            Write-Host "Data........: $($json.data)"
+            Write-Host "Total.......: $($json.total)"
+            Write-Host "Sucesso.....: $($json.successRate)%"
+            Write-Host "Falhas......: $($json.failed)"
+            Write-Host "Homepage....: $($json.homepage)%"
+            Write-Host "Portal......: $($json.portal)%"
+            Write-Host "Perfil......: $($json.perfil)%"
+          }
+            
       - name: Ler último histórico
         shell: powershell
         run: |
