@@ -4,7 +4,7 @@ Cypress.Commands.add('loginBeneficiario', (cpf, senha) => {
 
   cy.get('[name="tbxUsuario"]', { timeout: 30000 })
     .should('be.visible')
-    .type(cpf)
+    .type(cpf, {log: false})
 
   cy.get('[name="tbxSenha"]', { timeout: 30000 })
     .should('be.visible')

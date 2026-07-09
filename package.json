@@ -8,7 +8,6 @@
     "cy:run": "cypress run",
     "test:report": "cypress run --reporter mochawesome",
     "report:generate": "mochawesome-merge cypress/reports/*.json > cypress/reports/report.json && marge cypress/reports/report.json -f report -o cypress/reports"
-
   },
   "keywords": [],
   "author": "",
