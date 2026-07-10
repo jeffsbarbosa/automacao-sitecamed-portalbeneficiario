@@ -16,6 +16,9 @@ $aprovados = 0
 $falhas = 0
 $somaSucesso = 0
 
+$melhorDia = $null
+$piorDia = $null
+
 foreach ($arquivo in $arquivos) {
 
     $json = Get-Content $arquivo.FullName -Raw | ConvertFrom-Json
