@@ -1,0 +1,32 @@
+﻿{
+    "resumo":  {
+                   "dias":  3,
+                   "cenarios":  225,
+                   "falhas":  5,
+                   "aprovados":  220,
+                   "sucesso":  97.78
+               },
+    "historico":  [
+                      {
+                          "failed":  0,
+                          "data":  "2026-07-08",
+                          "successRate":  100,
+                          "total":  75,
+                          "passed":  75
+                      },
+                      {
+                          "failed":  2,
+                          "data":  "2026-07-09",
+                          "successRate":  97.33,
+                          "total":  75,
+                          "passed":  73
+                      },
+                      {
+                          "failed":  3,
+                          "data":  "2026-07-10",
+                          "successRate":  96,
+                          "total":  75,
+                          "passed":  72
+                      }
+                  ]
+}
