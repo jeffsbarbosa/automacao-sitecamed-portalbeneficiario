@@ -1,14 +1,14 @@
 ﻿{
     "total":  75,
     "data":  "2026-07-16",
-    "hora":  "09:42:52",
+    "hora":  "16:33:58",
     "runner":  "self-hosted",
-    "passed":  72,
+    "passed":  71,
     "portal":  100,
     "workflow":  "Testes Automatizados",
     "homepage":  100,
     "status":  "CRÍTICO: Falhas relevantes detectadas",
-    "perfil":  91.89,
-    "failed":  3,
-    "successRate":  96
+    "perfil":  89.19,
+    "failed":  4,
+    "successRate":  94.67
 }
