@@ -1,0 +1,74 @@
+﻿{
+    "resumo":  {
+                   "dias":  9,
+                   "cenarios":  600,
+                   "falhas":  17,
+                   "aprovados":  583,
+                   "sucesso":  86.37
+               },
+    "historico":  [
+                      {
+                          "failed":  0,
+                          "data":  "2026-07-08",
+                          "successRate":  100,
+                          "total":  75,
+                          "passed":  75
+                      },
+                      {
+                          "failed":  2,
+                          "data":  "2026-07-09",
+                          "successRate":  97.33,
+                          "total":  75,
+                          "passed":  73
+                      },
+                      {
+                          "failed":  3,
+                          "data":  "2026-07-10",
+                          "successRate":  96,
+                          "total":  75,
+                          "passed":  72
+                      },
+                      {
+                          "failed":  0,
+                          "data":  "2026-07-13",
+                          "successRate":  100,
+                          "total":  75,
+                          "passed":  75
+                      },
+                      {
+                          "failed":  3,
+                          "data":  "2026-07-14",
+                          "successRate":  96,
+                          "total":  75,
+                          "passed":  72
+                      },
+                      {
+                          "failed":  4,
+                          "data":  "2026-07-16",
+                          "successRate":  94.67,
+                          "total":  75,
+                          "passed":  71
+                      },
+                      {
+                          "failed":  2,
+                          "data":  "2026-07-17",
+                          "successRate":  97.33,
+                          "total":  75,
+                          "passed":  73
+                      },
+                      {
+                          "failed":  3,
+                          "data":  "2026-07-18",
+                          "successRate":  96,
+                          "total":  75,
+                          "passed":  72
+                      },
+                      {
+                          "failed":  null,
+                          "data":  null,
+                          "successRate":  null,
+                          "total":  null,
+                          "passed":  null
+                      }
+                  ]
+}
