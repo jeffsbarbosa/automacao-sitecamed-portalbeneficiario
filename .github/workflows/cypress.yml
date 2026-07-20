@@ -440,6 +440,10 @@ jobs:
 
           git commit -m "Atualiza histórico da execução $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 
+          Write-Host "Sincronizando com o repositório remoto..."
+          git pull --rebase origin main
+
+          Write-Host "Enviando alterações..."
           git push origin main
       
       - name: Upload relatório HTML
