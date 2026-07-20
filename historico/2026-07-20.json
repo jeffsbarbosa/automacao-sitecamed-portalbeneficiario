@@ -1,14 +1,14 @@
 ﻿{
-    "total":  0,
+    "total":  75,
     "data":  "2026-07-20",
-    "hora":  "08:31:37",
+    "hora":  "09:37:35",
     "runner":  "self-hosted",
-    "passed":  0,
-    "portal":  0,
+    "passed":  75,
+    "portal":  100,
     "workflow":  "Testes Automatizados",
-    "homepage":  0,
+    "homepage":  100,
     "status":  "SUCESSO: Nenhuma falha detectada",
-    "perfil":  0,
+    "perfil":  100,
     "failed":  0,
-    "successRate":  0
+    "successRate":  100
 }
