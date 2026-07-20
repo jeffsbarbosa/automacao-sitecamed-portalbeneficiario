@@ -3,8 +3,15 @@ Write-Host "==============================="
 Write-Host "GERANDO DASHBOARD"
 Write-Host "==============================="
 
-# Lê todos os arquivos do histórico
-$arquivos = Get-ChildItem "historico" -Filter *.json | Sort-Object Name
+# Lê apenas os arquivos dos últimos 7 dias
+$limite = (Get-Date).AddDays(-7)
+
+$arquivos = Get-ChildItem "historico" -Filter *.json |
+    Where-Object {
+        $_.Name -ne "dashboard.json" -and
+        $_.LastWriteTime -ge $limite
+    } |
+    Sort-Object Name
 
 # Lista que armazenará o histórico
 $historico = @()
@@ -16,6 +23,7 @@ $aprovados = 0
 $falhas = 0
 $somaSucesso = 0
 
+# Melhor e pior execução
 $melhorDia = $null
 $piorDia = $null
 
@@ -38,12 +46,42 @@ foreach ($arquivo in $arquivos) {
     $aprovados += [int]$json.passed
     $falhas += [int]$json.failed
     $somaSucesso += [double]$json.successRate
+
+    # Identifica o melhor dia
+    if ($null -eq $melhorDia -or [double]$json.successRate -gt [double]$melhorDia.successRate) {
+        $melhorDia = $json
+    }
+
+    # Identifica o pior dia
+    if ($null -eq $piorDia -or [double]$json.successRate -lt [double]$piorDia.successRate) {
+        $piorDia = $json
+    }
 }
 
-# Calcula média
-$mediaSucesso = [math]::Round($somaSucesso / $dias,2)
+# Calcula média de sucesso
+if ($dias -eq 0) {
+    $mediaSucesso = 0
+}
+else {
+    $mediaSucesso = [math]::Round($somaSucesso / $dias, 2)
+}
 
-# Objeto final
+# Proteção caso não exista histórico
+if ($null -eq $melhorDia) {
+    $melhorDia = @{
+        data = "-"
+        successRate = 0
+    }
+}
+
+if ($null -eq $piorDia) {
+    $piorDia = @{
+        data = "-"
+        successRate = 0
+    }
+}
+
+# Objeto final do dashboard
 $dashboard = @{
     resumo = @{
         dias = $dias
@@ -51,16 +89,34 @@ $dashboard = @{
         aprovados = $aprovados
         falhas = $falhas
         sucesso = $mediaSucesso
+
+        melhorDia = @{
+            data = $melhorDia.data
+            sucesso = $melhorDia.successRate
+        }
+
+        piorDia = @{
+            data = $piorDia.data
+            sucesso = $piorDia.successRate
+        }
     }
 
     historico = $historico
 }
 
-# Salva o arquivo
+# Salva o dashboard
 $dashboard |
     ConvertTo-Json -Depth 5 |
     Set-Content "historico/dashboard.json" -Encoding UTF8
 
 Write-Host ""
-Write-Host "Dashboard criado com sucesso!"
+Write-Host "==============================="
+Write-Host "DASHBOARD GERADO COM SUCESSO"
+Write-Host "==============================="
 Write-Host "Arquivo: historico/dashboard.json"
+Write-Host "Dias analisados : $dias"
+Write-Host "Total cenários  : $total"
+Write-Host "Taxa média      : $mediaSucesso%"
+Write-Host "Melhor dia      : $($melhorDia.data) - $($melhorDia.successRate)%"
+Write-Host "Pior dia        : $($piorDia.data) - $($piorDia.successRate)%"
+Write-Host ""
