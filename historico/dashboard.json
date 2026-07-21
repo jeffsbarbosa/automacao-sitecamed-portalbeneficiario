@@ -1,74 +1,64 @@
 ﻿{
     "resumo":  {
-                   "dias":  9,
-                   "cenarios":  600,
-                   "falhas":  17,
-                   "aprovados":  583,
-                   "sucesso":  86.37
+                   "falhas":  12,
+                   "dias":  6,
+                   "aprovados":  438,
+                   "sucesso":  97.33,
+                   "cenarios":  450,
+                   "piorDia":  {
+                                   "sucesso":  94.67,
+                                   "data":  "2026-07-16"
+                               },
+                   "diasComFalha":  4
                },
     "historico":  [
                       {
-                          "failed":  0,
-                          "data":  "2026-07-08",
-                          "successRate":  100,
-                          "total":  75,
-                          "passed":  75
-                      },
-                      {
-                          "failed":  2,
-                          "data":  "2026-07-09",
-                          "successRate":  97.33,
-                          "total":  75,
-                          "passed":  73
-                      },
-                      {
-                          "failed":  3,
-                          "data":  "2026-07-10",
-                          "successRate":  96,
-                          "total":  75,
-                          "passed":  72
-                      },
-                      {
-                          "failed":  0,
                           "data":  "2026-07-13",
-                          "successRate":  100,
+                          "passed":  75,
+                          "hora":  "11:21:22",
                           "total":  75,
-                          "passed":  75
+                          "failed":  0,
+                          "successRate":  100
                       },
                       {
-                          "failed":  3,
                           "data":  "2026-07-14",
-                          "successRate":  96,
+                          "passed":  72,
+                          "hora":  "06:39:58",
                           "total":  75,
-                          "passed":  72
-                      },
-                      {
-                          "failed":  4,
-                          "data":  "2026-07-16",
-                          "successRate":  94.67,
-                          "total":  75,
-                          "passed":  71
-                      },
-                      {
-                          "failed":  2,
-                          "data":  "2026-07-17",
-                          "successRate":  97.33,
-                          "total":  75,
-                          "passed":  73
-                      },
-                      {
                           "failed":  3,
-                          "data":  "2026-07-18",
-                          "successRate":  96,
-                          "total":  75,
-                          "passed":  72
+                          "successRate":  96
                       },
                       {
-                          "failed":  null,
-                          "data":  null,
-                          "successRate":  null,
-                          "total":  null,
-                          "passed":  null
+                          "data":  "2026-07-16",
+                          "passed":  71,
+                          "hora":  "16:33:58",
+                          "total":  75,
+                          "failed":  4,
+                          "successRate":  94.67
+                      },
+                      {
+                          "data":  "2026-07-17",
+                          "passed":  73,
+                          "hora":  "06:37:16",
+                          "total":  75,
+                          "failed":  2,
+                          "successRate":  97.33
+                      },
+                      {
+                          "data":  "2026-07-18",
+                          "passed":  72,
+                          "hora":  "06:09:42",
+                          "total":  75,
+                          "failed":  3,
+                          "successRate":  96
+                      },
+                      {
+                          "data":  "2026-07-20",
+                          "passed":  75,
+                          "hora":  "09:37:35",
+                          "total":  75,
+                          "failed":  0,
+                          "successRate":  100
                       }
                   ]
 }

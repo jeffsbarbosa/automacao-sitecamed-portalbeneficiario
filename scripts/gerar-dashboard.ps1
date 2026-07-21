@@ -21,10 +21,10 @@ $dias = 0
 $total = 0
 $aprovados = 0
 $falhas = 0
+$diasComFalha = 0
 $somaSucesso = 0
 
-# Melhor e pior execução
-$melhorDia = $null
+# Pior execução da semana
 $piorDia = $null
 
 foreach ($arquivo in $arquivos) {
@@ -34,6 +34,7 @@ foreach ($arquivo in $arquivos) {
     # Adiciona ao histórico
     $historico += @{
         data = $json.data
+        hora = $json.hora
         total = $json.total
         passed = $json.passed
         failed = $json.failed
@@ -45,12 +46,12 @@ foreach ($arquivo in $arquivos) {
     $total += [int]$json.total
     $aprovados += [int]$json.passed
     $falhas += [int]$json.failed
-    $somaSucesso += [double]$json.successRate
 
-    # Identifica o melhor dia
-    if ($null -eq $melhorDia -or [double]$json.successRate -gt [double]$melhorDia.successRate) {
-        $melhorDia = $json
+    if ([int]$json.failed -gt 0) {
+        $diasComFalha++
     }
+
+    $somaSucesso += [double]$json.successRate
 
     # Identifica o pior dia
     if ($null -eq $piorDia -or [double]$json.successRate -lt [double]$piorDia.successRate) {
@@ -67,13 +68,6 @@ else {
 }
 
 # Proteção caso não exista histórico
-if ($null -eq $melhorDia) {
-    $melhorDia = @{
-        data = "-"
-        successRate = 0
-    }
-}
-
 if ($null -eq $piorDia) {
     $piorDia = @{
         data = "-"
@@ -88,12 +82,8 @@ $dashboard = @{
         cenarios = $total
         aprovados = $aprovados
         falhas = $falhas
+        diasComFalha = $diasComFalha
         sucesso = $mediaSucesso
-
-        melhorDia = @{
-            data = $melhorDia.data
-            sucesso = $melhorDia.successRate
-        }
 
         piorDia = @{
             data = $piorDia.data
@@ -116,7 +106,8 @@ Write-Host "==============================="
 Write-Host "Arquivo: historico/dashboard.json"
 Write-Host "Dias analisados : $dias"
 Write-Host "Total cenários  : $total"
+Write-Host "Dias com falha  : $diasComFalha"
+Write-Host "Falhas semanais : $falhas"
 Write-Host "Taxa média      : $mediaSucesso%"
-Write-Host "Melhor dia      : $($melhorDia.data) - $($melhorDia.successRate)%"
 Write-Host "Pior dia        : $($piorDia.data) - $($piorDia.successRate)%"
 Write-Host ""
