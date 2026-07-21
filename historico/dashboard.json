@@ -1,15 +1,15 @@
 ﻿{
     "resumo":  {
-                   "falhas":  12,
-                   "dias":  6,
-                   "aprovados":  438,
-                   "sucesso":  97.33,
-                   "cenarios":  450,
+                   "falhas":  15,
+                   "dias":  7,
+                   "aprovados":  510,
+                   "sucesso":  97.14,
+                   "cenarios":  525,
                    "piorDia":  {
                                    "sucesso":  94.67,
                                    "data":  "2026-07-16"
                                },
-                   "diasComFalha":  4
+                   "diasComFalha":  5
                },
     "historico":  [
                       {
@@ -59,6 +59,14 @@
                           "total":  75,
                           "failed":  0,
                           "successRate":  100
+                      },
+                      {
+                          "data":  "2026-07-21",
+                          "passed":  72,
+                          "hora":  "06:59:32",
+                          "total":  75,
+                          "failed":  3,
+                          "successRate":  96
                       }
                   ]
 }
