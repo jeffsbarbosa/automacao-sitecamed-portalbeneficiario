@@ -235,6 +235,12 @@ jobs:
               ConvertTo-Json -Depth 5 |
               Set-Content "temp/falhas.json" -Encoding UTF8
 
+          Write-Host ""
+          Write-Host "===== FALHAS ENCONTRADAS ====="
+          $falhasJson | ConvertTo-Json -Depth 5
+          Write-Host "=============================="
+
+
       - name: Montar tabelas por módulo
         shell: powershell
         run: |
@@ -408,9 +414,15 @@ jobs:
 
            $topFalhas = @()
 
+            $topFalhas = @()
+
             if (Test-Path "temp/falhas.json") {
                 $topFalhas = Get-Content "temp/falhas.json" -Raw |
                     ConvertFrom-Json
+            }
+
+            if ($null -eq $topFalhas) {
+                $topFalhas = @()
             }
 
            $historico = @{
