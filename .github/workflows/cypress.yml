@@ -406,6 +406,13 @@ jobs:
         shell: powershell
         run: |
 
+           $topFalhas = @()
+
+            if (Test-Path "temp/falhas.json") {
+                $topFalhas = Get-Content "temp/falhas.json" -Raw |
+                    ConvertFrom-Json
+            }
+
            $historico = @{
                data         = (Get-Date).ToString("yyyy-MM-dd")
                hora         = (Get-Date).ToString("HH:mm:ss")
@@ -423,7 +430,8 @@ jobs:
                perfil       = [double]$env:RATE_PERFIL
 
                status       = $env:STATUS_LEVEL
-              }
+               topFalhas = $topFalhas
+            }
 
             $data = Get-Date -Format "yyyy-MM-dd"
             $arquivo = "historico/$data.json"
