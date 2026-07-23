@@ -1,16 +1,7 @@
 ﻿{
-    "resumo":  {
-                   "falhas":  12,
-                   "dias":  7,
-                   "aprovados":  513,
-                   "sucesso":  97.71,
-                   "cenarios":  525,
-                   "piorDia":  {
-                                   "sucesso":  94.67,
-                                   "data":  "2026-07-16"
-                               },
-                   "diasComFalha":  4
-               },
+    "rankingFalhas":  [
+
+                      ],
     "historico":  [
                       {
                           "data":  "2026-07-13",
@@ -63,10 +54,26 @@
                       {
                           "data":  "2026-07-21",
                           "passed":  75,
-                          "hora":  "10:38:36",
+                          "hora":  "11:15:50",
                           "total":  75,
                           "failed":  0,
                           "successRate":  100
                       }
-                  ]
+                  ],
+    "resumo":  {
+                   "aprovados":  513,
+                   "sucesso":  97.71,
+                   "tendencia":  {
+                                     "variacao":  0,
+                                     "status":  "ESTAVEL"
+                                 },
+                   "falhas":  12,
+                   "diasComFalha":  4,
+                   "piorDia":  {
+                                   "sucesso":  94.67,
+                                   "data":  "2026-07-16"
+                               },
+                   "cenarios":  525,
+                   "dias":  7
+               }
 }

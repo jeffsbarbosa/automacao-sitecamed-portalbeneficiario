@@ -16,6 +16,9 @@ $arquivos = Get-ChildItem "historico" -Filter *.json |
 # Lista que armazenará o histórico
 $historico = @()
 
+# Lista com todas as falhas da semana
+$todasFalhas = @()
+
 # Variáveis do resumo
 $dias = 0
 $total = 0
@@ -24,12 +27,32 @@ $falhas = 0
 $diasComFalha = 0
 $somaSucesso = 0
 
+# Tendência da qualidade
+$primeiroDia = $null
+$ultimoDia = $null
+
 # Pior execução da semana
 $piorDia = $null
 
 foreach ($arquivo in $arquivos) {
 
     $json = Get-Content $arquivo.FullName -Raw | ConvertFrom-Json
+
+    if ($null -eq $primeiroDia) {
+    $primeiroDia = $json
+}
+
+$ultimoDia = $json
+
+    if ($json.topFalhas) {
+
+    foreach ($falha in $json.topFalhas) {
+
+        $todasFalhas += $falha
+
+    }
+
+}
 
     # Adiciona ao histórico
     $historico += @{
@@ -67,12 +90,55 @@ else {
     $mediaSucesso = [math]::Round($somaSucesso / $dias, 2)
 }
 
+# Calcula a tendência da qualidade
+
+$variacao = 0
+$statusTendencia = "ESTAVEL"
+
+if ($primeiroDia -and $ultimoDia) {
+
+    $variacao = [math]::Round(
+        ([double]$ultimoDia.successRate - [double]$primeiroDia.successRate),
+        2
+    )
+
+    if ($variacao -gt 0) {
+        $statusTendencia = "MELHORANDO"
+    }
+    elseif ($variacao -lt 0) {
+        $statusTendencia = "PIORANDO"
+    }
+
+}
+
 # Proteção caso não exista histórico
 if ($null -eq $piorDia) {
     $piorDia = @{
         data = "-"
         successRate = 0
     }
+}
+
+# Monta o ranking das falhas mais recorrentes
+$rankingFalhas = @()
+
+if ($todasFalhas.Count -gt 0) {
+
+    $rankingFalhas =
+        $todasFalhas |
+        Group-Object suite, cenario |
+        Sort-Object Count -Descending |
+        ForEach-Object {
+
+            @{
+                suite = $_.Group[0].suite
+                cenario = $_.Group[0].cenario
+                quantidade = $_.Count
+                ultimoErro = $_.Group[0].erro
+            }
+
+        }
+
 }
 
 # Objeto final do dashboard
@@ -86,12 +152,19 @@ $dashboard = @{
         sucesso = $mediaSucesso
 
         piorDia = @{
-            data = $piorDia.data
-            sucesso = $piorDia.successRate
-        }
+    data = $piorDia.data
+    sucesso = $piorDia.successRate
+}
+
+        tendencia = @{
+    status = $statusTendencia
+    variacao = $variacao
+}
     }
 
     historico = $historico
+
+    rankingFalhas = $rankingFalhas
 }
 
 # Salva o dashboard
