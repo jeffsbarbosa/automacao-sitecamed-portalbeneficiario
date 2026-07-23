@@ -1,0 +1,19 @@
+﻿{
+    "perfil":  97.3,
+    "total":  75,
+    "data":  "2026-07-23",
+    "portal":  100,
+    "runner":  "self-hosted",
+    "failed":  1,
+    "status":  "ATENÇÃO: Falhas pontuais identificadas",
+    "successRate":  98.67,
+    "hora":  "06:47:10",
+    "homepage":  100,
+    "passed":  74,
+    "topFalhas":  {
+                      "suite":  "Testes de Disponibilidade – Submenu Extratos e Faturas",
+                      "erro":  "AssertionError: Timed out retrying after 100000ms: Expected to find element: `.swal2-popup`, but never found it.",
+                      "cenario":  "Validando disponibilidade do item Declaração por Tempo de Plano"
+                  },
+    "workflow":  "Testes Automatizados"
+}

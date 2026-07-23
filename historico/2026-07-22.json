@@ -1,0 +1,19 @@
+﻿{
+    "perfil":  97.3,
+    "total":  75,
+    "data":  "2026-07-22",
+    "portal":  100,
+    "runner":  "self-hosted",
+    "failed":  1,
+    "status":  "ATENÇÃO: Falhas pontuais identificadas",
+    "successRate":  98.67,
+    "hora":  "06:48:56",
+    "homepage":  100,
+    "passed":  74,
+    "topFalhas":  {
+                      "suite":  "Testes de Disponibilidade – Submenu Extratos e Faturas",
+                      "erro":  "AssertionError: Timed out retrying after 100000ms: Expected to find element: `[role=\"dialog\"]`, but never found it.",
+                      "cenario":  "Validando disponibilidade do item Demonstrativo de Utilização por Data de Atendimento"
+                  },
+    "workflow":  "Testes Automatizados"
+}
