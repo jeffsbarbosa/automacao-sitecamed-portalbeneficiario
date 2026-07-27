@@ -1,15 +1,15 @@
 ﻿{
-    "perfil":  0,
-    "total":  0,
+    "perfil":  100,
+    "total":  75,
     "data":  "2026-07-27",
-    "portal":  0,
+    "portal":  100,
     "runner":  "self-hosted",
     "failed":  0,
     "status":  "SUCESSO: Nenhuma falha detectada",
-    "successRate":  0,
-    "hora":  "09:38:04",
-    "homepage":  0,
-    "passed":  0,
+    "successRate":  100,
+    "hora":  "09:39:44",
+    "homepage":  100,
+    "passed":  75,
     "topFalhas":  [
 
                   ],
