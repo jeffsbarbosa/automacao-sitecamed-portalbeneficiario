@@ -3,14 +3,14 @@
 
 <head>
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Dashboard QA - Camed</title>
+<title>Relatório Semanal de Disponibilidade</title>
 
-    <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css">
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </head>
 
@@ -18,149 +18,153 @@
 
 <header>
 
-    <div class="header-conteudo">
+    <h1>Relatório Semanal de Disponibilidade</h1>
 
-        <div class="titulo">
+    <p>Site Camed & Portal de Serviços</p>
 
-            <h1>Relatório Semanal de Disponibilidade</h1>
+    <div class="header-info">
 
-            <h2>Site Camed & Portal de Serviços</h2>
+        <div class="info-box">
+
+            <span>PERÍODO ANALISADO</span>
+
+            <strong id="periodo">-</strong>
 
         </div>
 
-        <div class="informacoes">
+        <div class="info-box">
 
-            <div class="info">
+            <span>ÚLTIMA ATUALIZAÇÃO</span>
 
-                <span class="label">Período analisado</span>
-
-                <span id="periodoRelatorio">-</span>
-
-            </div>
-
-            <div class="info">
-
-                <span class="label">Última atualização</span>
-
-                <span id="ultimaAtualizacao">-</span>
-
-            </div>
+            <strong id="ultimaAtualizacao">-</strong>
 
         </div>
 
     </div>
-
 
 </header>
 
+<main>
+
 <section class="resumo">
 
-    <h2>📋 Resumo Executivo</h2>
+<h2>📋 Resumo Executivo</h2>
 
-    <p id="textoResumo">
-        Carregando resumo...
-    </p>
+<p id="textoResumo"></p>
 
 </section>
 
-<main>
+<section class="cards">
 
-    <!-- Cards de indicadores -->
-    <div class="cards">
+<div class="card indicador">
 
-        <div class="card">
-            <h3>📊 Cenários</h3>
-            <div id="cenarios" class="valor azul">-</div>
-        </div>
+<h3>📊 Cenários</h3>
 
-        <div class="card">
-            <h3>✅ Aprovados</h3>
-            <div id="aprovados" class="valor verde">-</div>
-        </div>
+<div id="cenarios" class="valor azul"></div>
 
-        <div class="card">
-            <h3>❌ Falhas</h3>
-            <div id="falhas" class="valor vermelho">-</div>
-        </div>
+</div>
 
-        <div class="card">
-            <h3>📈 Taxa de Sucesso</h3>
-            <div id="sucesso" class="valor roxo">-%</div>
-        </div>
+<div class="card indicador">
 
-    </div>
+<h3>✅ Aprovados</h3>
 
-    <!-- Painel superior -->
-    <div class="painel-superior">
+<div id="aprovados" class="valor verde"></div>
 
-        <!-- Gráfico -->
-        <div class="card">
+</div>
 
-            <h2>📈 Evolução da Taxa de Sucesso</h2>
+<div class="card indicador">
 
-            <canvas id="graficoSucesso"></canvas>
+<h3>❌ Falhas</h3>
 
-        </div>
+<div id="falhas" class="valor vermelho"></div>
 
-        <!-- Ranking -->
-        <div class="card">
+</div>
 
-            <h2>🔥 Testes com maior recorrência de falhas</h2>
+<div class="card indicador">
 
-            <table id="tabelaFalhas" style="width:100%; border-collapse:collapse;">
+<h3>📈 Disponibilidade</h3>
 
-                <thead>
+<div id="sucesso" class="valor roxo"></div>
 
-                    <tr style="background:#003366;color:white;">
+</div>
 
-                        <th style="padding:10px;">Ocorrências</th>
-                        <th style="padding:10px;">Suite</th>
-                        <th style="padding:10px;">Cenário</th>
-                        <th style="padding:10px;">Último erro</th>
+</section>
 
-                    </tr>
+<section class="painel-superior">
 
-                </thead>
+<div class="card">
 
-                <tbody>
+<h2>📈 Evolução da Disponibilidade</h2>
 
-                </tbody>
+<canvas id="graficoSucesso"></canvas>
 
-            </table>
+</div>
 
-        </div>
+<div class="card">
 
-    </div>
+<h2>🔥 Falhas Recorrentes</h2>
 
-    <!-- Histórico -->
-    <div class="card historico">
+<table id="tabelaFalhas">
 
-        <h2>📅 Histórico das Execuções</h2>
+<thead>
 
-        <table id="tabelaHistorico" style="width:100%;border-collapse:collapse;">
+<tr>
 
-            <thead style="background:#003366;color:white;">
+<th>Ocorrências</th>
 
-                <tr>
+<th>Suite</th>
 
-                    <th style="padding:12px;">Data</th>
-                    <th style="padding:12px;">Hora</th>
-                    <th style="padding:12px;">Cenários</th>
-                    <th style="padding:12px;">Falhas</th>
-                    <th style="padding:12px;">Disponibilidade</th>
-                    <th style="padding:12px;">Status</th>
+<th>Cenário</th>
 
-                </tr>
+<th>Último erro</th>
 
-            </thead>
+</tr>
 
-            <tbody>
+</thead>
 
-            </tbody>
+<tbody></tbody>
 
-        </table>
+</table>
 
-    </div>
+</div>
+
+</section>
+
+<section class="historico">
+
+<div class="card">
+
+<h2>📅 Histórico das Execuções</h2>
+
+<table id="tabelaHistorico">
+
+<thead>
+
+<tr>
+
+<th>Data</th>
+
+<th>Hora</th>
+
+<th>Cenários</th>
+
+<th>Falhas</th>
+
+<th>Disponibilidade</th>
+
+<th>Status</th>
+
+</tr>
+
+</thead>
+
+<tbody></tbody>
+
+</table>
+
+</div>
+
+</section>
 
 </main>
 

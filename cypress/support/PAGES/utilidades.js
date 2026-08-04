@@ -90,6 +90,16 @@ class utilidades {
     .click();
   }
 
+  abrirSubmenuAdesaoPlano(){
+    cy.xpath("//p[normalize-space()='Adesão ao Plano']")
+        .should('contain', 'Adesão ao Plano')
+        .click()
+    //Validar que a página carregou corretamente
+    cy.url().should('include', '/CamedSaudeServicos/Servicos/Beneficiario/AdesaoDeBeneficiarios.aspx')
+    cy.get('h3').should('contain', 'Adesão ao Plano')
+
+  }
+
    
 
 }

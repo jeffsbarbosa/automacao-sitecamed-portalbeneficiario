@@ -1,0 +1,40 @@
+{
+  "natural": {
+    "nome": "Dependente Natural",
+    "nomeMae": "Teste Mãe",
+    "cpf": "69010280837",
+    "dataNascimento": "2000-01-01",
+    "sexoIndex": 2,
+    "parentescoIndex": 2,
+    "estadoCivilIndex": 2,
+    "estadoNascimentoIndex": 2,
+    "cidadeNascimentoIndex": 2,
+    "email": "email@email.com",
+    "rg": "998877662211",
+    "orgaoEmissor": "SSP-CE",
+    "dataExpedicao": "2000-01-01",
+    "cep": "60348080",
+    "numero": "1",
+    "celular": "85123456798",
+    "dataAdesaoIndex": 2
+  },
+  "familia": {
+    "nome": "Dependente Família",
+    "nomeMae": "Teste Mãe",
+    "cpf": "69010280837",
+    "dataNascimento": "2000-01-01",
+    "sexoIndex": 2,
+    "parentescoIndex": 2,
+    "estadoCivilIndex": 2,
+    "estadoNascimentoIndex": 2,
+    "cidadeNascimentoIndex": 2,
+    "email": "email@email.com",
+    "rg": "998877662211",
+    "orgaoEmissor": "SSP-CE",
+    "dataExpedicao": "2000-01-01",
+    "cep": "60348080",
+    "numero": "1",
+    "celular": "85123456798",
+    "dataAdesaoIndex": 2
+  }
+}

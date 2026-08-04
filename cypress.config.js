@@ -24,7 +24,7 @@ module.exports = defineConfig({
     experimentalSessionAndOrigin: true,
     experimentalModifyObstructiveThirdPartyCode: true,
 
-    numTestsKeptInMemory: 0,
+    numTestsKeptInMemory: 30,
     viewportWidth: 1280,
     viewportHeight: 720,
 

@@ -3,77 +3,22 @@
 
                       ],
     "historico":  [
-                      {
-                          "data":  "2026-07-13",
-                          "passed":  75,
-                          "hora":  "11:21:22",
-                          "total":  75,
-                          "failed":  0,
-                          "successRate":  100
-                      },
-                      {
-                          "data":  "2026-07-14",
-                          "passed":  72,
-                          "hora":  "06:39:58",
-                          "total":  75,
-                          "failed":  3,
-                          "successRate":  96
-                      },
-                      {
-                          "data":  "2026-07-16",
-                          "passed":  71,
-                          "hora":  "16:33:58",
-                          "total":  75,
-                          "failed":  4,
-                          "successRate":  94.67
-                      },
-                      {
-                          "data":  "2026-07-17",
-                          "passed":  73,
-                          "hora":  "06:37:16",
-                          "total":  75,
-                          "failed":  2,
-                          "successRate":  97.33
-                      },
-                      {
-                          "data":  "2026-07-18",
-                          "passed":  72,
-                          "hora":  "06:09:42",
-                          "total":  75,
-                          "failed":  3,
-                          "successRate":  96
-                      },
-                      {
-                          "data":  "2026-07-20",
-                          "passed":  75,
-                          "hora":  "09:37:35",
-                          "total":  75,
-                          "failed":  0,
-                          "successRate":  100
-                      },
-                      {
-                          "data":  "2026-07-21",
-                          "passed":  75,
-                          "hora":  "11:15:50",
-                          "total":  75,
-                          "failed":  0,
-                          "successRate":  100
-                      }
+
                   ],
     "resumo":  {
-                   "aprovados":  513,
-                   "sucesso":  97.71,
+                   "aprovados":  0,
+                   "sucesso":  0,
                    "tendencia":  {
                                      "variacao":  0,
                                      "status":  "ESTAVEL"
                                  },
-                   "falhas":  12,
-                   "diasComFalha":  4,
+                   "falhas":  0,
+                   "diasComFalha":  0,
                    "piorDia":  {
-                                   "sucesso":  94.67,
-                                   "data":  "2026-07-16"
+                                   "sucesso":  0,
+                                   "data":  "-"
                                },
-                   "cenarios":  525,
-                   "dias":  7
+                   "cenarios":  0,
+                   "dias":  0
                }
 }

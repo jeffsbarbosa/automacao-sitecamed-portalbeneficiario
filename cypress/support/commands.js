@@ -129,4 +129,65 @@ Cypress.Commands.add('botaoProximoFaleConosco', () => {
         .should('contain', 'Próximo')
     
 
+}) 
+
+// Preenche o formulário (trata seletores de parentesco dinâmicos)
+Cypress.Commands.add('preencherFormularioDependente', (dados, tipoPlano = 'natural') => {
+  cy.get('#ContentPlaceHolder1_nomeDependente').type(dados.nome)
+  cy.get('#ContentPlaceHolder1_nomeMaeDependente').type(dados.nomeMae)
+  cy.get('#ContentPlaceHolder1_cpfDependente').type(dados.cpf)
+  cy.get('#ContentPlaceHolder1_dataNascDependente').type(dados.dataNascimento)
+  cy.get('#ContentPlaceHolder1_sexoDependente').select(dados.sexoIndex)
+
+  // Seleciona o select correto de parentesco com base no tipo de plano
+  if (tipoPlano === 'familia') {
+    cy.get('#ContentPlaceHolder1_parentescoDependenteFamilia').select(dados.parentescoIndex)
+  } else {
+    cy.get('#ContentPlaceHolder1_parentescoDependenteNatural').select(dados.parentescoIndex)
+  }
+
+  cy.get('#ContentPlaceHolder1_estadoCvDependente').select(dados.estadoCivilIndex)
+  cy.get('#ContentPlaceHolder1_estadoNascimentoDependente').select(dados.estadoNascimentoIndex)
+  cy.get('#ContentPlaceHolder1_cidadeNascimentoDependentes').select(dados.cidadeNascimentoIndex)
+  cy.get('#ContentPlaceHolder1_emailDependente').type(dados.email)
+  cy.get('#ContentPlaceHolder1_TextBoxRgDep').type(dados.rg)
+  cy.get('#ContentPlaceHolder1_TxtBoxOrgaoEmissorDep').type(dados.orgaoEmissor)
+  cy.get('#ContentPlaceHolder1_TextBoxDataExpedicaoDep').type(dados.dataExpedicao)
+
+  // Endereço
+  cy.get('#ContentPlaceHolder1_cepDependente').type(dados.cep)
+  cy.get('#ContentPlaceHolder1_NumeroEndDependente').type(dados.numero)
+  cy.get('#ContentPlaceHolder1_celularDependente').type(dados.celular)
+  cy.get('#ContentPlaceHolder1_listDataAdesaoDependente').select(dados.dataAdesaoIndex)
+})
+
+// Anexa N arquivos e seleciona o tipo de documento em lote
+Cypress.Commands.add('anexarDocumentos', (quantidade, caminhoArquivo) => {
+  cy.get('#verificarAnexos-tab1').should('contain', 'Próximo').click()
+
+  // Realiza o upload N vezes
+  Cypress._.times(quantidade, () => {
+    cy.get('[name="qqfile"]')
+      .eq(0)
+      .selectFile(caminhoArquivo, { force: true })
+  })
+
+  // Seleciona os tipos de documento sequencialmente
+  for (let index = 0; index < quantidade; index++) {
+    cy.get('[name="slTipoDocumento[]"]').eq(index).select(0, { force: true })
+    cy.get(`#slTipoDocumento${index}`).select(index + 1)
+  }
+
+  // Confirma o anexo
+  cy.get('.btn.btn-success').should('be.enabled').and('contain', 'Anexar').click()
+  cy.get('.swal2-popup').should('contain', 'sucesso')
+  cy.get('.swal2-confirm').click()
+})
+
+// Finaliza a solicitação na etapa do termo
+Cypress.Commands.add('finalizarSolicitacao', () => {
+  cy.get('#verificaTermo-tab1').should('be.enabled').and('contain', 'Próximo').click()
+  cy.get('[for="checkResumoTermo"]').should('exist')
+  cy.get('#checkResumoTermo').click()
+  cy.get('#btnFinalizar').should('be.enabled').and('contain', 'Solicitar')
 })

@@ -58,6 +58,9 @@ function carregarResumo(dados){
     const dataInicial = `${inicio[2]}/${inicio[1]}/${inicio[0]}`;
     const dataFinal = `${fim[2]}/${fim[1]}/${fim[0]}`;
 
+    document.getElementById("periodo").textContent =
+    `${dataInicial} a ${dataFinal}`;
+
     document.getElementById("textoResumo").innerHTML = `
     Os testes automatizados de disponibilidade foram realizados no período de
     <b>${dataInicial}</b> a <b>${dataFinal}</b>.
@@ -240,24 +243,24 @@ function carregarHistorico(dados){
                 `${data[2]}/${data[1]}/${data[0]}`;
 
             let status = "";
-            let cor = "";
+            let classe = "";
 
             if(item.successRate == 100){
 
                 status = "SUCESSO";
-                cor = "#2e7d32";
+                classe = "badge-sucesso";
 
             }
             else if(item.successRate >= 95){
 
                 status = "ATENÇÃO";
-                cor = "#f9a825";
+                classe = "badge-atencao";
 
             }
             else{
 
                 status = "CRÍTICO";
-                cor = "#c62828";
+                classe = "badge-critico";
 
             }
 
@@ -287,17 +290,9 @@ function carregarHistorico(dados){
 
                 <td style="padding:10px;text-align:center;">
 
-                    <span
-                        style="
-                        background:${cor};
-                        color:white;
-                        padding:6px 12px;
-                        border-radius:20px;
-                        font-size:13px;
-                        font-weight:bold;
-                        ">
-                        ${status}
-                    </span>
+                <span class="badge ${classe}">
+                ${status}
+                </span>
 
                 </td>
 
