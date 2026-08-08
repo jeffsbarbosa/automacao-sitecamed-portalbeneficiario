@@ -1,24 +1,99 @@
 ﻿{
-    "rankingFalhas":  [
-
-                      ],
+    "periodo":  {
+                    "inicio":  "2026-07-27",
+                    "fim":  "2026-08-02"
+                },
+    "insights":  {
+                     "execucaoPerfeita":  true,
+                     "maiorSequenciaSemFalhas":  5,
+                     "falhaMaisRecorrente":  {
+                                                 "suite":  null,
+                                                 "cenario":  null,
+                                                 "quantidade":  null
+                                             },
+                     "moduloMaisInstavel":  {
+                                                "falhas":  2,
+                                                "nome":  ""
+                                            }
+                 },
+    "rankingFalhas":  {
+                          "ultimoErro":  null,
+                          "suite":  null,
+                          "cenario":  null,
+                          "quantidade":  2
+                      },
     "historico":  [
-
+                      {
+                          "data":  "2026-07-27",
+                          "passed":  75,
+                          "hora":  "09:39:44",
+                          "total":  75,
+                          "failed":  0,
+                          "successRate":  100
+                      },
+                      {
+                          "data":  "2026-07-28",
+                          "passed":  75,
+                          "hora":  "09:09:38",
+                          "total":  75,
+                          "failed":  0,
+                          "successRate":  100
+                      },
+                      {
+                          "data":  "2026-07-29",
+                          "passed":  75,
+                          "hora":  "10:12:22",
+                          "total":  75,
+                          "failed":  0,
+                          "successRate":  100
+                      },
+                      {
+                          "data":  "2026-07-30",
+                          "passed":  75,
+                          "hora":  "14:53:59",
+                          "total":  75,
+                          "failed":  0,
+                          "successRate":  100
+                      },
+                      {
+                          "data":  "2026-07-31",
+                          "passed":  75,
+                          "hora":  "06:57:15",
+                          "total":  75,
+                          "failed":  0,
+                          "successRate":  100
+                      },
+                      {
+                          "data":  "2026-08-01",
+                          "passed":  73,
+                          "hora":  "06:35:50",
+                          "total":  75,
+                          "failed":  2,
+                          "successRate":  97.33
+                      },
+                      {
+                          "data":  "2026-08-02",
+                          "passed":  72,
+                          "hora":  "06:42:22",
+                          "total":  75,
+                          "failed":  3,
+                          "successRate":  96
+                      }
                   ],
     "resumo":  {
-                   "aprovados":  0,
-                   "sucesso":  0,
+                   "aprovados":  520,
+                   "sucesso":  99.05,
                    "tendencia":  {
-                                     "variacao":  0,
-                                     "status":  "ESTAVEL"
+                                     "variacao":  -4,
+                                     "status":  "PIORANDO"
                                  },
-                   "falhas":  0,
-                   "diasComFalha":  0,
+                   "falhas":  5,
+                   "diasComFalha":  2,
                    "piorDia":  {
-                                   "sucesso":  0,
-                                   "data":  "-"
+                                   "sucesso":  96,
+                                   "data":  "2026-08-02"
                                },
-                   "cenarios":  0,
-                   "dias":  0
+                   "cenarios":  525,
+                   "dias":  7
                }
 }

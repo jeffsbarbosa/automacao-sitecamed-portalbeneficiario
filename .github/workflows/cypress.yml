@@ -180,39 +180,82 @@ jobs:
         run: |
           $failList = @()
           $falhasJson = @()
-          
 
           $files = Get-ChildItem -Path "all-reports" -Recurse -Filter mochawesome*.json -ErrorAction SilentlyContinue
 
+          function Processar-Suite-Falhas {
+
+            param (
+              $suite
+            )
+
+            if ($null -eq $suite) {
+              return
+            }
+
+            # Processa os testes da suíte atual
+            if ($suite.tests) {
+
+              foreach ($test in @($suite.tests)) {
+
+                $falhou = ($test.state -eq "failed") -or ($test.fail -eq $true)
+
+                if ($falhou) {
+
+                  $suiteNome = if (-not [string]::IsNullOrWhiteSpace([string]$suite.title)) {
+                    [string]$suite.title
+                  } else {
+                    "Suite não identificada"
+                  }
+
+                  $testName = if (-not [string]::IsNullOrWhiteSpace([string]$test.title)) {
+                    [string]$test.title
+                  } else {
+                    "Cenário não identificado"
+                  }
+
+                  $errorMessage = if ($test.err -and $test.err.message) {
+                    ($test.err.message -split "`n")[0]
+                  } else {
+                    "Erro não identificado"
+                  }
+
+                  $errorMessage = $errorMessage -replace "CypressError:\s*", ""
+
+                  # Dados usados pelo histórico e pelo dashboard semanal
+                  $script:falhasJson += [PSCustomObject]@{
+                    suite = $suiteNome
+                    cenario = $testName
+                    erro = $errorMessage
+                  }
+
+                  # Lista usada no e-mail diário
+                  $script:failList += "<li style='margin-bottom:10px;'><b>$testName</b><br><span style='color:#dc3545;'> -> $errorMessage</span></li>"
+                }
+              }
+            }
+
+            # Processa subsuítes recursivamente
+            if ($suite.suites) {
+
+              foreach ($childSuite in @($suite.suites)) {
+                Processar-Suite-Falhas $childSuite
+              }
+            }
+          }
+
           foreach ($file in $files) {
+
             $json = Get-Content $file.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
 
             if ($json.results) {
-              foreach ($result in $json.results) {
-                foreach ($suite in $result.suites) {
-                  foreach ($test in $suite.tests) {
 
-                    if ($test.fail -eq $true) {
+              foreach ($result in @($json.results)) {
 
-                      $testName = $test.title
+                if ($result.suites) {
 
-                      $errorMessage = if ($test.err -and $test.err.message) {
-                        ($test.err.message -split "`n")[0]
-                      } else {
-                        "Erro não identificado"
-                      }
-
-                      $errorMessage = $errorMessage -replace "CypressError:\s*", ""
-
-                      $falhasJson += @{
-                      suite = $suite.title
-                      cenario = $test.title
-                      erro = $errorMessage
-                      }
-
-                      $failList += "<li style='margin-bottom:10px;'><b>$testName</b><br><span style='color:#dc3545;'> -> $errorMessage</span></li>"
-                    }
-
+                  foreach ($suite in @($result.suites)) {
+                    Processar-Suite-Falhas $suite
                   }
                 }
               }
@@ -231,13 +274,14 @@ jobs:
 
           New-Item -ItemType Directory -Force -Path "temp" | Out-Null
 
-          $falhasJson |
-              ConvertTo-Json -Depth 5 |
-              Set-Content "temp/falhas.json" -Encoding UTF8
+          # Garante que o arquivo seja sempre um array JSON, inclusive com 0 ou 1 falha
+          $jsonFalhas = ConvertTo-Json -InputObject @($falhasJson) -Depth 6
+          Set-Content "temp/falhas.json" -Value $jsonFalhas -Encoding UTF8
 
           Write-Host ""
           Write-Host "===== FALHAS ENCONTRADAS ====="
-          $falhasJson | ConvertTo-Json -Depth 5
+          Write-Host "Quantidade de falhas detalhadas: $($falhasJson.Count)"
+          Write-Host $jsonFalhas
           Write-Host "=============================="
 
 
@@ -411,46 +455,64 @@ jobs:
       - name: Gerar histórico da execução
         shell: powershell
         run: |
+          $topFalhas = @()
 
-           $topFalhas = @()
+          if (Test-Path "temp/falhas.json") {
 
-            $topFalhas = @()
+            try {
 
-            if (Test-Path "temp/falhas.json") {
-                $topFalhas = Get-Content "temp/falhas.json" -Raw |
-                    ConvertFrom-Json
+              $conteudoFalhas = Get-Content "temp/falhas.json" -Raw -Encoding UTF8
+
+              if (-not [string]::IsNullOrWhiteSpace($conteudoFalhas)) {
+
+                $falhasCarregadas = $conteudoFalhas | ConvertFrom-Json
+
+                if ($null -ne $falhasCarregadas) {
+                  $topFalhas = @($falhasCarregadas)
+                }
+              }
             }
-
-            if ($null -eq $topFalhas) {
-                $topFalhas = @()
+            catch {
+              Write-Warning "Não foi possível carregar temp/falhas.json: $($_.Exception.Message)"
+              $topFalhas = @()
             }
+          }
 
-           $historico = @{
-               data         = (Get-Date).ToString("yyyy-MM-dd")
-               hora         = (Get-Date).ToString("HH:mm:ss")
-               workflow     = "Testes Automatizados"
-               runner       = "self-hosted"
+          Write-Host ""
+          Write-Host "===== GERANDO HISTÓRICO DIÁRIO ====="
+          Write-Host "Falhas detalhadas encontradas: $($topFalhas.Count)"
 
-               total        = [int]$env:TOTAL
-               passed       = [int]$env:PASSED
-               failed       = [int]$env:FAILED
+          $historico = @{
+            data         = (Get-Date).ToString("yyyy-MM-dd")
+            hora         = (Get-Date).ToString("HH:mm:ss")
+            workflow     = "Testes Automatizados"
+            runner       = "self-hosted"
 
-               successRate  = [double]$env:SUCCESS_RATE
+            total        = [int]$env:TOTAL
+            passed       = [int]$env:PASSED
+            failed       = [int]$env:FAILED
 
-               homepage     = [double]$env:RATE_HOME
-               portal       = [double]$env:RATE_PORTAL
-               perfil       = [double]$env:RATE_PERFIL
+            successRate  = [double]$env:SUCCESS_RATE
 
-               status       = $env:STATUS_LEVEL
-               topFalhas = $topFalhas
-            }
+            homepage     = [double]$env:RATE_HOME
+            portal       = [double]$env:RATE_PORTAL
+            perfil       = [double]$env:RATE_PERFIL
 
-            $data = Get-Date -Format "yyyy-MM-dd"
-            $arquivo = "historico/$data.json"
+            status       = $env:STATUS_LEVEL
+            topFalhas    = @($topFalhas)
+          }
 
-            $historico |
-              ConvertTo-Json -Depth 3 |
-              Set-Content $arquivo -Encoding UTF8
+          $data = Get-Date -Format "yyyy-MM-dd"
+          $arquivo = "historico/$data.json"
+
+          $historico |
+            ConvertTo-Json -Depth 6 |
+            Set-Content $arquivo -Encoding UTF8
+
+          Write-Host "Histórico gerado: $arquivo"
+          Write-Host ""
+          Get-Content $arquivo -Raw -Encoding UTF8
+
 
       - name: Publicar histórico no GitHub
         shell: powershell
