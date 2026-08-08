@@ -499,7 +499,7 @@ jobs:
             perfil       = [double]$env:RATE_PERFIL
 
             status       = $env:STATUS_LEVEL
-            topFalhas    = @($topFalhas)
+            topFalhas    = $topFalhas
           }
 
           $data = Get-Date -Format "yyyy-MM-dd"
