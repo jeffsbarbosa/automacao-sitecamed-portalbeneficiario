@@ -178,225 +178,200 @@ jobs:
       - name: Listar testes que falharam
         shell: powershell
         run: |
-                  $failList = @()
-                  $falhasJson = @()
+          $failList = @()
+          $falhasJson = @()
 
-                  $files = Get-ChildItem `
-                    -Path "all-reports" `
-                    -Recurse `
-                    -Filter mochawesome*.json `
-                    -ErrorAction SilentlyContinue
+          $files = Get-ChildItem `
+            -Path "all-reports" `
+            -Recurse `
+            -Filter mochawesome*.json `
+            -ErrorAction SilentlyContinue
 
-                  function Processar-Suite-Falhas {
+          function Processar-Suite-Falhas {
 
-                    param (
-                      $suite
-                    )
+            param (
+              $suite
+            )
 
-                    if ($null -eq $suite) {
-                      return
-                    }
+            if ($null -eq $suite) {
+              return
+            }
 
-                    if ($suite.tests) {
+            if ($suite.tests) {
 
-                      foreach ($test in $suite.tests) {
+              foreach ($test in $suite.tests) {
 
-                        $falhou =
-                          ($test.state -eq "failed") -or
-                          ($test.fail -eq $true)
+                $falhou =
+                  ($test.state -eq "failed") -or
+                  ($test.fail -eq $true)
 
-                        if ($falhou) {
+                if ($falhou) {
 
-                          $suiteNome = if (
-                            -not [string]::IsNullOrWhiteSpace(
-                              [string]$suite.title
-                            )
-                          ) {
-                            [string]$suite.title
-                          }
-                          else {
-                            "Suite não identificada"
-                          }
+                  $suiteNome = if (
+                    -not [string]::IsNullOrWhiteSpace([string]$suite.title)
+                  ) {
+                    [string]$suite.title
+                  }
+                  else {
+                    "Suite não identificada"
+                  }
 
-                          $testName = if (
-                            -not [string]::IsNullOrWhiteSpace(
-                              [string]$test.title
-                            )
-                          ) {
-                            [string]$test.title
-                          }
-                          else {
-                            "Cenário não identificado"
-                          }
+                  $testName = if (
+                    -not [string]::IsNullOrWhiteSpace([string]$test.title)
+                  ) {
+                    [string]$test.title
+                  }
+                  else {
+                    "Cenário não identificado"
+                  }
 
-                          $errorMessage = if (
-                            $test.err -and
-                            $test.err.message
-                          ) {
-                            ($test.err.message -split "`n")[0]
-                          }
-                          else {
-                            "Erro não identificado"
-                          }
+                  $errorMessage = if (
+                    $test.err -and
+                    $test.err.message
+                  ) {
+                    ($test.err.message -split "`n")[0]
+                  }
+                  else {
+                    "Erro não identificado"
+                  }
 
-                          $errorMessage =
-                            $errorMessage -replace "CypressError:\s*", ""
+                  $errorMessage =
+                    $errorMessage -replace "CypressError:\s*", ""
 
-                          $script:falhasJson += [PSCustomObject]@{
-                            suite   = $suiteNome
-                            cenario = $testName
-                            erro    = $errorMessage
-                          }
+                  $script:falhasJson += [PSCustomObject]@{
+                    suite   = $suiteNome
+                    cenario = $testName
+                    erro    = $errorMessage
+                  }
 
-                          $script:failList += @"
-                        <li style='margin-bottom:10px;'>
-                          <b>$testName</b>
-                          <br>
-                          <span style='color:#dc3545;'>
-                            -> $errorMessage
-                          </span>
-                        </li>
-                        "@
+                  $itemHtml =
+                    "<li style='margin-bottom:10px;'>" +
+                    "<b>$testName</b><br>" +
+                    "<span style='color:#dc3545;'> -> $errorMessage</span>" +
+                    "</li>"
 
-                                        }
+                  $script:failList += $itemHtml
+                }
+              }
+            }
 
-                                      }
+            if ($suite.suites) {
 
-                                    }
+              foreach ($childSuite in $suite.suites) {
+                Processar-Suite-Falhas $childSuite
+              }
+            }
+          }
 
-                                    if ($suite.suites) {
+          foreach ($file in $files) {
 
-                                      foreach ($childSuite in $suite.suites) {
+            $json = Get-Content `
+              $file.FullName `
+              -Raw `
+              -Encoding UTF8 |
+              ConvertFrom-Json
 
-                                        Processar-Suite-Falhas $childSuite
+            if ($json.results) {
 
-                                      }
+              foreach ($result in $json.results) {
 
-                                    }
+                if ($result.suites) {
 
-                                  }
+                  foreach ($suite in $result.suites) {
+                    Processar-Suite-Falhas $suite
+                  }
+                }
+              }
+            }
+          }
 
-                                  foreach ($file in $files) {
+          if ($failList.Count -eq 0) {
 
-                                    $json = Get-Content `
-                                      $file.FullName `
-                                      -Raw `
-                                      -Encoding UTF8 |
-                                      ConvertFrom-Json
+            $failText =
+              "<p style='color:#28a745;font-weight:bold;'>" +
+              "Nenhum teste falhou" +
+              "</p>"
+          }
+          else {
 
-                                    if ($json.results) {
+            $failText =
+              "<ul style='padding-left:20px;font-family:Arial;'>" +
+              ($failList -join "") +
+              "</ul>"
+          }
 
-                                      foreach ($result in $json.results) {
+          "FAIL_LIST<<EOF" |
+            Out-File `
+              -FilePath $env:GITHUB_ENV `
+              -Encoding utf8 `
+              -Append
 
-                                        if ($result.suites) {
+          $failText |
+            Out-File `
+              -FilePath $env:GITHUB_ENV `
+              -Encoding utf8 `
+              -Append
 
-                                          foreach ($suite in $result.suites) {
+          "EOF" |
+            Out-File `
+              -FilePath $env:GITHUB_ENV `
+              -Encoding utf8 `
+              -Append
 
-                                            Processar-Suite-Falhas $suite
+          New-Item `
+            -ItemType Directory `
+            -Force `
+            -Path "temp" |
+            Out-Null
 
-                                          }
+          $falhasParaSalvar = @(
+            $falhasJson | ForEach-Object {
 
-                                        }
+              [PSCustomObject]@{
+                suite   = $_.suite
+                cenario = $_.cenario
+                erro    = $_.erro
+              }
+            }
+          )
 
-                                      }
+          if ($falhasParaSalvar.Count -eq 0) {
 
-                                    }
+            $jsonFalhas = "[]"
+          }
+          elseif ($falhasParaSalvar.Count -eq 1) {
 
-                                  }
+            $objetoUnico =
+              $falhasParaSalvar[0] |
+              ConvertTo-Json -Depth 6
 
-                                  if ($failList.Count -eq 0) {
+            $jsonFalhas =
+              "[" + $objetoUnico + "]"
+          }
+          else {
 
-                                    $failText = @"
-                        <p style='color:#28a745;font-weight:bold;'>
-                          Nenhum teste falhou
-                        </p>
-                        "@
+            $jsonFalhas =
+              $falhasParaSalvar |
+              ConvertTo-Json -Depth 6
+          }
 
-                                  }
-                                  else {
+          Set-Content `
+            "temp/falhas.json" `
+            -Value $jsonFalhas `
+            -Encoding UTF8
 
-                                    $failText = @"
-                        <ul style='padding-left:20px;font-family:Arial;'>
-                        $($failList -join '')
-                        </ul>
-                        "@
+          Write-Host ""
+          Write-Host "===== FALHAS DETALHADAS ====="
+          Write-Host "Quantidade: $($falhasParaSalvar.Count)"
+          Write-Host ""
 
-                                  }
+          Get-Content `
+            "temp/falhas.json" `
+            -Raw `
+            -Encoding UTF8
 
-                                  "FAIL_LIST<<EOF" |
-                                    Out-File `
-                                      -FilePath $env:GITHUB_ENV `
-                                      -Encoding utf8 `
-                                      -Append
-
-                                  $failText |
-                                    Out-File `
-                                      -FilePath $env:GITHUB_ENV `
-                                      -Encoding utf8 `
-                                      -Append
-
-                                  "EOF" |
-                                    Out-File `
-                                      -FilePath $env:GITHUB_ENV `
-                                      -Encoding utf8 `
-                                      -Append
-
-                                  New-Item `
-                                    -ItemType Directory `
-                                    -Force `
-                                    -Path "temp" |
-                                    Out-Null
-
-                                  $falhasParaSalvar = @(
-                                    $falhasJson | ForEach-Object {
-                                      [PSCustomObject]@{
-                                        suite   = $_.suite
-                                        cenario = $_.cenario
-                                        erro    = $_.erro
-                                      }
-                                    }
-                                  )
-
-                                  if ($falhasParaSalvar.Count -eq 0) {
-
-                                    $jsonFalhas = "[]"
-
-                                  }
-                                  elseif ($falhasParaSalvar.Count -eq 1) {
-
-                                    $objetoUnico =
-                                      $falhasParaSalvar[0] |
-                                      ConvertTo-Json -Depth 6
-
-                                    $jsonFalhas =
-                                      "[" + $objetoUnico + "]"
-
-                                  }
-                                  else {
-
-                                    $jsonFalhas =
-                                      $falhasParaSalvar |
-                                      ConvertTo-Json -Depth 6
-
-                                  }
-
-                                  Set-Content `
-                                    "temp/falhas.json" `
-                                    -Value $jsonFalhas `
-                                    -Encoding UTF8
-
-                  Write-Host ""
-                  Write-Host "===== FALHAS DETALHADAS ====="
-                  Write-Host "Quantidade: $($falhasParaSalvar.Count)"
-                  Write-Host ""
-
-                  Get-Content `
-                    "temp/falhas.json" `
-                    -Raw `
-                    -Encoding UTF8
-
-                  Write-Host ""
-                  Write-Host "=============================="
+          Write-Host ""
+          Write-Host "=============================="
 
 
       - name: Montar tabelas por módulo
