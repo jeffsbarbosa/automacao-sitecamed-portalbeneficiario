@@ -1,13 +1,13 @@
 ﻿{
     "perfil":  100,
     "total":  77,
-    "data":  "2026-08-04",
+    "data":  "2026-08-06",
     "portal":  100,
     "runner":  "self-hosted",
     "failed":  0,
     "status":  "SUCESSO: Nenhuma falha detectada",
     "successRate":  100,
-    "hora":  "17:21:13",
+    "hora":  "08:49:22",
     "homepage":  100,
     "passed":  77,
     "topFalhas":  [

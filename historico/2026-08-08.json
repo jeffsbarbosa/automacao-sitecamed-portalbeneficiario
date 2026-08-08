@@ -1,0 +1,34 @@
+﻿{
+    "perfil":  92.31,
+    "total":  77,
+    "data":  "2026-08-08",
+    "portal":  100,
+    "runner":  "self-hosted",
+    "failed":  3,
+    "status":  "CRÍTICO: Falhas relevantes detectadas",
+    "successRate":  96.1,
+    "hora":  "05:22:03",
+    "homepage":  100,
+    "passed":  74,
+    "topFalhas":  {
+                      "value":  [
+                                    {
+                                        "suite":  "Testes de Disponibilidade – Submenu Extratos e Faturas",
+                                        "erro":  "AssertionError: Timed out retrying after 100000ms: Expected to find element: `.swal2-popup`, but never found it.",
+                                        "cenario":  "Validando disponibilidade do item Declaração por Tempo de Plano"
+                                    },
+                                    {
+                                        "suite":  "Testes de Disponibilidade – Submenu Extratos e Faturas",
+                                        "erro":  "AssertionError: Timed out retrying after 100000ms: Expected to find element: `[role=\"dialog\"]`, but never found it.",
+                                        "cenario":  "Validando disponibilidade do item Demonstrativo de Mensalidades, Taxas e Copartipação Financeira"
+                                    },
+                                    {
+                                        "suite":  "Testes de Disponibilidade – Submenu Extratos e Faturas",
+                                        "erro":  "AssertionError: Timed out retrying after 100000ms: Expected to find element: `[role=\"dialog\"]`, but never found it.",
+                                        "cenario":  "Validando disponibilidade do item Demonstrativo de Utilização por Data de Atendimento"
+                                    }
+                                ],
+                      "Count":  3
+                  },
+    "workflow":  "Testes Automatizados"
+}
