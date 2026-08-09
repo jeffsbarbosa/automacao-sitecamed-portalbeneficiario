@@ -541,7 +541,7 @@ jobs:
           Add-Content -Path $env:GITHUB_ENV -Value $perfilTable
           Add-Content -Path $env:GITHUB_ENV -Value "EOF"
 
-      - name: Gerar histórico da execução
+      - name: Gerar historico da execucao
         shell: powershell
         run: |
           $topFalhas = @()
@@ -557,38 +557,45 @@ jobs:
                 $falhasCarregadas = $conteudoFalhas | ConvertFrom-Json
 
                 if ($null -ne $falhasCarregadas) {
-                  $topFalhas = @($falhasCarregadas)
+
+                  if ($null -ne $falhasCarregadas.value) {
+                    $topFalhas = @($falhasCarregadas.value)
+                  }
+                  else {
+                    $topFalhas = @($falhasCarregadas)
+                  }
                 }
               }
             }
             catch {
-              Write-Warning "Não foi possível carregar temp/falhas.json: $($_.Exception.Message)"
+
+              Write-Warning "Nao foi possivel carregar temp/falhas.json: $($_.Exception.Message)"
               $topFalhas = @()
             }
           }
 
           Write-Host ""
-          Write-Host "===== GERANDO HISTÓRICO DIÁRIO ====="
+          Write-Host "===== GERANDO HISTORICO DIARIO ====="
           Write-Host "Falhas detalhadas encontradas: $($topFalhas.Count)"
 
           $historico = @{
-            data         = (Get-Date).ToString("yyyy-MM-dd")
-            hora         = (Get-Date).ToString("HH:mm:ss")
-            workflow     = "Testes Automatizados"
-            runner       = "self-hosted"
+            data        = (Get-Date).ToString("yyyy-MM-dd")
+            hora        = (Get-Date).ToString("HH:mm:ss")
+            workflow    = "Testes Automatizados"
+            runner      = "self-hosted"
 
-            total        = [int]$env:TOTAL
-            passed       = [int]$env:PASSED
-            failed       = [int]$env:FAILED
+            total       = [int]$env:TOTAL
+            passed      = [int]$env:PASSED
+            failed      = [int]$env:FAILED
 
-            successRate  = [double]$env:SUCCESS_RATE
+            successRate = [double]$env:SUCCESS_RATE
 
-            homepage     = [double]$env:RATE_HOME
-            portal       = [double]$env:RATE_PORTAL
-            perfil       = [double]$env:RATE_PERFIL
+            homepage    = [double]$env:RATE_HOME
+            portal      = [double]$env:RATE_PORTAL
+            perfil      = [double]$env:RATE_PERFIL
 
-            status       = $env:STATUS_LEVEL
-            topFalhas    = $topFalhas
+            status      = $env:STATUS_LEVEL
+            topFalhas   = $topFalhas
           }
 
           $data = Get-Date -Format "yyyy-MM-dd"
@@ -598,8 +605,11 @@ jobs:
             ConvertTo-Json -Depth 6 |
             Set-Content $arquivo -Encoding UTF8
 
-          Write-Host "Histórico gerado: $arquivo"
           Write-Host ""
+          Write-Host "Historico gerado com sucesso"
+          Write-Host "Arquivo: $arquivo"
+          Write-Host ""
+
           Get-Content $arquivo -Raw -Encoding UTF8
 
 
