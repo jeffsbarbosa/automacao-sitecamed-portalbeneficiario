@@ -1,27 +1,17 @@
 ﻿{
-    "perfil":  71.79,
-    "total":  62,
+    "perfil":  100,
+    "total":  77,
     "data":  "2026-08-10",
     "portal":  100,
     "runner":  "self-hosted",
-    "failed":  11,
-    "status":  "ATENÇÃO: Falhas pontuais identificadas",
-    "successRate":  82.26,
-    "hora":  "05:49:08",
+    "failed":  0,
+    "status":  "SUCESSO: Nenhuma falha detectada",
+    "successRate":  100,
+    "hora":  "16:55:45",
     "homepage":  100,
-    "passed":  51,
+    "passed":  77,
     "topFalhas":  [
-                      null,
-                      null,
-                      null,
-                      null,
-                      null,
-                      null,
-                      null,
-                      null,
-                      null,
-                      null,
-                      null
+
                   ],
     "workflow":  "Testes Automatizados"
 }
