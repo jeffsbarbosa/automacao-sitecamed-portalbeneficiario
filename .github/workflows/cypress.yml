@@ -318,52 +318,66 @@ jobs:
               -Encoding utf8 `
               -Append
 
-          New-Item `
-            -ItemType Directory `
-            -Force `
-            -Path "temp" |
-            Out-Null
+          New-Item -ItemType Directory -Force -Path "temp" | Out-Null
 
-          $falhasParaSalvar = @(
-            $falhasJson | ForEach-Object {
+          Write-Host ""
+          Write-Host "===== OBJETOS CAPTURADOS ====="
+          Write-Host "Quantidade: $($falhasJson.Count)"
 
-              [PSCustomObject]@{
-                suite   = $_.suite
-                cenario = $_.cenario
-                erro    = $_.erro
-              }
+          foreach ($falha in $falhasJson) {
+
+            Write-Host "------------------------------"
+            Write-Host "Suite   : $($falha.suite)"
+            Write-Host "Cenario : $($falha.cenario)"
+            Write-Host "Erro    : $($falha.erro)"
+
+          }
+
+          Write-Host "=============================="
+
+          # Monta manualmente o array JSON para evitar
+          # problemas de serializacao do PowerShell 5.1
+          $objetosJson = @()
+
+          foreach ($falha in $falhasJson) {
+
+            if ($null -eq $falha) {
+              continue
             }
-          )
 
-          if ($falhasParaSalvar.Count -eq 0) {
+            $objeto = [ordered]@{
+              suite   = [string]$falha.suite
+              cenario = [string]$falha.cenario
+              erro    = [string]$falha.erro
+            }
+
+            $objetosJson += (
+              $objeto | ConvertTo-Json -Compress -Depth 5
+            )
+
+          }
+
+          if ($objetosJson.Count -eq 0) {
 
             $jsonFalhas = "[]"
-          }
-          elseif ($falhasParaSalvar.Count -eq 1) {
 
-            $objetoUnico =
-              $falhasParaSalvar[0] |
-              ConvertTo-Json -Depth 6
-
-            $jsonFalhas =
-              "[" + $objetoUnico + "]"
           }
           else {
 
             $jsonFalhas =
-              $falhasParaSalvar |
-              ConvertTo-Json -Depth 6
+              "[" +
+              ($objetosJson -join ",") +
+              "]"
+
           }
 
           Set-Content `
-            "temp/falhas.json" `
+            -Path "temp/falhas.json" `
             -Value $jsonFalhas `
             -Encoding UTF8
 
           Write-Host ""
-          Write-Host "===== FALHAS DETALHADAS ====="
-          Write-Host "Quantidade: $($falhasParaSalvar.Count)"
-          Write-Host ""
+          Write-Host "===== TEMP/FALHAS.JSON ====="
 
           Get-Content `
             "temp/falhas.json" `
@@ -371,7 +385,7 @@ jobs:
             -Encoding UTF8
 
           Write-Host ""
-          Write-Host "=============================="
+          Write-Host "============================"
 
 
       - name: Montar tabelas por módulo

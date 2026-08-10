@@ -12,7 +12,7 @@
                                                  "quantidade":  null
                                              },
                      "moduloMaisInstavel":  {
-                                                "falhas":  3,
+                                                "falhas":  2,
                                                 "nome":  ""
                                             }
                  },
@@ -20,7 +20,7 @@
                           "ultimoErro":  null,
                           "suite":  null,
                           "cenario":  null,
-                          "quantidade":  3
+                          "quantidade":  2
                       },
     "historico":  [
                       {
@@ -65,27 +65,35 @@
                       },
                       {
                           "data":  "2026-08-08",
+                          "passed":  72,
+                          "hora":  "22:34:20",
+                          "total":  77,
+                          "failed":  5,
+                          "successRate":  93.51
+                      },
+                      {
+                          "data":  "2026-08-09",
                           "passed":  74,
-                          "hora":  "05:22:03",
+                          "hora":  "05:26:29",
                           "total":  77,
                           "failed":  3,
                           "successRate":  96.1
                       }
                   ],
     "resumo":  {
-                   "aprovados":  451,
-                   "sucesso":  98.05,
+                   "aprovados":  523,
+                   "sucesso":  97.4,
                    "tendencia":  {
                                      "variacao":  -3.9,
                                      "status":  "PIORANDO"
                                  },
-                   "falhas":  9,
-                   "diasComFalha":  3,
+                   "falhas":  14,
+                   "diasComFalha":  4,
                    "piorDia":  {
-                                   "sucesso":  94.81,
-                                   "data":  "2026-08-07"
+                                   "sucesso":  93.51,
+                                   "data":  "2026-08-08"
                                },
-                   "cenarios":  460,
-                   "dias":  6
+                   "cenarios":  537,
+                   "dias":  7
                }
 }
