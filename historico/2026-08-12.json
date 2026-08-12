@@ -1,0 +1,21 @@
+﻿{
+    "perfil":  100,
+    "total":  77,
+    "data":  "2026-08-12",
+    "portal":  97.3,
+    "runner":  "self-hosted",
+    "failed":  1,
+    "status":  "ATENÇÃO: Falhas pontuais identificadas",
+    "successRate":  98.7,
+    "hora":  "08:53:11",
+    "homepage":  100,
+    "passed":  76,
+    "topFalhas":  [
+                      {
+                          "suite":  "Testes de Disponibilidade – Menu ANS",
+                          "cenario":  "Deve validar a disponibilidade do submenu Resultado do IDSS",
+                          "erro":  "AssertionError: Timed out retrying after 100000ms: Expected to find element: `[class=\"MsoNormal\"]`, but never found it."
+                      }
+                  ],
+    "workflow":  "Testes Automatizados"
+}
