@@ -1,27 +1,35 @@
-﻿{
-    "periodo":  {
-                    "inicio":  "2026-08-03",
-                    "fim":  "2026-08-09"
-                },
-    "insights":  {
-                     "execucaoPerfeita":  true,
-                     "maiorSequenciaSemFalhas":  2,
-                     "falhaMaisRecorrente":  {
-                                                 "suite":  null,
-                                                 "cenario":  null,
-                                                 "quantidade":  null
-                                             },
-                     "moduloMaisInstavel":  {
-                                                "falhas":  2,
-                                                "nome":  ""
-                                            }
-                 },
-    "rankingFalhas":  {
-                          "ultimoErro":  null,
-                          "suite":  null,
-                          "cenario":  null,
-                          "quantidade":  2
-                      },
+{
+    "rankingFalhas":  [
+                          {
+                              "ultimoErro":  "AssertionError: Timed out retrying after 100000ms: Expected to find element: `[role=\"dialog\"]`, but never found it.",
+                              "suite":  "Testes de Disponibilidade – Submenu Extratos e Faturas",
+                              "cenario":  "Validando disponibilidade do item Demonstrativo de Mensalidades, Taxas e Copartipação Financeira",
+                              "quantidade":  1
+                          },
+                          {
+                              "ultimoErro":  "AssertionError: Timed out retrying after 100000ms: Expected to find element: `.swal2-popup`, but never found it.",
+                              "suite":  "Testes de Disponibilidade – Submenu Extratos e Faturas",
+                              "cenario":  "Validando disponibilidade do item Declaração por Tempo de Plano",
+                              "quantidade":  1
+                          }
+                      ],
+    "saudeModulos":  [
+                         {
+                             "disponibilidade":  100,
+                             "status":  "ESTAVEL",
+                             "nome":  "HomePage"
+                         },
+                         {
+                             "disponibilidade":  100,
+                             "status":  "ESTAVEL",
+                             "nome":  "Portal Camed"
+                         },
+                         {
+                             "disponibilidade":  94.87,
+                             "status":  "CRITICO",
+                             "nome":  "Perfil Associado"
+                         }
+                     ],
     "historico":  [
                       {
                           "data":  "2026-08-03",
@@ -80,6 +88,10 @@
                           "successRate":  96.1
                       }
                   ],
+    "periodo":  {
+                    "inicio":  "2026-08-03",
+                    "fim":  "2026-08-09"
+                },
     "resumo":  {
                    "aprovados":  523,
                    "sucesso":  97.4,
@@ -95,5 +107,18 @@
                                },
                    "cenarios":  537,
                    "dias":  7
-               }
+               },
+    "insights":  {
+                     "execucaoPerfeita":  true,
+                     "maiorSequenciaSemFalhas":  2,
+                     "falhaMaisRecorrente":  {
+                                                 "suite":  "Testes de Disponibilidade – Submenu Extratos e Faturas",
+                                                 "cenario":  "Validando disponibilidade do item Demonstrativo de Mensalidades, Taxas e Copartipação Financeira",
+                                                 "quantidade":  1
+                                             },
+                     "moduloMaisInstavel":  {
+                                                "falhas":  2,
+                                                "nome":  "Testes de Disponibilidade – Submenu Extratos e Faturas"
+                                            }
+                 }
 }

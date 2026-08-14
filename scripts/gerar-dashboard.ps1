@@ -13,8 +13,7 @@ $hoje = (Get-Date).Date
 # Localiza o domingo mais recente
 $fimPeriodo = $hoje.AddDays(-([int]$hoje.DayOfWeek))
 
-# Se o script for executado no próprio domingo,
-# considera o domingo anterior para evitar semana incompleta
+# Se executar no domingo, usa a semana anterior completa
 if ($hoje.DayOfWeek -eq [System.DayOfWeek]::Sunday) {
     $fimPeriodo = $fimPeriodo.AddDays(-7)
 }
@@ -22,23 +21,25 @@ if ($hoje.DayOfWeek -eq [System.DayOfWeek]::Sunday) {
 $inicioPeriodo = $fimPeriodo.AddDays(-6)
 
 Write-Host ""
-Write-Host "Período analisado:"
+Write-Host "Periodo semanal analisado:"
 Write-Host "$($inicioPeriodo.ToString('dd/MM/yyyy')) a $($fimPeriodo.ToString('dd/MM/yyyy'))"
 Write-Host ""
 
 # ============================================================
-# LOCALIZA OS ARQUIVOS DO HISTÓRICO
+# LOCALIZA TODOS OS ARQUIVOS DIÁRIOS
 # ============================================================
 
-$arquivos = Get-ChildItem "historico" -Filter *.json |
+$arquivosTodos = Get-ChildItem "historico" -Filter *.json |
     Where-Object {
-        $_.Name -ne "dashboard.json"
+        $_.Name -ne "dashboard.json" -and
+        $_.Name -ne "historico-completo.json"
     } |
     ForEach-Object {
 
         try {
 
-            $json = Get-Content $_.FullName -Raw | ConvertFrom-Json
+            $json = Get-Content $_.FullName -Raw -Encoding UTF8 |
+                ConvertFrom-Json
 
             if (-not $json.data) {
                 return
@@ -50,23 +51,16 @@ $arquivos = Get-ChildItem "historico" -Filter *.json |
                 [System.Globalization.CultureInfo]::InvariantCulture
             )
 
-            if (
-                $dataExecucao.Date -ge $inicioPeriodo -and
-                $dataExecucao.Date -le $fimPeriodo
-            ) {
-
-                [PSCustomObject]@{
-                    Arquivo = $_
-                    Json = $json
-                    DataExecucao = $dataExecucao
-                }
-
+            [PSCustomObject]@{
+                Arquivo = $_
+                Json = $json
+                DataExecucao = $dataExecucao
             }
 
         }
         catch {
 
-            Write-Warning "Não foi possível processar o arquivo $($_.Name): $($_.Exception.Message)"
+            Write-Warning "Nao foi possivel processar o arquivo $($_.Name): $($_.Exception.Message)"
 
         }
 
@@ -74,7 +68,82 @@ $arquivos = Get-ChildItem "historico" -Filter *.json |
     Sort-Object DataExecucao
 
 # ============================================================
-# ESTRUTURAS
+# GERA HISTÓRICO COMPLETO
+# ============================================================
+
+$historicoCompleto = @()
+
+foreach ($itemArquivo in $arquivosTodos) {
+
+    $json = $itemArquivo.Json
+
+    # Normaliza topFalhas
+    $topFalhasNormalizado = @()
+
+    if ($json.topFalhas) {
+
+        # Compatibilidade com formato antigo:
+        # topFalhas = { value: [...], Count: X }
+        if ($null -ne $json.topFalhas.value) {
+
+            $topFalhasNormalizado =
+                @($json.topFalhas.value) |
+                Where-Object { $null -ne $_ }
+
+        }
+        else {
+
+            $topFalhasNormalizado =
+                @($json.topFalhas) |
+                Where-Object { $null -ne $_ }
+
+        }
+
+    }
+
+    $historicoCompleto += @{
+        data = $json.data
+        hora = $json.hora
+
+        total = [int]$json.total
+        passed = [int]$json.passed
+        failed = [int]$json.failed
+
+        successRate = [double]$json.successRate
+
+        homepage = [double]$json.homepage
+        portal = [double]$json.portal
+        perfil = [double]$json.perfil
+
+        status = $json.status
+
+        topFalhas = $topFalhasNormalizado
+    }
+
+}
+
+$historicoCompleto |
+    ConvertTo-Json -Depth 8 |
+    Set-Content "historico/historico-completo.json" -Encoding UTF8
+
+Write-Host ""
+Write-Host "Historico completo gerado:"
+Write-Host "historico/historico-completo.json"
+Write-Host "Execucoes armazenadas: $($historicoCompleto.Count)"
+Write-Host ""
+
+# ============================================================
+# FILTRA SOMENTE A SEMANA ATUAL DO RELATÓRIO
+# ============================================================
+
+$arquivos = $arquivosTodos |
+    Where-Object {
+        $_.DataExecucao.Date -ge $inicioPeriodo -and
+        $_.DataExecucao.Date -le $fimPeriodo
+    }
+
+# ============================================================
+# ESTRUTURAS DO DASHBOARD SEMANAL
 # ============================================================
 
 $historico = @()
@@ -91,6 +160,18 @@ $falhas = 0
 $diasComFalha = 0
 $somaSucesso = 0
 
+# ============================================================
+# SAÚDE POR MÓDULO
+# ============================================================
+
+$somaHomepage = 0
+$somaPortal = 0
+$somaPerfil = 0
+
+$diasHomepage = 0
+$diasPortal = 0
+$diasPerfil = 0
+
 $primeiroDia = $null
 $ultimoDia = $null
 $piorDia = $null
@@ -104,7 +185,7 @@ $maiorSequenciaSemFalhas = 0
 $execucaoPerfeita = $false
 
 # ============================================================
-# PROCESSA CADA EXECUÇÃO
+# PROCESSA CADA EXECUÇÃO DA SEMANA
 # ============================================================
 
 foreach ($itemArquivo in $arquivos) {
@@ -117,16 +198,62 @@ foreach ($itemArquivo in $arquivos) {
 
     $ultimoDia = $json
 
-    # Coleta as falhas detalhadas
+    # ========================================================
+    # COLETA FALHAS DETALHADAS
+    # ========================================================
+
     if ($json.topFalhas) {
 
-        foreach ($falhaItem in $json.topFalhas) {
-            $todasFalhas += $falhaItem
+        $falhasDoDia = @()
+
+        # Compatibilidade com formato antigo
+        if ($null -ne $json.topFalhas.value) {
+
+            $falhasDoDia =
+                @($json.topFalhas.value)
+
+        }
+        else {
+
+            $falhasDoDia =
+                @($json.topFalhas)
+
+        }
+
+        foreach ($falhaItem in $falhasDoDia) {
+
+            if ($null -eq $falhaItem) {
+                continue
+            }
+
+            $suiteValida =
+                -not [string]::IsNullOrWhiteSpace(
+                    [string]$falhaItem.suite
+                )
+
+            $cenarioValido =
+                -not [string]::IsNullOrWhiteSpace(
+                    [string]$falhaItem.cenario
+                )
+
+            if ($suiteValida -and $cenarioValido) {
+
+                $todasFalhas += [PSCustomObject]@{
+                    suite = [string]$falhaItem.suite
+                    cenario = [string]$falhaItem.cenario
+                    erro = [string]$falhaItem.erro
+                }
+
+            }
+
         }
 
     }
 
-    # Adiciona a execução ao histórico
+    # ========================================================
+    # HISTÓRICO DA SEMANA
+    # ========================================================
+
     $historico += @{
         data = $json.data
         hora = $json.hora
@@ -136,14 +263,40 @@ foreach ($itemArquivo in $arquivos) {
         successRate = [double]$json.successRate
     }
 
-    # Alimenta o resumo
+    # ========================================================
+    # RESUMO
+    # ========================================================
+
     $dias++
+
     $total += [int]$json.total
     $aprovados += [int]$json.passed
     $falhas += [int]$json.failed
     $somaSucesso += [double]$json.successRate
 
-    # Dias com falha e sequência sem falhas
+    # ============================================================
+# COLETA DISPONIBILIDADE POR MÓDULO
+# ============================================================
+
+if ($null -ne $json.homepage) {
+    $somaHomepage += [double]$json.homepage
+    $diasHomepage++
+}
+
+if ($null -ne $json.portal) {
+    $somaPortal += [double]$json.portal
+    $diasPortal++
+}
+
+if ($null -ne $json.perfil) {
+    $somaPerfil += [double]$json.perfil
+    $diasPerfil++
+}
+
+    # ========================================================
+    # DIAS COM FALHA / SEQUÊNCIA SEM FALHAS
+    # ========================================================
+
     if ([int]$json.failed -gt 0) {
 
         $diasComFalha++
@@ -153,18 +306,29 @@ foreach ($itemArquivo in $arquivos) {
     else {
 
         $execucaoPerfeita = $true
+
         $sequenciaAtualSemFalhas++
 
-        if ($sequenciaAtualSemFalhas -gt $maiorSequenciaSemFalhas) {
-            $maiorSequenciaSemFalhas = $sequenciaAtualSemFalhas
+        if (
+            $sequenciaAtualSemFalhas -gt
+            $maiorSequenciaSemFalhas
+        ) {
+
+            $maiorSequenciaSemFalhas =
+                $sequenciaAtualSemFalhas
+
         }
 
     }
 
-    # Identifica o pior dia
+    # ========================================================
+    # PIOR DIA
+    # ========================================================
+
     if (
         $null -eq $piorDia -or
-        [double]$json.successRate -lt [double]$piorDia.successRate
+        [double]$json.successRate -lt
+        [double]$piorDia.successRate
     ) {
 
         $piorDia = $json
@@ -192,7 +356,67 @@ else {
 }
 
 # ============================================================
-# TENDÊNCIA DA QUALIDADE
+# CALCULA SAÚDE DOS MÓDULOS
+# ============================================================
+
+$mediaHomepage = if ($diasHomepage -gt 0) {
+    [math]::Round($somaHomepage / $diasHomepage, 2)
+}
+else {
+    0
+}
+
+$mediaPortal = if ($diasPortal -gt 0) {
+    [math]::Round($somaPortal / $diasPortal, 2)
+}
+else {
+    0
+}
+
+$mediaPerfil = if ($diasPerfil -gt 0) {
+    [math]::Round($somaPerfil / $diasPerfil, 2)
+}
+else {
+    0
+}
+
+function Get-StatusModulo {
+
+    param(
+        [double]$Disponibilidade
+    )
+
+    if ($Disponibilidade -eq 100) {
+        return "ESTAVEL"
+    }
+    elseif ($Disponibilidade -ge 95) {
+        return "ATENCAO"
+    }
+    else {
+        return "CRITICO"
+    }
+}
+
+$saudeModulos = @(
+    @{
+        nome = "HomePage"
+        disponibilidade = $mediaHomepage
+        status = Get-StatusModulo $mediaHomepage
+    },
+    @{
+        nome = "Portal Camed"
+        disponibilidade = $mediaPortal
+        status = Get-StatusModulo $mediaPortal
+    },
+    @{
+        nome = "Perfil Associado"
+        disponibilidade = $mediaPerfil
+        status = Get-StatusModulo $mediaPerfil
+    }
+)
+
+# ============================================================
+# TENDÊNCIA
 # ============================================================
 
 $variacao = 0
@@ -235,7 +459,7 @@ if ($null -eq $piorDia) {
 }
 
 # ============================================================
-# RANKING DAS FALHAS MAIS RECORRENTES
+# RANKING DE FALHAS
 # ============================================================
 
 $rankingFalhas = @()
@@ -280,7 +504,7 @@ if ($rankingFalhas.Count -gt 0) {
 }
 
 # ============================================================
-# MÓDULO / SUÍTE MAIS INSTÁVEL
+# MÓDULO MAIS INSTÁVEL
 # ============================================================
 
 $moduloMaisInstavel = @{
@@ -308,7 +532,7 @@ if ($todasFalhas.Count -gt 0) {
 }
 
 # ============================================================
-# OBJETO FINAL DO DASHBOARD
+# OBJETO FINAL DO DASHBOARD SEMANAL
 # ============================================================
 
 $dashboard = @{
@@ -343,27 +567,38 @@ $dashboard = @{
 
     rankingFalhas = $rankingFalhas
 
+    saudeModulos = $saudeModulos
+
     insights = @{
 
-        falhaMaisRecorrente = $falhaMaisRecorrente
+        falhaMaisRecorrente =
+            $falhaMaisRecorrente
 
-        moduloMaisInstavel = $moduloMaisInstavel
+        moduloMaisInstavel =
+            $moduloMaisInstavel
 
-        maiorSequenciaSemFalhas = $maiorSequenciaSemFalhas
+        maiorSequenciaSemFalhas =
+            $maiorSequenciaSemFalhas
 
-        execucaoPerfeita = $execucaoPerfeita
+        execucaoPerfeita =
+            $execucaoPerfeita
 
     }
 
 }
 
 # ============================================================
-# SALVA O DASHBOARD
+# SALVA DASHBOARD SEMANAL
 # ============================================================
 
-$dashboard |
-    ConvertTo-Json -Depth 6 |
-    Set-Content "historico/dashboard.json" -Encoding UTF8
+$jsonDashboard = $dashboard |
+    ConvertTo-Json -Depth 10
+
+[System.IO.File]::WriteAllText(
+    "historico/dashboard.json",
+    $jsonDashboard,
+    [System.Text.UTF8Encoding]::new($false)
+)
 
 # ============================================================
 # RESUMO NO TERMINAL
@@ -373,15 +608,25 @@ Write-Host ""
 Write-Host "==============================="
 Write-Host "DASHBOARD GERADO COM SUCESSO"
 Write-Host "==============================="
-Write-Host "Arquivo             : historico/dashboard.json"
-Write-Host "Período             : $($inicioPeriodo.ToString('dd/MM/yyyy')) a $($fimPeriodo.ToString('dd/MM/yyyy'))"
+
+Write-Host ""
+Write-Host "Dashboard semanal:"
+Write-Host "historico/dashboard.json"
+
+Write-Host ""
+Write-Host "Historico completo:"
+Write-Host "historico/historico-completo.json"
+
+Write-Host ""
+Write-Host "Periodo             : $($inicioPeriodo.ToString('dd/MM/yyyy')) a $($fimPeriodo.ToString('dd/MM/yyyy'))"
 Write-Host "Dias analisados     : $dias"
-Write-Host "Total de cenários   : $total"
+Write-Host "Total de cenarios   : $total"
 Write-Host "Dias com falha      : $diasComFalha"
 Write-Host "Falhas semanais     : $falhas"
-Write-Host "Taxa média          : $mediaSucesso%"
+Write-Host "Taxa media          : $mediaSucesso%"
 Write-Host "Pior dia            : $($piorDia.data) - $($piorDia.successRate)%"
-Write-Host "Sequência sem falha : $maiorSequenciaSemFalhas dia(s)"
-Write-Host "Módulo instável     : $($moduloMaisInstavel.nome)"
+Write-Host "Sequencia sem falha : $maiorSequenciaSemFalhas dia(s)"
+Write-Host "Modulo instavel     : $($moduloMaisInstavel.nome)"
 Write-Host "Falha recorrente    : $($falhaMaisRecorrente.cenario)"
+
 Write-Host ""

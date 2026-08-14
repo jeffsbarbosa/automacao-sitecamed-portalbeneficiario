@@ -1,48 +1,993 @@
+/* =========================================================
+   VARIÁVEIS GLOBAIS
+========================================================= */
+
+let dashboardSemanal = null;
+let historicoCompleto = [];
+
+
+/* =========================================================
+   INICIALIZAÇÃO
+========================================================= */
+
 carregarDashboard();
+
 
 async function carregarDashboard() {
 
     try {
 
-        const response = await fetch("../historico/dashboard.json");
+        const responseDashboard =
+            await fetch("../historico/dashboard.json");
 
-        if (!response.ok) {
+        if (!responseDashboard.ok) {
+
             throw new Error(
-                `Não foi possível carregar o dashboard.json. Status: ${response.status}`
+                `Não foi possível carregar o dashboard.json. Status: ${responseDashboard.status}`
             );
+
         }
 
-        const dados = await response.json();
+        dashboardSemanal =
+            await responseDashboard.json();
 
-        console.log("Dashboard carregado:", dados);
 
-        if (!dados.resumo || !Array.isArray(dados.historico)) {
-            throw new Error("Estrutura inválida no dashboard.json.");
+        const responseHistorico =
+            await fetch("../historico/historico-completo.json");
+
+        if (!responseHistorico.ok) {
+
+            throw new Error(
+                `Não foi possível carregar o historico-completo.json. Status: ${responseHistorico.status}`
+            );
+
         }
 
-        carregarCards(dados);
-        carregarInsights(dados);
-        carregarResumo(dados);
-        carregarUltimaAtualizacao(dados);
-        carregarGrafico(dados);
-        carregarHistorico(dados);
-        carregarRanking(dados);
+        historicoCompleto =
+            await responseHistorico.json();
+
+
+        if (!Array.isArray(historicoCompleto)) {
+
+            throw new Error(
+                "Estrutura inválida no historico-completo.json."
+            );
+
+        }
+
+
+        console.log(
+            "Dashboard semanal:",
+            dashboardSemanal
+        );
+
+        console.log(
+            "Histórico completo:",
+            historicoCompleto
+        );
+
+
+        renderizarDashboard(
+            dashboardSemanal
+        );
+
+
+        configurarFiltroPeriodo();
 
     }
     catch (erro) {
 
-        console.error("Erro ao carregar dashboard:", erro);
+        console.error(
+            "Erro ao carregar dashboard:",
+            erro
+        );
 
-        const textoResumo = document.getElementById("textoResumo");
+        const textoResumo =
+            document.getElementById("textoResumo");
 
         if (textoResumo) {
+
             textoResumo.textContent =
                 "Não foi possível carregar os dados do relatório.";
+
         }
 
     }
 
 }
+
+
+/* =========================================================
+   RENDERIZA TODAS AS ÁREAS
+========================================================= */
+
+function renderizarDashboard(dados) {
+
+    carregarCards(dados);
+
+    carregarInsights(dados);
+
+    carregarResumo(dados);
+
+    carregarUltimaAtualizacao(dados);
+
+    carregarGrafico(dados);
+
+    carregarHistorico(dados);
+
+    carregarRanking(dados);
+
+    carregarSaudeModulos(dados);
+
+}
+
+function carregarSaudeModulos(dados) {
+
+    const container = document.getElementById("listaSaudeModulos");
+
+    if (!container) {
+        console.error("Elemento listaSaudeModulos não encontrado.");
+        return;
+    }
+
+    const modulos = dados.saudeModulos;
+
+    if (!modulos || !Array.isArray(modulos) || modulos.length === 0) {
+
+        container.innerHTML = `
+            <div class="modulo-saude carregando">
+                Nenhuma informação de módulo disponível.
+            </div>
+        `;
+
+        return;
+    }
+
+    container.innerHTML = "";
+
+    modulos.forEach(modulo => {
+
+        const disponibilidade = Number(modulo.disponibilidade || 0);
+
+        let classeStatus = "";
+        let textoStatus = "";
+        let iconeStatus = "";
+
+        if (modulo.status === "ESTAVEL") {
+
+            classeStatus = "modulo-estavel";
+            textoStatus = "ESTÁVEL";
+            iconeStatus = "●";
+
+        }
+        else if (modulo.status === "ATENCAO") {
+
+            classeStatus = "modulo-atencao";
+            textoStatus = "ATENÇÃO";
+            iconeStatus = "●";
+
+        }
+        else {
+
+            classeStatus = "modulo-critico";
+            textoStatus = "CRÍTICO";
+            iconeStatus = "●";
+
+        }
+
+        container.innerHTML += `
+
+            <div class="modulo-saude">
+
+                <div class="modulo-info">
+
+                    <strong>
+                        ${modulo.nome}
+                    </strong>
+
+                    <span class="modulo-status ${classeStatus}">
+                        ${iconeStatus} ${textoStatus}
+                    </span>
+
+                </div>
+
+                <div class="modulo-disponibilidade">
+
+                    <strong>
+                        ${disponibilidade.toFixed(2)}%
+                    </strong>
+
+                    <span>
+                        disponibilidade média
+                    </span>
+
+                </div>
+
+                <div class="barra-saude">
+
+                    <div
+                        class="barra-saude-progresso ${classeStatus}"
+                        style="width: ${Math.min(disponibilidade, 100)}%"
+                    ></div>
+
+                </div>
+
+            </div>
+        `;
+    });
+}
+
+
+/* =========================================================
+   CONFIGURAÇÃO DO FILTRO
+========================================================= */
+
+function configurarFiltroPeriodo() {
+
+    const dataInicial =
+        document.getElementById(
+            "dataInicialFiltro"
+        );
+
+    const dataFinal =
+        document.getElementById(
+            "dataFinalFiltro"
+        );
+
+    const btnAplicar =
+        document.getElementById(
+            "btnAplicarPeriodo"
+        );
+
+    const btnRestaurar =
+        document.getElementById(
+            "btnPeriodoSemanal"
+        );
+
+
+    if (
+        !dataInicial ||
+        !dataFinal ||
+        !btnAplicar ||
+        !btnRestaurar
+    ) {
+
+        console.warn(
+            "Elementos do filtro de período não encontrados."
+        );
+
+        return;
+
+    }
+
+
+    if (dashboardSemanal?.periodo) {
+
+        dataInicial.value =
+            dashboardSemanal.periodo.inicio;
+
+        dataFinal.value =
+            dashboardSemanal.periodo.fim;
+
+    }
+    else if (
+        dashboardSemanal?.historico?.length
+    ) {
+
+        dataInicial.value =
+            dashboardSemanal.historico[0].data;
+
+        dataFinal.value =
+            dashboardSemanal.historico[
+                dashboardSemanal.historico.length - 1
+            ].data;
+
+    }
+
+
+    if (historicoCompleto.length > 0) {
+
+        const primeiraData =
+            historicoCompleto[0].data;
+
+        const ultimaData =
+            historicoCompleto[
+                historicoCompleto.length - 1
+            ].data;
+
+        dataInicial.min = primeiraData;
+        dataInicial.max = ultimaData;
+
+        dataFinal.min = primeiraData;
+        dataFinal.max = ultimaData;
+
+    }
+
+
+    btnAplicar.addEventListener(
+        "click",
+        aplicarFiltroPeriodo
+    );
+
+
+    btnRestaurar.addEventListener(
+        "click",
+        restaurarPeriodoSemanal
+    );
+
+}
+
+
+/* =========================================================
+   APLICA FILTRO PERSONALIZADO
+========================================================= */
+
+function aplicarFiltroPeriodo() {
+
+    const inicio =
+        document.getElementById(
+            "dataInicialFiltro"
+        ).value;
+
+    const fim =
+        document.getElementById(
+            "dataFinalFiltro"
+        ).value;
+
+
+    if (!inicio || !fim) {
+
+        mostrarMensagemFiltro(
+            "Selecione a data inicial e a data final.",
+            "erro"
+        );
+
+        return;
+
+    }
+
+
+    if (inicio > fim) {
+
+        mostrarMensagemFiltro(
+            "A data inicial não pode ser maior que a data final.",
+            "erro"
+        );
+
+        return;
+
+    }
+
+
+    const execucoesFiltradas =
+        historicoCompleto.filter(
+            item =>
+                item.data >= inicio &&
+                item.data <= fim
+        );
+
+
+    if (execucoesFiltradas.length === 0) {
+
+        mostrarMensagemFiltro(
+            "Nenhuma execução encontrada no período selecionado.",
+            "erro"
+        );
+
+        return;
+
+    }
+
+
+    const dadosPeriodo =
+        montarDashboardPorPeriodo(
+            execucoesFiltradas,
+            inicio,
+            fim
+        );
+
+
+    renderizarDashboard(
+        dadosPeriodo
+    );
+
+
+    mostrarMensagemFiltro(
+        `Período aplicado: ${formatarData(inicio)} a ${formatarData(fim)}.`,
+        "sucesso"
+    );
+
+}
+
+
+/* =========================================================
+   RESTAURA A SEMANA PADRÃO
+========================================================= */
+
+function restaurarPeriodoSemanal() {
+
+    if (!dashboardSemanal) {
+        return;
+    }
+
+
+    const dataInicial =
+        document.getElementById(
+            "dataInicialFiltro"
+        );
+
+    const dataFinal =
+        document.getElementById(
+            "dataFinalFiltro"
+        );
+
+
+    if (dashboardSemanal.periodo) {
+
+        dataInicial.value =
+            dashboardSemanal.periodo.inicio;
+
+        dataFinal.value =
+            dashboardSemanal.periodo.fim;
+
+    }
+
+
+    renderizarDashboard(
+        dashboardSemanal
+    );
+
+
+    mostrarMensagemFiltro(
+        "Período semanal restaurado.",
+        "sucesso"
+    );
+
+}
+
+
+/* =========================================================
+   MENSAGEM DO FILTRO
+========================================================= */
+
+function mostrarMensagemFiltro(
+    texto,
+    tipo = ""
+) {
+
+    const elemento =
+        document.getElementById(
+            "mensagemFiltro"
+        );
+
+    if (!elemento) {
+        return;
+    }
+
+
+    elemento.textContent =
+        texto;
+
+
+    elemento.classList.remove(
+        "mensagem-sucesso",
+        "mensagem-erro"
+    );
+
+
+    if (tipo === "sucesso") {
+
+        elemento.classList.add(
+            "mensagem-sucesso"
+        );
+
+    }
+
+
+    if (tipo === "erro") {
+
+        elemento.classList.add(
+            "mensagem-erro"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   MONTA DASHBOARD PARA O PERÍODO ESCOLHIDO
+========================================================= */
+
+function montarDashboardPorPeriodo(
+    execucoes,
+    inicio,
+    fim
+) {
+
+    const historico =
+        execucoes
+            .slice()
+            .sort(
+                (a, b) =>
+                    a.data.localeCompare(
+                        b.data
+                    )
+            );
+
+
+    const dias =
+        historico.length;
+
+
+    const cenarios =
+        historico.reduce(
+            (total, item) =>
+                total +
+                Number(item.total || 0),
+            0
+        );
+
+
+    const aprovados =
+        historico.reduce(
+            (total, item) =>
+                total +
+                Number(item.passed || 0),
+            0
+        );
+
+
+    const falhas =
+        historico.reduce(
+            (total, item) =>
+                total +
+                Number(item.failed || 0),
+            0
+        );
+
+
+    const diasComFalha =
+        historico.filter(
+            item =>
+                Number(item.failed) > 0
+        ).length;
+
+
+    const somaSucesso =
+        historico.reduce(
+            (total, item) =>
+                total +
+                Number(
+                    item.successRate || 0
+                ),
+            0
+        );
+
+
+    const sucesso =
+        dias > 0
+            ? Number(
+                (
+                    somaSucesso / dias
+                ).toFixed(2)
+            )
+            : 0;
+
+
+    const piorExecucao =
+        historico.reduce(
+            (pior, item) => {
+
+                if (!pior) {
+                    return item;
+                }
+
+                return (
+                    Number(item.successRate) <
+                    Number(pior.successRate)
+                )
+                    ? item
+                    : pior;
+
+            },
+            null
+        );
+
+
+    let variacao = 0;
+
+    let statusTendencia =
+        "ESTAVEL";
+
+
+    if (historico.length > 1) {
+
+        variacao =
+            Number(
+                (
+                    Number(
+                        historico[
+                            historico.length - 1
+                        ].successRate
+                    )
+                    -
+                    Number(
+                        historico[0].successRate
+                    )
+                ).toFixed(2)
+            );
+
+
+        if (variacao > 0) {
+
+            statusTendencia =
+                "MELHORANDO";
+
+        }
+        else if (variacao < 0) {
+
+            statusTendencia =
+                "PIORANDO";
+
+        }
+
+    }
+
+
+    const todasFalhas = [];
+
+
+    historico.forEach(
+        execucao => {
+
+            const falhasDia =
+                normalizarTopFalhas(
+                    execucao.topFalhas
+                );
+
+
+            falhasDia.forEach(
+                falha => {
+
+                    if (
+                        falha &&
+                        possuiTextoValido(
+                            falha.suite
+                        ) &&
+                        possuiTextoValido(
+                            falha.cenario
+                        )
+                    ) {
+
+                        todasFalhas.push(
+                            {
+                                suite:
+                                    falha.suite,
+
+                                cenario:
+                                    falha.cenario,
+
+                                erro:
+                                    falha.erro ||
+                                    "Erro não informado"
+                            }
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+
+    const mapaRanking =
+        new Map();
+
+
+    todasFalhas.forEach(
+        falha => {
+
+            const chave =
+                `${falha.suite}|||${falha.cenario}`;
+
+
+            if (
+                !mapaRanking.has(
+                    chave
+                )
+            ) {
+
+                mapaRanking.set(
+                    chave,
+                    {
+                        suite:
+                            falha.suite,
+
+                        cenario:
+                            falha.cenario,
+
+                        quantidade:
+                            0,
+
+                        ultimoErro:
+                            falha.erro
+                    }
+                );
+
+            }
+
+
+            const registro =
+                mapaRanking.get(
+                    chave
+                );
+
+
+            registro.quantidade++;
+
+            registro.ultimoErro =
+                falha.erro;
+
+        }
+    );
+
+
+    const rankingFalhas =
+        Array.from(
+            mapaRanking.values()
+        )
+        .sort(
+            (a, b) =>
+                b.quantidade -
+                a.quantidade
+        );
+
+
+    const falhaMaisRecorrente =
+        rankingFalhas.length > 0
+            ? {
+                suite:
+                    rankingFalhas[0].suite,
+
+                cenario:
+                    rankingFalhas[0].cenario,
+
+                quantidade:
+                    rankingFalhas[0].quantidade
+            }
+            : {
+                suite: "-",
+
+                cenario:
+                    "Nenhuma falha registrada",
+
+                quantidade: 0
+            };
+
+
+    const mapaModulos =
+        new Map();
+
+
+    todasFalhas.forEach(
+        falha => {
+
+            const atual =
+                mapaModulos.get(
+                    falha.suite
+                ) || 0;
+
+
+            mapaModulos.set(
+                falha.suite,
+                atual + 1
+            );
+
+        }
+    );
+
+
+    let moduloMaisInstavel = {
+        nome: "-",
+        falhas: 0
+    };
+
+
+    mapaModulos.forEach(
+        (quantidade, nome) => {
+
+            if (
+                quantidade >
+                moduloMaisInstavel.falhas
+            ) {
+
+                moduloMaisInstavel = {
+                    nome,
+                    falhas:
+                        quantidade
+                };
+
+            }
+
+        }
+    );
+
+
+    let sequenciaAtual = 0;
+
+    let maiorSequencia = 0;
+
+
+    historico.forEach(
+        item => {
+
+            if (
+                Number(item.failed) === 0
+            ) {
+
+                sequenciaAtual++;
+
+
+                if (
+                    sequenciaAtual >
+                    maiorSequencia
+                ) {
+
+                    maiorSequencia =
+                        sequenciaAtual;
+
+                }
+
+            }
+            else {
+
+                sequenciaAtual = 0;
+
+            }
+
+        }
+    );
+
+
+    return {
+
+        periodo: {
+
+            inicio,
+
+            fim
+
+        },
+
+        resumo: {
+
+            dias,
+
+            cenarios,
+
+            aprovados,
+
+            falhas,
+
+            diasComFalha,
+
+            sucesso,
+
+            piorDia: {
+
+                data:
+                    piorExecucao
+                        ? piorExecucao.data
+                        : "-",
+
+                sucesso:
+                    piorExecucao
+                        ? Number(
+                            piorExecucao.successRate
+                        )
+                        : 0
+
+            },
+
+            tendencia: {
+
+                status:
+                    statusTendencia,
+
+                variacao
+
+            }
+
+        },
+
+        historico,
+
+        rankingFalhas,
+
+        insights: {
+
+            falhaMaisRecorrente,
+
+            moduloMaisInstavel,
+
+            maiorSequenciaSemFalhas:
+                maiorSequencia,
+
+            execucaoPerfeita:
+                historico.some(
+                    item =>
+                        Number(item.failed) === 0
+                )
+
+        }
+
+    };
+
+}
+
+
+/* =========================================================
+   NORMALIZA TOP FALHAS
+========================================================= */
+
+function normalizarTopFalhas(
+    topFalhas
+) {
+
+    if (!topFalhas) {
+        return [];
+    }
+
+
+    if (
+        Array.isArray(
+            topFalhas
+        )
+    ) {
+
+        return topFalhas.filter(
+            item =>
+                item !== null &&
+                item !== undefined
+        );
+
+    }
+
+
+    if (
+        Array.isArray(
+            topFalhas.value
+        )
+    ) {
+
+        return topFalhas.value.filter(
+            item =>
+                item !== null &&
+                item !== undefined
+        );
+
+    }
+
+
+    if (
+        topFalhas.suite ||
+        topFalhas.cenario
+    ) {
+
+        return [
+            topFalhas
+        ];
+
+    }
+
+
+    return [];
+
+}
+
 
 /* =========================================================
    FUNÇÕES AUXILIARES
@@ -50,143 +995,268 @@ async function carregarDashboard() {
 
 function formatarData(data) {
 
-    if (!data || data === "-") {
+    if (
+        !data ||
+        data === "-"
+    ) {
+
         return "-";
+
     }
 
-    const partes = data.split("-");
 
-    if (partes.length !== 3) {
+    const partes =
+        data.split("-");
+
+
+    if (
+        partes.length !== 3
+    ) {
+
         return data;
+
     }
 
-    return `${partes[2]}/${partes[1]}/${partes[0]}`;
-
-}
-
-function possuiTextoValido(valor) {
 
     return (
-        valor !== null &&
-        valor !== undefined &&
-        String(valor).trim() !== "" &&
-        String(valor).trim().toLowerCase() !== "null" &&
-        String(valor).trim() !== "-"
+        `${partes[2]}/${partes[1]}/${partes[0]}`
     );
 
 }
 
-function obterInsights(dados) {
 
-    const insights = dados.insights || {};
+function possuiTextoValido(
+    valor
+) {
+
+    return (
+
+        valor !== null &&
+
+        valor !== undefined &&
+
+        String(valor).trim() !== "" &&
+
+        String(valor)
+            .trim()
+            .toLowerCase() !==
+            "null" &&
+
+        String(valor).trim() !== "-"
+
+    );
+
+}
+
+
+function obterInsights(
+    dados
+) {
+
+    const insights =
+        dados.insights || {};
+
 
     return {
 
-        falhaMaisRecorrente: insights.falhaMaisRecorrente || {
-            suite: "-",
-            cenario: "Nenhuma falha recorrente identificada",
-            quantidade: 0
-        },
+        falhaMaisRecorrente:
 
-        moduloMaisInstavel: insights.moduloMaisInstavel || {
-            nome: "-",
-            falhas: 0
-        },
+            insights
+                .falhaMaisRecorrente ||
+
+            {
+                suite: "-",
+
+                cenario:
+                    "Nenhuma falha recorrente identificada",
+
+                quantidade: 0
+            },
+
+
+        moduloMaisInstavel:
+
+            insights
+                .moduloMaisInstavel ||
+
+            {
+                nome: "-",
+
+                falhas: 0
+            },
+
 
         maiorSequenciaSemFalhas:
-            Number(insights.maiorSequenciaSemFalhas) || 0
+
+            Number(
+                insights
+                    .maiorSequenciaSemFalhas
+            ) || 0
 
     };
 
 }
 
+
 /* =========================================================
-   CARDS PRINCIPAIS
+   CARDS
 ========================================================= */
 
-function carregarCards(dados) {
+function carregarCards(
+    dados
+) {
 
     animarContador(
         "cenarios",
-        Number(dados.resumo.cenarios) || 0
+        Number(
+            dados.resumo.cenarios
+        ) || 0
     );
+
 
     animarContador(
         "aprovados",
-        Number(dados.resumo.aprovados) || 0
+        Number(
+            dados.resumo.aprovados
+        ) || 0
     );
+
 
     animarContador(
         "falhas",
-        Number(dados.resumo.falhas) || 0
+        Number(
+            dados.resumo.falhas
+        ) || 0
     );
+
 
     animarContador(
         "sucesso",
-        Number(dados.resumo.sucesso) || 0,
+        Number(
+            dados.resumo.sucesso
+        ) || 0,
         "%"
     );
 
+    animarContador(
+        "execucoes",
+        dados.resumo.dias
+    );
+
+
 }
+
 
 /* =========================================================
    RESUMO EXECUTIVO
 ========================================================= */
 
-function carregarResumo(dados) {
+function carregarResumo(
+    dados
+) {
 
-    const historico = dados.historico;
+    const historico =
+        dados.historico;
 
-    if (historico.length === 0) {
 
-        document.getElementById("periodo").textContent = "-";
+    if (
+        historico.length === 0
+    ) {
 
-        document.getElementById("textoResumo").textContent =
+        document.getElementById(
+            "periodo"
+        ).textContent = "-";
+
+
+        document.getElementById(
+            "textoResumo"
+        ).textContent =
             "Nenhuma execução foi localizada para o período analisado.";
+
 
         return;
 
     }
 
-    const primeiro = historico[0];
-    const ultimoPeriodo = historico[historico.length - 1];
 
-    const dataInicial = formatarData(primeiro.data);
-    const dataFinal = formatarData(ultimoPeriodo.data);
+    const dataInicial =
+        dados.periodo?.inicio
+            ? formatarData(
+                dados.periodo.inicio
+            )
+            : formatarData(
+                historico[0].data
+            );
 
-    document.getElementById("periodo").textContent =
+
+    const dataFinal =
+        dados.periodo?.fim
+            ? formatarData(
+                dados.periodo.fim
+            )
+            : formatarData(
+                historico[
+                    historico.length - 1
+                ].data
+            );
+
+
+    document.getElementById(
+        "periodo"
+    ).textContent =
         `${dataInicial} a ${dataFinal}`;
 
-    const piorDiaDados = dados.resumo.piorDia || {
-        data: "-",
-        sucesso: 0
-    };
 
-    const piorDia = formatarData(piorDiaDados.data);
+    const piorDiaDados =
+        dados.resumo.piorDia || {
+            data: "-",
+            sucesso: 0
+        };
 
-    const tendencia = dados.resumo.tendencia || {
-        status: "ESTAVEL",
-        variacao: 0
-    };
 
-    const variacao = Number(tendencia.variacao) || 0;
+    const piorDia =
+        formatarData(
+            piorDiaDados.data
+        );
+
+
+    const tendencia =
+        dados.resumo.tendencia || {
+            status:
+                "ESTAVEL",
+
+            variacao: 0
+        };
+
+
+    const variacao =
+        Number(
+            tendencia.variacao
+        ) || 0;
+
 
     let textoTendencia = "";
 
-    if (tendencia.status === "MELHORANDO") {
+
+    if (
+        tendencia.status ===
+        "MELHORANDO"
+    ) {
 
         textoTendencia =
             `Observou-se uma melhora de <b>${Math.abs(variacao).toFixed(2)}%</b> ` +
-            `na disponibilidade ao longo da semana.`;
+            `na disponibilidade ao longo do período analisado.`;
 
     }
-    else if (tendencia.status === "PIORANDO") {
+    else if (
+        tendencia.status ===
+        "PIORANDO"
+    ) {
 
         textoTendencia =
             `Foi identificada uma redução de ` +
             `<b>${Math.abs(variacao).toFixed(2)}%</b> na disponibilidade ` +
-            `ao longo da semana, indicando necessidade de acompanhamento ` +
-            `das ocorrências registradas.`;
+            `ao longo do período analisado.`;
 
     }
     else {
@@ -196,64 +1266,94 @@ function carregarResumo(dados) {
 
     }
 
-    const insights = obterInsights(dados);
 
-    const nomeModulo = possuiTextoValido(
-        insights.moduloMaisInstavel.nome
-    )
-        ? insights.moduloMaisInstavel.nome
-        : null;
+    const insights =
+        obterInsights(
+            dados
+        );
 
-    const nomeCenario = possuiTextoValido(
-        insights.falhaMaisRecorrente.cenario
-    )
-        ? insights.falhaMaisRecorrente.cenario
-        : null;
 
-let textoInsights = "";
+    const nomeModulo =
+        possuiTextoValido(
+            insights
+                .moduloMaisInstavel
+                .nome
+        )
+            ? insights
+                .moduloMaisInstavel
+                .nome
+            : null;
 
-if (nomeModulo && nomeCenario) {
 
-    textoInsights = `
+    const nomeCenario =
+        possuiTextoValido(
+            insights
+                .falhaMaisRecorrente
+                .cenario
+        )
+            ? insights
+                .falhaMaisRecorrente
+                .cenario
+            : null;
 
-    <br><br>
 
-    As ocorrências concentraram-se principalmente no módulo
-    <b>${nomeModulo}</b>,
-    tendo como cenário de maior recorrência
-    <b>${nomeCenario}</b>.
+    let textoInsights = "";
 
-    `;
 
-}
-else if (dados.resumo.falhas > 0) {
+    if (
+        nomeModulo &&
+        nomeCenario
+    ) {
 
-    textoInsights = `
+        textoInsights = `
 
-    <br><br>
+            <br><br>
 
-    Foram registradas <b>${dados.resumo.falhas} falha(s)</b> durante o período analisado.
-    Os detalhes das ocorrências podem ser consultados no <b>Ranking de Falhas</b> e no
-    <b>Histórico das Execuções</b> apresentados abaixo.
+            As ocorrências concentraram-se principalmente no módulo
+            <b>${nomeModulo}</b>,
+            tendo como cenário de maior recorrência
+            <b>${nomeCenario}</b>.
 
-    `;
+        `;
 
-}
-else{
+    }
+    else if (
+        Number(
+            dados.resumo.falhas
+        ) > 0
+    ) {
 
-    textoInsights = `
+        textoInsights = `
 
-    <br><br>
+            <br><br>
 
-    Não foram identificadas falhas durante o período analisado.
+            Foram registradas
+            <b>${dados.resumo.falhas} falha(s)</b>
+            durante o período analisado.
 
-    `;
+        `;
 
-}
+    }
+    else {
 
-    document.getElementById("textoResumo").innerHTML = `
+        textoInsights = `
 
-        Durante o período de <b>${dataInicial}</b> a <b>${dataFinal}</b>
+            <br><br>
+
+            Não foram identificadas falhas durante o período analisado.
+
+        `;
+
+    }
+
+
+    document.getElementById(
+        "textoResumo"
+    ).innerHTML = `
+
+        Durante o período de
+        <b>${dataInicial}</b> a
+        <b>${dataFinal}</b>
         foram executados
         <b>${dados.resumo.cenarios}</b>
         cenários automatizados de disponibilidade.
@@ -262,8 +1362,11 @@ else{
 
         A plataforma apresentou disponibilidade média de
         <b>${Number(dados.resumo.sucesso).toFixed(2)}%</b>,
-        com <b>${dados.resumo.falhas}</b> falha(s) distribuída(s) em
-        <b>${dados.resumo.diasComFalha}</b> dia(s).
+        com
+        <b>${dados.resumo.falhas}</b>
+        falha(s) distribuída(s) em
+        <b>${dados.resumo.diasComFalha}</b>
+        dia(s).
 
         <br><br>
 
@@ -282,262 +1385,522 @@ else{
 
 }
 
+
 /* =========================================================
    ÚLTIMA ATUALIZAÇÃO
 ========================================================= */
 
-function carregarUltimaAtualizacao(dados) {
+function carregarUltimaAtualizacao(
+    dados
+) {
 
-    if (dados.historico.length === 0) {
+    if (
+        dados.historico.length === 0
+    ) {
 
-        document.getElementById("ultimaAtualizacao").textContent = "-";
+        document.getElementById(
+            "ultimaAtualizacao"
+        ).textContent = "-";
+
         return;
 
     }
 
-    const ultimo = dados.historico[dados.historico.length - 1];
 
-    const dataFormatada = formatarData(ultimo.data);
+    const ultimo =
+        dados.historico[
+            dados.historico.length - 1
+        ];
 
-    const horaFormatada = possuiTextoValido(ultimo.hora)
-        ? String(ultimo.hora).substring(0, 5)
-        : "--:--";
 
-    document.getElementById("ultimaAtualizacao").textContent =
+    const dataFormatada =
+        formatarData(
+            ultimo.data
+        );
+
+
+    const horaFormatada =
+        possuiTextoValido(
+            ultimo.hora
+        )
+            ? String(
+                ultimo.hora
+            ).substring(
+                0,
+                5
+            )
+            : "--:--";
+
+
+    document.getElementById(
+        "ultimaAtualizacao"
+    ).textContent =
         `${dataFormatada} às ${horaFormatada}`;
 
 }
+
 
 /* =========================================================
    GRÁFICO
 ========================================================= */
 
-function carregarGrafico(dados) {
+function carregarGrafico(
+    dados
+) {
 
-    if (dados.historico.length === 0) {
-        return;
-    }
+    const canvas =
+        document.getElementById(
+            "graficoSucesso"
+        );
 
-    const labels = dados.historico.map(item => {
-
-        const partes = item.data.split("-");
-
-        return `${partes[2]}/${partes[1]}`;
-
-    });
-
-    const valores = dados.historico.map(
-        item => Number(item.successRate) || 0
-    );
-
-    const menorValor = Math.max(
-        0,
-        Math.floor(Math.min(...valores) - 2)
-    );
-
-    const canvas = document.getElementById("graficoSucesso");
 
     if (!canvas) {
         return;
     }
 
-    const ctx = canvas.getContext("2d");
 
-    if (window.graficoSucesso instanceof Chart) {
-        window.graficoSucesso.destroy();
+    if (
+        window.graficoSucesso
+        instanceof Chart
+    ) {
+
+        window.graficoSucesso
+            .destroy();
+
     }
 
-    window.graficoSucesso = new Chart(ctx, {
 
-        type: "line",
+    if (
+        dados.historico.length === 0
+    ) {
 
-        data: {
+        return;
 
-            labels,
+    }
 
-            datasets: [{
 
-                label: "Disponibilidade (%)",
+    const labels =
+        dados.historico.map(
+            item => {
 
-                data: valores,
+                const partes =
+                    item.data.split(
+                        "-"
+                    );
 
-                borderColor: "#1565c0",
 
-                backgroundColor: "rgba(21,101,192,0.08)",
+                return (
+                    `${partes[2]}/${partes[1]}`
+                );
 
-                borderWidth: 4,
+            }
+        );
 
-                pointRadius: 5,
 
-                pointHoverRadius: 8,
+    const valores =
+        dados.historico.map(
+            item =>
+                Number(
+                    item.successRate
+                ) || 0
+        );
 
-                pointHoverBorderWidth: 3,
 
-                pointHoverBackgroundColor: "#ffffff",
+    const menorValor =
+        Math.max(
 
-                pointHoverBorderColor: "#1565c0",
+            0,
 
-                pointBackgroundColor: "#1565c0",
+            Math.floor(
+                Math.min(
+                    ...valores
+                ) - 2
+            )
 
-                pointBorderColor: "#ffffff",
+        );
 
-                pointBorderWidth: 2,
 
-                fill: true,
+    const ctx =
+        canvas.getContext(
+            "2d"
+        );
 
-                tension: 0.45
 
-            }]
+    /* =====================================================
+       PLUGIN DE RÓTULOS DOS PONTOS
+    ====================================================== */
 
-        },
+    const pluginRotulos = {
 
-        options: {
+        id:
+            "rotulosDisponibilidade",
 
-            responsive: true,
+        afterDatasetsDraw(chart) {
 
-            maintainAspectRatio: false,
+            const {
+                ctx,
+                data
+            } = chart;
 
-            animation: {
 
-                duration: 1200,
-                easing: "easeOutQuart"
+            ctx.save();
 
-            },
 
-            layout: {
+            ctx.font =
+                "bold 12px Segoe UI";
 
-                padding: {
 
-                    top: 20,
-                    right: 15,
-                    bottom: 10,
-                    left: 10
+            ctx.fillStyle =
+                "#173b73";
+
+
+            ctx.textAlign =
+                "center";
+
+
+            ctx.textBaseline =
+                "bottom";
+
+
+            data.datasets.forEach(
+                (
+                    dataset,
+                    datasetIndex
+                ) => {
+
+                    const meta =
+                        chart.getDatasetMeta(
+                            datasetIndex
+                        );
+
+
+                    meta.data.forEach(
+                        (
+                            ponto,
+                            index
+                        ) => {
+
+                            const valor =
+                                Number(
+                                    dataset
+                                        .data[index]
+                                );
+
+
+                            if (
+                                Number.isNaN(
+                                    valor
+                                )
+                            ) {
+
+                                return;
+
+                            }
+
+
+                            const texto =
+                                valor.toFixed(2) +
+                                "%";
+
+
+                            ctx.fillText(
+                                texto,
+                                ponto.x,
+                                ponto.y - 12
+                            );
+
+                        }
+                    );
 
                 }
+            );
 
-            },
 
-            plugins: {
+            ctx.restore();
 
-                legend: {
+        }
 
-                    display: false
+    };
+
+
+    window.graficoSucesso =
+        new Chart(
+            ctx,
+            {
+
+                type: "line",
+
+                data: {
+
+                    labels,
+
+                    datasets: [{
+
+                        label:
+                            "Disponibilidade (%)",
+
+                        data:
+                            valores,
+
+                        borderColor:
+                            "#1565c0",
+
+                        backgroundColor:
+                            "rgba(21,101,192,0.08)",
+
+                        borderWidth:
+                            4,
+
+                        pointRadius:
+                            5,
+
+                        pointHoverRadius:
+                            8,
+
+                        pointHoverBorderWidth:
+                            3,
+
+                        pointHoverBackgroundColor:
+                            "#ffffff",
+
+                        pointHoverBorderColor:
+                            "#1565c0",
+
+                        pointBackgroundColor:
+                            "#1565c0",
+
+                        pointBorderColor:
+                            "#ffffff",
+
+                        pointBorderWidth:
+                            2,
+
+                        fill:
+                            true,
+
+                        tension:
+                            0.45
+
+                    }]
 
                 },
 
-                tooltip: {
+                options: {
 
-                    backgroundColor: "#173b73",
+                    responsive:
+                        true,
 
-                    padding: 12,
+                    maintainAspectRatio:
+                        false,
 
-                    titleFont: {
+                    animation: {
 
-                        size: 14
+                        duration:
+                            1200,
+
+                        easing:
+                            "easeOutQuart"
 
                     },
 
-                    bodyFont: {
+                    layout: {
 
-                        size: 13
+                        padding: {
+
+                            top:
+                                38,
+
+                            right:
+                                20,
+
+                            bottom:
+                                10,
+
+                            left:
+                                10
+
+                        }
 
                     },
 
-                    callbacks: {
+                    plugins: {
 
-                        title(context) {
+                        legend: {
 
-                            return `Data: ${context[0].label}`;
+                            display:
+                                false
 
                         },
 
-                        label(context) {
+                        tooltip: {
 
-                            const item =
-                                dados.historico[context.dataIndex];
+                            backgroundColor:
+                                "#173b73",
 
-                            return [
+                            padding:
+                                12,
 
-                                `Disponibilidade: ${Number(item.successRate).toFixed(2)}%`,
-                                `Falhas: ${item.failed}`,
-                                `Cenários: ${item.total}`
+                            titleFont: {
 
-                            ];
+                                size:
+                                    14
+
+                            },
+
+                            bodyFont: {
+
+                                size:
+                                    13
+
+                            },
+
+                            callbacks: {
+
+                                title(
+                                    context
+                                ) {
+
+                                    return (
+                                        `Data: ${context[0].label}`
+                                    );
+
+                                },
+
+                                label(
+                                    context
+                                ) {
+
+                                    const item =
+                                        dados.historico[
+                                            context.dataIndex
+                                        ];
+
+
+                                    return [
+
+                                        `Disponibilidade: ${Number(item.successRate).toFixed(2)}%`,
+
+                                        `Falhas: ${item.failed}`,
+
+                                        `Cenários: ${item.total}`
+
+                                    ];
+
+                                }
+
+                            }
+
+                        }
+
+                    },
+
+                    scales: {
+
+                        x: {
+
+                            grid: {
+
+                                display:
+                                    false
+
+                            }
+
+                        },
+
+                        y: {
+
+                            min:
+                                menorValor,
+
+                            max:
+                                100,
+
+                            offset:
+                                true,
+
+                            ticks: {
+
+                                stepSize:
+                                    1,
+
+                                callback:
+                                    value =>
+                                        value +
+                                        "%"
+
+                            }
 
                         }
 
                     }
 
-                }
-
-            },
-
-            scales: {
-
-                x: {
-
-                    grid: {
-
-                        display: false
-
-                    }
-
                 },
 
-                y: {
+                plugins: [
 
-                    min: menorValor,
+                    pluginRotulos
 
-                    max: 100,
-
-                    offset: true,
-
-                    ticks: {
-
-                        stepSize: 1,
-
-                        callback: value => value + "%"
-
-                    }
-
-                }
+                ]
 
             }
-
-        }
-
-    });
+        );
 
 }
 
+
 /* =========================================================
-   RANKING DE FALHAS
+   RANKING
 ========================================================= */
 
-function carregarRanking(dados) {
+function carregarRanking(
+    dados
+) {
 
-    const tbody = document.querySelector("#tabelaFalhas tbody");
+    const tbody =
+        document.querySelector(
+            "#tabelaFalhas tbody"
+        );
+
 
     if (!tbody) {
         return;
     }
 
+
     tbody.innerHTML = "";
 
-    const rankingFalhas = Array.isArray(dados.rankingFalhas)
-        ? dados.rankingFalhas.filter(item =>
-            item &&
-            possuiTextoValido(item.suite) &&
-            possuiTextoValido(item.cenario)
-        )
-        : [];
 
-    if (rankingFalhas.length === 0) {
+    const rankingFalhas =
+        Array.isArray(
+            dados.rankingFalhas
+        )
+            ? dados
+                .rankingFalhas
+                .filter(
+                    item =>
+                        item &&
+
+                        possuiTextoValido(
+                            item.suite
+                        ) &&
+
+                        possuiTextoValido(
+                            item.cenario
+                        )
+                )
+            : [];
+
+
+    if (
+        rankingFalhas.length === 0
+    ) {
 
         tbody.innerHTML = `
+
             <tr>
+
                 <td
-                    colspan="4"
+                    colspan="3"
                     style="
                         padding:20px;
                         text-align:center;
@@ -545,270 +1908,493 @@ function carregarRanking(dados) {
                         font-weight:bold;
                     "
                 >
-                    🎉 Nenhuma falha recorrente encontrada nesta semana.
+
+                    Nenhuma falha recorrente encontrada no período.
+
                 </td>
+
             </tr>
+
         `;
+
 
         return;
 
     }
 
-    rankingFalhas.forEach(item => {
 
-        const ultimoErro = possuiTextoValido(item.ultimoErro)
-            ? item.ultimoErro
-            : "Erro não informado";
+    rankingFalhas.forEach(
+        item => {
 
-        tbody.innerHTML += `
-            <tr>
+            const ultimoErro =
+                possuiTextoValido(
+                    item.ultimoErro
+                )
+                    ? item
+                        .ultimoErro
+                    : "Erro não informado";
 
-                <td style="padding:10px;text-align:center;">
-                    ${item.quantidade || 0}
-                </td>
 
-                <td style="padding:10px;">
-                    ${item.suite}
-                </td>
+            tbody.innerHTML += `
 
-                <td style="padding:10px;">
-                    ${item.cenario}
-                </td>
+                <tr>
 
-                <td style="padding:10px;color:#c62828;">
-                    ${ultimoErro}
-                </td>
+                    <td>
+                        ${item.quantidade || 0}
+                    </td>
 
-            </tr>
-        `;
+                    <td class="ranking-suite-cenario">
 
-    });
+                        <strong>
+                            ${item.suite}
+                        </strong>
+
+                        <span>
+                            ${item.cenario}
+                        </span>
+
+                    </td>
+
+                    <td class="ranking-erro">
+
+                        ${ultimoErro}
+
+                    </td>
+
+                </tr>
+
+            `;
+
+        }
+    );
 
 }
+
 
 /* =========================================================
    HISTÓRICO
 ========================================================= */
 
-function carregarHistorico(dados) {
+function carregarHistorico(
+    dados
+) {
 
-    const tbody = document.querySelector("#tabelaHistorico tbody");
+    const tbody =
+        document.querySelector(
+            "#tabelaHistorico tbody"
+        );
+
 
     if (!tbody) {
         return;
     }
 
+
     tbody.innerHTML = "";
 
-    if (dados.historico.length === 0) {
+
+    if (
+        dados.historico.length === 0
+    ) {
 
         tbody.innerHTML = `
+
             <tr>
+
                 <td colspan="6">
+
                     Nenhuma execução localizada no período.
+
                 </td>
-            <tr class="${item.failed > 0 ? 'linha-falha' : ''}">
+
+            </tr>
+
         `;
+
 
         return;
 
     }
 
+
     dados.historico
         .slice()
         .reverse()
-        .forEach((item,index) => {
+        .forEach(
+            item => {
 
-            const dataFormatada = formatarData(item.data);
+                const dataFormatada =
+                    formatarData(
+                        item.data
+                    );
 
-            const taxaSucesso = Number(item.successRate) || 0;
 
-            let status = "";
-            let classe = "";
+                const taxaSucesso =
+                    Number(
+                        item.successRate
+                    ) || 0;
 
-            if (taxaSucesso === 100) {
 
-                status = "SUCESSO";
-                classe = "badge-sucesso";
+                let status = "";
+
+                let classe = "";
+
+
+                if (
+                    taxaSucesso === 100
+                ) {
+
+                    status =
+                        "SUCESSO";
+
+                    classe =
+                        "badge-sucesso";
+
+                }
+                else if (
+                    taxaSucesso >= 95
+                ) {
+
+                    status =
+                        "ATENÇÃO";
+
+                    classe =
+                        "badge-atencao";
+
+                }
+                else {
+
+                    status =
+                        "CRÍTICO";
+
+                    classe =
+                        "badge-critico";
+
+                }
+
+
+                const hora =
+                    possuiTextoValido(
+                        item.hora
+                    )
+                        ? String(
+                            item.hora
+                        ).substring(
+                            0,
+                            5
+                        )
+                        : "--:--";
+
+
+                const classeLinha =
+                    Number(
+                        item.failed
+                    ) > 0
+                        ? "linha-falha"
+                        : "";
+
+
+                tbody.innerHTML += `
+
+                    <tr class="${classeLinha}">
+
+                        <td
+                            style="
+                                padding:10px;
+                                text-align:center;
+                            "
+                        >
+
+                            ${dataFormatada}
+
+                        </td>
+
+                        <td
+                            style="
+                                padding:10px;
+                                text-align:center;
+                            "
+                        >
+                            ${hora}
+                        </td>
+
+                        <td
+                            style="
+                                padding:10px;
+                                text-align:center;
+                            "
+                        >
+                            ${item.total}
+                        </td>
+
+                        <td
+                            style="
+                                padding:10px;
+                                text-align:center;
+                            "
+                        >
+                            ${item.failed}
+                        </td>
+
+                        <td
+                            style="
+                                padding:10px;
+                                text-align:center;
+                            "
+                        >
+                            ${taxaSucesso.toFixed(2)}%
+                        </td>
+
+                        <td
+                            style="
+                                padding:10px;
+                                text-align:center;
+                            "
+                        >
+
+                            <span
+                                class="
+                                    badge
+                                    ${classe}
+                                "
+                            >
+
+                                ${status}
+
+                            </span>
+
+                        </td>
+
+                    </tr>
+
+                `;
 
             }
-            else if (taxaSucesso >= 95) {
-
-                status = "ATENÇÃO";
-                classe = "badge-atencao";
-
-            }
-            else {
-
-                status = "CRÍTICO";
-                classe = "badge-critico";
-
-            }
-
-            const hora = possuiTextoValido(item.hora)
-                ? String(item.hora).substring(0, 5)
-                : "--:--";
-
-            tbody.innerHTML += `
-                <tr>
-
-                    <td style="padding:10px;text-align:center;">
-                        ${dataFormatada}
-                        ${index === 0
-                        ? '<span class="badge-recente"></span>'
-                        : ''}
-                    </td>
-
-                    <td style="padding:10px;text-align:center;">
-                        ${hora}
-                    </td>
-
-                    <td style="padding:10px;text-align:center;">
-                        ${item.total}
-                    </td>
-
-                    <td style="padding:10px;text-align:center;">
-                        ${item.failed}
-                    </td>
-
-                    <td style="padding:10px;text-align:center;">
-                        ${taxaSucesso.toFixed(2)}%
-                    </td>
-
-                    <td style="padding:10px;text-align:center;">
-
-                        <span class="badge ${classe}">
-                            ${status}
-                        </span>
-
-                    </td>
-
-                </tr>
-            `;
-
-        });
+        );
 
 }
 
+
 /* =========================================================
-   ANIMAÇÃO DOS CONTADORES
+   CONTADORES
 ========================================================= */
 
-function animarContador(id, valorFinal, sufixo = "") {
+function animarContador(
+    id,
+    valorFinal,
+    sufixo = ""
+) {
 
-    const elemento = document.getElementById(id);
+    const elemento =
+        document.getElementById(
+            id
+        );
+
 
     if (!elemento) {
         return;
     }
 
-    valorFinal = Number(valorFinal) || 0;
 
-    const duracao = 1200;
-    const fps = 60;
+    valorFinal =
+        Number(
+            valorFinal
+        ) || 0;
 
-    const totalFrames = duracao / (1000 / fps);
 
-    const incremento = valorFinal / totalFrames;
+    const duracao =
+        1200;
 
-    let valorAtual = 0;
 
-    const timer = setInterval(() => {
+    const fps =
+        60;
 
-        valorAtual += incremento;
 
-        if (valorAtual >= valorFinal) {
+    const totalFrames =
+        duracao /
+        (
+            1000 /
+            fps
+        );
 
-            valorAtual = valorFinal;
 
-            clearInterval(timer);
+    const incremento =
+        valorFinal /
+        totalFrames;
 
-        }
 
-        if (sufixo === "%") {
+    let valorAtual =
+        0;
 
-            elemento.textContent =
-                valorAtual.toFixed(2) + "%";
 
-        }
-        else {
+    const timer =
+        setInterval(
+            () => {
 
-            elemento.textContent =
-                Math.floor(valorAtual);
+                valorAtual +=
+                    incremento;
 
-        }
 
-    }, 1000 / fps);
+                if (
+                    valorAtual >=
+                    valorFinal
+                ) {
+
+                    valorAtual =
+                        valorFinal;
+
+                    clearInterval(
+                        timer
+                    );
+
+                }
+
+
+                if (
+                    sufixo === "%"
+                ) {
+
+                    elemento.textContent =
+                        valorAtual
+                            .toFixed(2)
+                        +
+                        "%";
+
+                }
+                else {
+
+                    elemento.textContent =
+                        Math.floor(
+                            valorAtual
+                        );
+
+                }
+
+            },
+
+            1000 / fps
+        );
 
 }
 
+
 /* =========================================================
-   INSIGHTS DA SEMANA
+   INSIGHTS
 ========================================================= */
 
-function carregarInsights(dados) {
+function carregarInsights(
+    dados
+) {
 
-    const insights = obterInsights(dados);
+    const insights =
+        obterInsights(
+            dados
+        );
+
 
     const falhaRecorrente =
-        insights.falhaMaisRecorrente;
+        insights
+            .falhaMaisRecorrente;
+
 
     const moduloInstavel =
-        insights.moduloMaisInstavel;
+        insights
+            .moduloMaisInstavel;
+
 
     const sequenciaSemFalhas =
-        insights.maiorSequenciaSemFalhas;
+        insights
+            .maiorSequenciaSemFalhas;
+
 
     const elementoFalha =
-        document.getElementById("falhaMaisRecorrente");
+        document.getElementById(
+            "falhaMaisRecorrente"
+        );
+
 
     const detalheFalha =
-        document.getElementById("falhaMaisRecorrenteDetalhe");
+        document.getElementById(
+            "falhaMaisRecorrenteDetalhe"
+        );
+
 
     const elementoModulo =
-        document.getElementById("moduloMaisInstavel");
+        document.getElementById(
+            "moduloMaisInstavel"
+        );
+
 
     const detalheModulo =
-        document.getElementById("moduloMaisInstavelDetalhe");
+        document.getElementById(
+            "moduloMaisInstavelDetalhe"
+        );
+
 
     const elementoSequencia =
-        document.getElementById("maiorSequenciaSemFalhas");
+        document.getElementById(
+            "maiorSequenciaSemFalhas"
+        );
+
 
     if (elementoFalha) {
 
         elementoFalha.textContent =
-            Number(falhaRecorrente.quantidade) > 0
+            Number(
+                falhaRecorrente
+                    .quantidade
+            ) > 0
+
                 ? `${falhaRecorrente.quantidade} ocorrência(s)`
+
                 : "Nenhuma ocorrência";
 
     }
 
+
     if (detalheFalha) {
 
         detalheFalha.textContent =
-            possuiTextoValido(falhaRecorrente.cenario)
-                ? falhaRecorrente.cenario
+            possuiTextoValido(
+                falhaRecorrente
+                    .cenario
+            )
+
+                ? falhaRecorrente
+                    .cenario
+
                 : "Nenhuma falha recorrente identificada";
 
     }
 
+
     if (elementoModulo) {
 
         elementoModulo.textContent =
-            possuiTextoValido(moduloInstavel.nome)
+            possuiTextoValido(
+                moduloInstavel.nome
+            )
+
                 ? moduloInstavel.nome
+
                 : "Nenhum módulo identificado";
 
     }
 
+
     if (detalheModulo) {
 
         detalheModulo.textContent =
-            Number(moduloInstavel.falhas) > 0
+            Number(
+                moduloInstavel.falhas
+            ) > 0
+
                 ? `${moduloInstavel.falhas} falha(s) registrada(s)`
+
                 : "Nenhuma falha agrupada por módulo";
 
     }
+
 
     if (elementoSequencia) {
 
@@ -816,5 +2402,45 @@ function carregarInsights(dados) {
             `${sequenciaSemFalhas} dia(s)`;
 
     }
+
+}
+
+/* =========================================================
+   NAVEGAÇÃO - DETALHAMENTO DE FALHAS
+========================================================= */
+
+const cardFalhas = document.getElementById("cardFalhas");
+
+if (cardFalhas) {
+
+    const abrirDetalhesFalhas = () => {
+
+        window.location.href =
+            "detalhes.html?tipo=falhas";
+
+    };
+
+    cardFalhas.addEventListener(
+        "click",
+        abrirDetalhesFalhas
+    );
+
+    cardFalhas.addEventListener(
+        "keydown",
+        (event) => {
+
+            if (
+                event.key === "Enter" ||
+                event.key === " "
+            ) {
+
+                event.preventDefault();
+
+                abrirDetalhesFalhas();
+
+            }
+
+        }
+    );
 
 }

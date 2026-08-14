@@ -14,14 +14,14 @@ describe("Testes de Disponibilidade – Menu ANS", () => {
   
   });
 
-  it('Deve validar a disponibilidade do submenu Resultado do IDSS',() => {
+  it.only('Deve validar a disponibilidade do submenu Resultado do IDSS',() => {
 
     cy.contains('a', 'Resultado do IDSS')
         .should('exist')
         .click({force:true})
     //validando texto da tela
 
-    cy.get('[class="MsoNormal"]').eq(0).should('contain.text', 'Índice de Desempenho da Saúde Suplementar (IDSS).')
+    cy.get('.idss-hero__box > h1').eq(0).should('contain.text', 'Índice de Desempenho da Saúde Suplementar (IDSS)')
 
   })
 

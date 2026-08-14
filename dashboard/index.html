@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -23,53 +24,155 @@
 
 <body>
 
-    <header>
+<header>
 
-        <h1>Relatório Semanal de Disponibilidade</h1>
+    <div class="logo-camed">
+        <img
+            src="img/logo_transparente_1.png"
+            alt="Camed Saúde"
+        >
+    </div>
 
-        <p>Site Camed &amp; Portal de Serviços</p>
+
+    <div class="header-conteudo">
+
+        <h1>
+            Relatório Semanal de Disponibilidade
+        </h1>
+
+        <p>
+            Site Camed &amp; Portal de Serviços
+        </p>
 
         <div class="header-info">
 
             <div class="info-box">
 
-                <span>PERÍODO ANALISADO</span>
+                <span>
+                    PERÍODO ANALISADO
+                </span>
 
-                <strong id="periodo">-</strong>
+                <strong id="periodo">
+                    -
+                </strong>
 
             </div>
 
             <div class="info-box">
 
-                <span>ÚLTIMA ATUALIZAÇÃO</span>
+                <span>
+                    ÚLTIMA ATUALIZAÇÃO
+                </span>
 
-                <strong id="ultimaAtualizacao">-</strong>
+                <strong id="ultimaAtualizacao">
+                    -
+                </strong>
 
             </div>
 
         </div>
 
-    </header>
+    </div>
 
-    <main>
+</header>
 
-        <!-- Resumo executivo -->
-        <section class="resumo">
 
-            <h2>📋 Resumo Executivo</h2>
+<main>
 
-            <p id="textoResumo">
-                Carregando informações do período...
-            </p>
+    <!-- FILTRO -->
 
-        </section>
+    <section class="filtro-periodo">
 
-        <!-- Indicadores principais -->
-        <section class="cards">
+        <div class="filtro-periodo-header">
 
-            <div class="card indicador">
+            <div class="icone-filtro">
+                📅
+            </div>
 
-                <h3>📊 Cenários</h3>
+            <div>
+
+                <h2>
+                    Consultar outro período
+                </h2>
+
+                <p>
+                    Selecione um intervalo para visualizar os resultados disponíveis no histórico de execuções.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="filtro-periodo-controles">
+
+            <div class="campo-data">
+
+                <label for="dataInicialFiltro">
+                    Data inicial
+                </label>
+
+                <input
+                    type="date"
+                    id="dataInicialFiltro"
+                >
+
+            </div>
+
+            <div class="campo-data">
+
+                <label for="dataFinalFiltro">
+                    Data final
+                </label>
+
+                <input
+                    type="date"
+                    id="dataFinalFiltro"
+                >
+
+            </div>
+
+            <button
+                type="button"
+                id="btnAplicarPeriodo"
+                class="btn-periodo btn-aplicar"
+            >
+                🔍 Aplicar período
+            </button>
+
+            <button
+                type="button"
+                id="btnPeriodoSemanal"
+                class="btn-periodo btn-secundario"
+            >
+                ↻ Restaurar semana
+            </button>
+
+        </div>
+
+        <p
+            id="mensagemFiltro"
+            class="mensagem-filtro"
+        ></p>
+
+    </section>
+
+
+    <!-- INDICADORES -->
+
+    <section class="cards">
+
+        <div class="card indicador">
+
+            <div class="icone-card icone-azul">
+                📋
+            </div>
+
+            <div>
+
+                <h3>
+                    Cenários executados
+                </h3>
 
                 <div
                     id="cenarios"
@@ -78,11 +181,26 @@
                     0
                 </div>
 
+                <small>
+                    Total no período
+                </small>
+
             </div>
 
-            <div class="card indicador">
+        </div>
 
-                <h3>✅ Aprovados</h3>
+
+        <div class="card indicador">
+
+            <div class="icone-card icone-verde">
+                ✓
+            </div>
+
+            <div>
+
+                <h3>
+                    Aprovados
+                </h3>
 
                 <div
                     id="aprovados"
@@ -91,24 +209,63 @@
                     0
                 </div>
 
-            </div>
-
-            <div class="card indicador">
-
-                <h3>❌ Falhas</h3>
-
-                <div
-                    id="falhas"
-                    class="valor vermelho"
-                >
-                    0
-                </div>
+                <small>
+                    Cenários aprovados
+                </small>
 
             </div>
 
-            <div class="card indicador">
+        </div>
 
-                <h3>📈 Disponibilidade</h3>
+
+<div
+    class="card indicador indicador-clicavel"
+    id="cardFalhas"
+    role="button"
+    tabindex="0"
+>
+
+    <div class="icone-card icone-vermelho">
+        ×
+    </div>
+
+    <div>
+
+        <h3>
+            Falhas
+        </h3>
+
+        <div
+            id="falhas"
+            class="valor vermelho"
+        >
+            0
+        </div>
+
+        <small>
+            Falhas no período
+        </small>
+
+        <div class="ver-detalhes">
+            Ver detalhes →
+        </div>
+
+    </div>
+
+</div>
+
+
+        <div class="card indicador">
+
+            <div class="icone-card icone-roxo">
+                ◇
+            </div>
+
+            <div>
+
+                <h3>
+                    Disponibilidade média
+                </h3>
 
                 <div
                     id="sucesso"
@@ -117,159 +274,276 @@
                     0%
                 </div>
 
-            </div>
-
-        </section>
-
-        <!-- Insights da semana -->
-        <section class="insights">
-
-            <div class="card insight-card">
-
-                <h3>🔥 Falha mais recorrente</h3>
-
-                <strong id="falhaMaisRecorrente">
-                    -
-                </strong>
-
-                <p id="falhaMaisRecorrenteDetalhe">
-                    Carregando informações...
-                </p>
+                <small>
+                    No período analisado
+                </small>
 
             </div>
 
-            <div class="card insight-card">
+        </div>
 
-                <h3>⚠️ Módulo mais instável</h3>
 
-                <strong id="moduloMaisInstavel">
-                    -
-                </strong>
+        <!-- NOVO CARD -->
 
-                <p id="moduloMaisInstavelDetalhe">
-                    Carregando informações...
-                </p>
+        <div class="card indicador">
+
+            <div class="icone-card icone-azul">
+                ▶
+            </div>
+
+            <div>
+
+                <h3>
+                    Total de execuções
+                </h3>
+
+                <div
+                    id="execucoes"
+                    class="valor azul"
+                >
+                    0
+                </div>
+
+                <small>
+                    Execuções no período
+                </small>
 
             </div>
 
-            <div class="card insight-card">
+        </div>
 
-                <h3>🏆 Maior sequência sem falhas</h3>
+    </section>
 
-                <strong id="maiorSequenciaSemFalhas">
-                    -
-                </strong>
 
-                <p>
-                    Execuções consecutivas com 100% de sucesso
-                </p>
+    <!-- SAÚDE DOS MÓDULOS -->
 
-            </div>
+    <section class="saude-modulos">
 
-        </section>
+        <div class="card">
 
-        <!-- Gráfico e ranking de falhas -->
-        <section class="painel-superior">
+            <div class="saude-modulos-header">
 
-            <div class="card">
+                <div>
 
-                <h2>📈 Evolução da Disponibilidade</h2>
+                    <h2>
+                        🩺 Saúde dos Módulos
+                    </h2>
 
-                <canvas id="graficoSucesso"></canvas>
+                    <p>
+                        Disponibilidade média dos módulos no período analisado
+                    </p>
 
-            </div>
-
-            <div class="card">
-
-                <h2>🔥 Falhas Recorrentes</h2>
-
-                <table id="tabelaFalhas">
-
-                    <thead>
-
-                        <tr>
-
-                            <th>Ocorrências</th>
-
-                            <th>Suite</th>
-
-                            <th>Cenário</th>
-
-                            <th>Último erro</th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        <tr>
-
-                            <td colspan="4">
-                                Carregando falhas recorrentes...
-                            </td>
-
-                        </tr>
-
-                    </tbody>
-
-                </table>
+                </div>
 
             </div>
 
-        </section>
 
-        <!-- Histórico das execuções -->
-        <section class="historico">
+            <div
+                id="listaSaudeModulos"
+                class="lista-saude-modulos"
+            >
 
-            <div class="card">
-
-                <h2>📅 Histórico das Execuções</h2>
-
-                <table id="tabelaHistorico">
-
-                    <thead>
-
-                        <tr>
-
-                            <th>Data</th>
-
-                            <th>Hora</th>
-
-                            <th>Cenários</th>
-
-                            <th>Falhas</th>
-
-                            <th>Disponibilidade</th>
-
-                            <th>Status</th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        <tr>
-
-                            <td colspan="6">
-                                Carregando histórico das execuções...
-                            </td>
-
-                        </tr>
-
-                    </tbody>
-
-                </table>
+                <div class="modulo-saude carregando">
+                    Carregando saúde dos módulos...
+                </div>
 
             </div>
 
-        </section>
+        </div>
 
-    </main>
+    </section>
 
-    <script src="js/dashboard.js"></script>
+
+ <!-- ÁREA EXECUTIVA -->
+
+<section class="dashboard-principal">
+
+    <!-- RESUMO EXECUTIVO + GRÁFICO -->
+
+    <div class="linha-executiva">
+
+        <!-- RESUMO -->
+
+        <div class="resumo">
+
+            <h2>
+                📋 Resumo Executivo
+            </h2>
+
+            <p id="textoResumo">
+                Carregando informações...
+            </p>
+
+        </div>
+
+
+        <!-- GRÁFICO -->
+
+        <div class="card grafico-card">
+
+            <h2>
+                📈 Disponibilidade (%)
+            </h2>
+
+            <canvas id="graficoSucesso"></canvas>
+
+        </div>
+
+    </div>
+
+
+    <!-- COLUNA DIREITA -->
+
+    <div class="coluna-direita">
+
+        <div class="card ranking-card">
+
+            <h2>
+                ⚠️ Ranking de Falhas
+            </h2>
+
+            <table id="tabelaFalhas">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Qtd</th>
+                        <th>Suite / Cenário</th>
+                        <th>Último erro</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody></tbody>
+
+            </table>
+
+        </div>
+
+
+        <div class="card insights-wrapper">
+
+            <h2>
+                💡 Insights do Período
+            </h2>
+
+            <div class="insights">
+
+                <div class="insight-card insight-falha">
+
+                    <h3>
+                        🔥 Falha mais recorrente
+                    </h3>
+
+                    <strong id="falhaMaisRecorrente">
+                        -
+                    </strong>
+
+                    <p id="falhaMaisRecorrenteDetalhe">
+                        -
+                    </p>
+
+                </div>
+
+
+                <div class="insight-card insight-modulo">
+
+                    <h3>
+                        ⚠️ Módulo mais instável
+                    </h3>
+
+                    <strong id="moduloMaisInstavel">
+                        -
+                    </strong>
+
+                    <p id="moduloMaisInstavelDetalhe">
+                        -
+                    </p>
+
+                </div>
+
+
+                <div class="insight-card insight-estabilidade">
+
+                    <h3>
+                        🛡️ Maior sequência sem falhas
+                    </h3>
+
+                    <strong id="maiorSequenciaSemFalhas">
+                        -
+                    </strong>
+
+                    <p>
+                        dias consecutivos
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+    <!-- HISTÓRICO -->
+
+    <section class="historico">
+
+        <div class="card">
+
+            <h2>
+                📅 Histórico das Execuções
+            </h2>
+
+            <table id="tabelaHistorico">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Data</th>
+                        <th>Hora</th>
+                        <th>Cenários</th>
+                        <th>Falhas</th>
+                        <th>Disponibilidade</th>
+                        <th>Status</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody></tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<footer>
+
+    <span>
+        🛡️ Relatório gerado automaticamente pelo sistema de automação de testes.
+    </span>
+
+    <span>
+        Site Camed &amp; Portal de Serviços
+    </span>
+
+</footer>
+
+
+<script src="js/dashboard.js"></script>
 
 </body>
 
 </html>
+```
