@@ -14,7 +14,7 @@ describe("Testes de Disponibilidade – Menu ANS", () => {
   
   });
 
-  it.only('Deve validar a disponibilidade do submenu Resultado do IDSS',() => {
+  it('Deve validar a disponibilidade do submenu Resultado do IDSS',() => {
 
     cy.contains('a', 'Resultado do IDSS')
         .should('exist')

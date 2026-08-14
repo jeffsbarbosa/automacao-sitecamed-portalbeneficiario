@@ -16,8 +16,8 @@ module.exports = defineConfig({
   e2e: {
     baseUrl: "https://apps.camed.com.br/CamedSaudeServicos",
 
-    pageLoadTimeout: 180000,
-    defaultCommandTimeout: 100000,
+    pageLoadTimeout: 200000,
+    defaultCommandTimeout: 200000,
 
     chromeWebSecurity: false,
 

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Detalhamento de Falhas</title>
+
+    <link
+        rel="stylesheet"
+        href="css/style.css"
+    >
+
+    
+    <link
+        rel="stylesheet"
+        href="css/detalhes.css"
+    >   
+
+</head>
+
+<body class="pagina-detalhes">
+
+
+<!-- =========================================================
+     HEADER
+========================================================= -->
+
+<header class="header-detalhes">
+
+    <div class="logo-camed">
+
+        <img
+            src="img/logo_transparente_1.png"
+            alt="Camed Saúde"
+        >
+
+    </div>
+
+
+    <div class="header-conteudo">
+
+        <h1>
+            Detalhamento de Falhas
+        </h1>
+
+        <p>
+            Site Camed &amp; Portal de Serviços
+        </p>
+
+
+        <div class="header-info">
+
+            <div class="info-box">
+
+                <span>
+                    PERÍODO ANALISADO
+                </span>
+
+                <strong id="periodoDetalhes">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="info-box">
+
+                <span>
+                    TOTAL DE FALHAS
+                </span>
+
+                <strong id="totalFalhasHeader">
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<main class="detalhes-container">
+
+
+    <!-- =====================================================
+         NAVEGAÇÃO
+    ====================================================== -->
+
+    <section class="detalhes-navegacao">
+
+        <a
+            href="index.html"
+            class="btn-voltar-dashboard"
+        >
+            ← Voltar ao Dashboard
+        </a>
+
+    </section>
+
+
+    <!-- =====================================================
+         TÍTULO
+    ====================================================== -->
+
+    <section class="detalhes-introducao">
+
+        <div>
+
+            <span class="detalhes-label">
+                ANÁLISE DO PERÍODO
+            </span>
+
+            <h2>
+                Falhas identificadas nas execuções
+            </h2>
+
+            <p>
+                Visão detalhada das ocorrências encontradas durante
+                as execuções automatizadas do período selecionado.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         INDICADORES
+    ====================================================== -->
+
+    <section class="cards cards-detalhes">
+
+
+        <!-- TOTAL DE FALHAS -->
+
+        <div class="card indicador">
+
+            <div class="icone-card icone-vermelho">
+                ×
+            </div>
+
+            <div>
+
+                <h3>
+                    Falhas totais
+                </h3>
+
+                <div
+                    id="totalFalhas"
+                    class="valor vermelho"
+                >
+                    0
+                </div>
+
+                <small>
+                    Ocorrências no período
+                </small>
+
+            </div>
+
+        </div>
+
+
+        <!-- DIAS COM FALHA -->
+
+        <div class="card indicador">
+
+            <div class="icone-card icone-roxo">
+                📅
+            </div>
+
+            <div>
+
+                <h3>
+                    Dias com falha
+                </h3>
+
+                <div
+                    id="diasComFalha"
+                    class="valor roxo"
+                >
+                    0
+                </div>
+
+                <small>
+                    Dias afetados
+                </small>
+
+            </div>
+
+        </div>
+
+
+        <!-- ERROS MAPEADOS -->
+
+        <div class="card indicador">
+
+            <div class="icone-card icone-azul">
+                ⚠
+            </div>
+
+            <div>
+
+                <h3>
+                    Erros mapeados
+                </h3>
+
+                <div
+                    id="errosMapeados"
+                    class="valor azul"
+                >
+                    0
+                </div>
+
+                <small>
+                    Cenários identificados
+                </small>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         DISTRIBUIÇÃO DAS FALHAS
+    ====================================================== -->
+
+    <section class="card distribuicao-falhas">
+
+        <div class="detalhes-section-header">
+
+            <div>
+
+                <h2>
+                    📊 Distribuição das Falhas
+                </h2>
+
+                <p>
+                    Quantidade de falhas identificadas em cada execução.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="listaDistribuicaoFalhas"
+            class="lista-distribuicao-falhas"
+        >
+
+            <div class="detalhes-carregando">
+                Carregando distribuição das falhas...
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         ERROS IDENTIFICADOS
+    ====================================================== -->
+
+    <section class="card erros-identificados">
+
+        <div class="detalhes-section-header">
+
+            <div>
+
+                <h2>
+                    ❌ Erros Identificados
+                </h2>
+
+                <p>
+                    Cenários com informações detalhadas disponíveis
+                    no relatório.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- BUSCA -->
+
+        <div class="filtro-erros">
+
+            <div class="campo-busca-erros">
+
+                <span>
+                    🔎
+                </span>
+
+                <input
+                    type="text"
+                    id="buscarErro"
+                    placeholder="Buscar por cenário, suite ou mensagem de erro..."
+                    autocomplete="off"
+                >
+
+            </div>
+
+        </div>
+
+
+        <!-- LISTA -->
+
+        <div
+            id="listaErros"
+            class="lista-erros"
+        >
+
+            <div class="detalhes-carregando">
+                Carregando erros identificados...
+            </div>
+
+        </div>
+
+    </section>
+
+
+</main>
+
+
+<footer>
+
+    <span>
+        🛡️ Relatório gerado automaticamente pelo sistema de automação de testes.
+    </span>
+
+    <span>
+        Site Camed &amp; Portal de Serviços
+    </span>
+
+</footer>
+
+
+<script src="js/detalhes.js"></script>
+
+</body>
+
+</html>
