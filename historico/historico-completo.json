@@ -439,5 +439,69 @@
         "perfil":  100,
         "failed":  0,
         "successRate":  100
+    },
+    {
+        "total":  77,
+        "data":  "2026-08-11",
+        "hora":  "08:55:48",
+        "passed":  77,
+        "portal":  100,
+        "topFalhas":  [
+
+                      ],
+        "homepage":  100,
+        "status":  "SUCESSO: Nenhuma falha detectada",
+        "perfil":  100,
+        "failed":  0,
+        "successRate":  100
+    },
+    {
+        "total":  77,
+        "data":  "2026-08-12",
+        "hora":  "08:53:11",
+        "passed":  76,
+        "portal":  97.3,
+        "topFalhas":  {
+                          "suite":  "Testes de Disponibilidade – Menu ANS",
+                          "cenario":  "Deve validar a disponibilidade do submenu Resultado do IDSS",
+                          "erro":  "AssertionError: Timed out retrying after 100000ms: Expected to find element: `[class=\"MsoNormal\"]`, but never found it."
+                      },
+        "homepage":  100,
+        "status":  "ATENÇÃO: Falhas pontuais identificadas",
+        "perfil":  100,
+        "failed":  1,
+        "successRate":  98.7
+    },
+    {
+        "total":  77,
+        "data":  "2026-08-13",
+        "hora":  "09:12:12",
+        "passed":  76,
+        "portal":  97.3,
+        "topFalhas":  {
+                          "suite":  "Testes de Disponibilidade – Menu ANS",
+                          "cenario":  "Deve validar a disponibilidade do submenu Resultado do IDSS",
+                          "erro":  "AssertionError: Timed out retrying after 100000ms: Expected to find element: `[class=\"MsoNormal\"]`, but never found it."
+                      },
+        "homepage":  100,
+        "status":  "ATENÇÃO: Falhas pontuais identificadas",
+        "perfil":  100,
+        "failed":  1,
+        "successRate":  98.7
+    },
+    {
+        "total":  76,
+        "data":  "2026-08-14",
+        "hora":  "11:10:32",
+        "passed":  76,
+        "portal":  100,
+        "topFalhas":  [
+
+                      ],
+        "homepage":  100,
+        "status":  "SUCESSO: Nenhuma falha detectada",
+        "perfil":  100,
+        "failed":  0,
+        "successRate":  100
     }
 ]

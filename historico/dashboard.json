@@ -13,23 +13,35 @@
                               "quantidade":  1
                           }
                       ],
-    "saudeModulos":  [
-                         {
-                             "disponibilidade":  100,
-                             "status":  "ESTAVEL",
-                             "nome":  "HomePage"
-                         },
-                         {
-                             "disponibilidade":  100,
-                             "status":  "ESTAVEL",
-                             "nome":  "Portal Camed"
-                         },
-                         {
-                             "disponibilidade":  94.87,
-                             "status":  "CRITICO",
-                             "nome":  "Perfil Associado"
-                         }
-                     ],
+    "insights":  {
+                     "execucaoPerfeita":  true,
+                     "maiorSequenciaSemFalhas":  2,
+                     "falhaMaisRecorrente":  {
+                                                 "suite":  "Testes de Disponibilidade – Submenu Extratos e Faturas",
+                                                 "cenario":  "Validando disponibilidade do item Demonstrativo de Mensalidades, Taxas e Copartipação Financeira",
+                                                 "quantidade":  1
+                                             },
+                     "moduloMaisInstavel":  {
+                                                "falhas":  2,
+                                                "nome":  "Testes de Disponibilidade – Submenu Extratos e Faturas"
+                                            }
+                 },
+    "falhasDetalhadas":  [
+                             {
+                                 "data":  "2026-08-05",
+                                 "hora":  "07:08:45",
+                                 "suite":  "Testes de Disponibilidade – Submenu Extratos e Faturas",
+                                 "cenario":  "Validando disponibilidade do item Declaração por Tempo de Plano",
+                                 "erro":  "AssertionError: Timed out retrying after 100000ms: Expected to find element: `.swal2-popup`, but never found it."
+                             },
+                             {
+                                 "data":  "2026-08-05",
+                                 "hora":  "07:08:45",
+                                 "suite":  "Testes de Disponibilidade – Submenu Extratos e Faturas",
+                                 "cenario":  "Validando disponibilidade do item Demonstrativo de Mensalidades, Taxas e Copartipação Financeira",
+                                 "erro":  "AssertionError: Timed out retrying after 100000ms: Expected to find element: `[role=\"dialog\"]`, but never found it."
+                             }
+                         ],
     "historico":  [
                       {
                           "data":  "2026-08-03",
@@ -108,17 +120,21 @@
                    "cenarios":  537,
                    "dias":  7
                },
-    "insights":  {
-                     "execucaoPerfeita":  true,
-                     "maiorSequenciaSemFalhas":  2,
-                     "falhaMaisRecorrente":  {
-                                                 "suite":  "Testes de Disponibilidade – Submenu Extratos e Faturas",
-                                                 "cenario":  "Validando disponibilidade do item Demonstrativo de Mensalidades, Taxas e Copartipação Financeira",
-                                                 "quantidade":  1
-                                             },
-                     "moduloMaisInstavel":  {
-                                                "falhas":  2,
-                                                "nome":  "Testes de Disponibilidade – Submenu Extratos e Faturas"
-                                            }
-                 }
+    "saudeModulos":  [
+                         {
+                             "disponibilidade":  100,
+                             "status":  "ESTAVEL",
+                             "nome":  "HomePage"
+                         },
+                         {
+                             "disponibilidade":  100,
+                             "status":  "ESTAVEL",
+                             "nome":  "Portal Camed"
+                         },
+                         {
+                             "disponibilidade":  94.87,
+                             "status":  "CRITICO",
+                             "nome":  "Perfil Associado"
+                         }
+                     ]
 }

@@ -8,11 +8,11 @@
 ========================================================= */
 
 .detalhes-container{
+    width:100%;
     max-width:1500px;
     margin:auto;
     padding:40px;
 }
-
 
 /* =========================================================
    NAVEGAÇÃO
@@ -95,8 +95,20 @@
 ========================================================= */
 
 .cards-detalhes{
-    grid-template-columns:repeat(3,1fr);
+    display:grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap:25px;
+
+    width:100%;
+
     margin-bottom:35px;
+}
+
+.cards-detalhes .indicador{
+    width:100%;
 }
 
 
@@ -489,7 +501,7 @@
 
     font-size:12px;
 
-    line-height:1.6;
+    line-height:1.7;
 }
 
 

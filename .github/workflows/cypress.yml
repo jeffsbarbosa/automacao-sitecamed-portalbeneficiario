@@ -271,19 +271,34 @@ jobs:
               -Encoding UTF8 |
               ConvertFrom-Json
 
-            if ($json.results) {
+          Write-Host ""
+          Write-Host "===== ANALISANDO MOCHAWESOME ====="
+          Write-Host "Arquivo: $($file.Name)"
 
-              foreach ($result in $json.results) {
+          if ($json.stats) {
 
-                if ($result.suites) {
+              Write-Host "Tests    : $($json.stats.tests)"
+              Write-Host "Passes   : $($json.stats.passes)"
+              Write-Host "Failures : $($json.stats.failures)"
+              Write-Host "Pending  : $($json.stats.pending)"
 
-                  foreach ($suite in $result.suites) {
-                    Processar-Suite-Falhas $suite
-                  }
-                }
-              }
-            }
           }
+
+          Write-Host "=================================="    
+
+                      if ($json.results) {
+
+                        foreach ($result in $json.results) {
+
+                          if ($result.suites) {
+
+                            foreach ($suite in $result.suites) {
+                              Processar-Suite-Falhas $suite
+                            }
+                          }
+                        }
+                      }
+                    }
 
           if ($failList.Count -eq 0) {
 
@@ -323,6 +338,28 @@ jobs:
           Write-Host ""
           Write-Host "===== OBJETOS CAPTURADOS ====="
           Write-Host "Quantidade: $($falhasJson.Count)"
+
+          Write-Host ""
+          Write-Host "===== DIAGNOSTICO DE FALHAS ====="
+          Write-Host "FAILED informado pelo Mochawesome: $env:FAILED"
+          Write-Host "Falhas detalhadas capturadas: $($falhasJson.Count)"
+
+          if ([int]$env:FAILED -ne $falhasJson.Count) {
+
+              Write-Warning "DIVERGENCIA DETECTADA"
+
+              Write-Host "O Mochawesome informou $env:FAILED falhas,"
+              Write-Host "mas apenas $($falhasJson.Count) testes com falha foram encontrados."
+          }
+
+          else {
+
+              Write-Host "OK - Quantidade de falhas confere."
+
+          }
+
+          Write-Host "================================="
+          Write-Host ""
 
           foreach ($falha in $falhasJson) {
 

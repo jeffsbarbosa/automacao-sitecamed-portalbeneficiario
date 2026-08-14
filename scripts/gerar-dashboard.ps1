@@ -148,6 +148,7 @@ $arquivos = $arquivosTodos |
 
 $historico = @()
 $todasFalhas = @()
+$falhasDetalhadas = @()
 
 # ============================================================
 # VARIÁVEIS DO RESUMO
@@ -238,11 +239,19 @@ foreach ($itemArquivo in $arquivos) {
 
             if ($suiteValida -and $cenarioValido) {
 
-                $todasFalhas += [PSCustomObject]@{
-                    suite = [string]$falhaItem.suite
-                    cenario = [string]$falhaItem.cenario
-                    erro = [string]$falhaItem.erro
-                }
+            $todasFalhas += [PSCustomObject]@{
+                suite = [string]$falhaItem.suite
+                cenario = [string]$falhaItem.cenario
+                erro = [string]$falhaItem.erro
+            }
+
+            $falhasDetalhadas += [PSCustomObject]@{
+                data = [string]$json.data
+                hora = [string]$json.hora
+                suite = [string]$falhaItem.suite
+                cenario = [string]$falhaItem.cenario
+                erro = [string]$falhaItem.erro
+            }
 
             }
 
@@ -566,6 +575,8 @@ $dashboard = @{
     historico = $historico
 
     rankingFalhas = $rankingFalhas
+
+    falhasDetalhadas = $falhasDetalhadas
 
     saudeModulos = $saudeModulos
 
