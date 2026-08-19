@@ -21,8 +21,42 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
-      - name: Criar pasta de relatórios
-        run: mkdir -p cypress/reports
+      - name: Preparar pasta de relatórios
+        shell: powershell
+        run: |
+
+          Write-Host ""
+          Write-Host "==============================="
+          Write-Host "PREPARANDO NOVA EXECUCAO"
+          Write-Host "==============================="
+
+          $pastas = @(
+            "cypress/reports",
+            "cypress/screenshots",
+            "cypress/videos"
+          )
+
+          foreach ($pasta in $pastas) {
+
+            if (Test-Path $pasta) {
+
+              Remove-Item `
+                $pasta `
+                -Recurse `
+                -Force
+
+            }
+
+          }
+
+          New-Item `
+            -ItemType Directory `
+            -Force `
+            -Path "cypress/reports" |
+            Out-Null
+
+          Write-Host ""
+          Write-Host "Execucao anterior limpa."
 
       - name: Testar acesso ao site
         shell: powershell
@@ -65,10 +99,11 @@ jobs:
           Write-Host ""
 
           $arquivos = Get-ChildItem `
-            -Path "." `
-            -Recurse `
+            -Path "cypress/reports" `
             -Filter "mochawesome*.json" `
-            -ErrorAction SilentlyContinue
+            -File `
+            -ErrorAction SilentlyContinue | 
+            Sort-Object Name
 
           Write-Host "Quantidade encontrada: $($arquivos.Count)"
           Write-Host ""
@@ -156,6 +191,36 @@ jobs:
         run: |
           [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
           $OutputEncoding = [System.Text.Encoding]::UTF8
+
+      - name: Limpar arquivos temporários anteriores
+        shell: powershell
+        run: |
+
+          Write-Host ""
+          Write-Host "==============================="
+          Write-Host "LIMPANDO ARQUIVOS TEMPORARIOS"
+          Write-Host "==============================="
+
+          $pastas = @(
+            "all-reports",
+            "temp"
+          )
+
+          foreach ($pasta in $pastas) {
+
+            if (Test-Path $pasta) {
+
+              Remove-Item `
+                $pasta `
+                -Recurse `
+                -Force
+
+            }
+
+          }
+
+          Write-Host ""
+          Write-Host "Arquivos temporarios removidos."
 
       - name: Baixar relatórios do Cypress
         uses: actions/download-artifact@v4
