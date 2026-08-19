@@ -3,125 +3,470 @@ name: Relatório Semanal - Cypress
 on:
   schedule:
     - cron: "0 12 * * 0"  # Domingo 12:00 UTC
+
   workflow_dispatch:
 
+
 jobs:
+
   relatorio-semanal:
+
     runs-on: self-hosted
 
+
     steps:
+
+      # ============================================================
+      # CHECKOUT
+      # ============================================================
+
       - name: Checkout do repositório
         uses: actions/checkout@v4
+
+
+      # ============================================================
+      # VERIFICAR HISTÓRICO
+      # ============================================================
 
       - name: Verificar histórico
         shell: powershell
         run: |
-          Write-Host "Arquivos encontrados em historico:"
-          Get-ChildItem historico -Filter *.json
+
+          Write-Host ""
+          Write-Host "==============================="
+          Write-Host "ARQUIVOS DE HISTORICO"
+          Write-Host "==============================="
+          Write-Host ""
+
+          Get-ChildItem "historico" -Filter *.json |
+            Sort-Object Name |
+            ForEach-Object {
+
+              Write-Host $_.Name
+
+            }
+
+
+      # ============================================================
+      # LER HISTÓRICOS DA SEMANA
+      # ============================================================
 
       - name: Ler históricos
         shell: powershell
         run: |
-          $limite = (Get-Date).AddDays(-7)
 
-          $arquivos = Get-ChildItem historico -Filter *.json |
-              Where-Object { $_.LastWriteTime -ge $limite } |
-              Sort-Object Name
+          # ========================================================
+          # DEFINE PERÍODO
+          # Segunda-feira até domingo
+          # ========================================================
+
+          $hoje = (Get-Date).Date
+
+          $fimPeriodo =
+            $hoje.AddDays(
+              -([int]$hoje.DayOfWeek)
+            )
+
+          # Se executar no domingo,
+          # utiliza a semana anterior completa
+          if (
+            $hoje.DayOfWeek -eq
+            [System.DayOfWeek]::Sunday
+          ) {
+
+            $fimPeriodo =
+              $fimPeriodo.AddDays(-7)
+
+          }
+
+          $inicioPeriodo =
+            $fimPeriodo.AddDays(-6)
+
+
+          Write-Host ""
+          Write-Host "==============================="
+          Write-Host "PERIODO ANALISADO"
+          Write-Host "==============================="
+
+          Write-Host ""
+          Write-Host "$($inicioPeriodo.ToString('dd/MM/yyyy')) a $($fimPeriodo.ToString('dd/MM/yyyy'))"
+          Write-Host ""
+
+
+          # ========================================================
+          # LOCALIZA APENAS JSONs DIÁRIOS
+          # ========================================================
+
+          $arquivos = Get-ChildItem "historico" -Filter *.json |
+            Where-Object {
+
+              # Aceita somente arquivos AAAA-MM-DD.json
+              $_.BaseName -match '^\d{4}-\d{2}-\d{2}$'
+
+            } |
+            Where-Object {
+
+              try {
+
+                $dataArquivo =
+                  [datetime]::ParseExact(
+                    $_.BaseName,
+                    "yyyy-MM-dd",
+                    [System.Globalization.CultureInfo]::InvariantCulture
+                  )
+
+                return (
+                  $dataArquivo.Date -ge $inicioPeriodo -and
+                  $dataArquivo.Date -le $fimPeriodo
+                )
+
+              }
+              catch {
+
+                return $false
+
+              }
+
+            } |
+            Sort-Object Name
+
+
+          Write-Host "Arquivos da semana encontrados: $($arquivos.Count)"
+          Write-Host ""
+
+
+          if ($arquivos.Count -eq 0) {
+
+            Write-Warning "Nenhum historico diario encontrado no periodo."
+
+          }
+
+
+          # ========================================================
+          # EXIBE EXECUÇÕES
+          # ========================================================
 
           foreach ($arquivo in $arquivos) {
 
-            $json = Get-Content $arquivo.FullName -Raw | ConvertFrom-Json
+            try {
 
-            Write-Host "========================"
-            Write-Host "Data........: $($json.data)"
-            Write-Host "Total.......: $($json.total)"
-            Write-Host "Sucesso.....: $($json.successRate)%"
-            Write-Host "Falhas......: $($json.failed)"
-            Write-Host "Homepage....: $($json.homepage)%"
-            Write-Host "Portal......: $($json.portal)%"
-            Write-Host "Perfil......: $($json.perfil)%"
+              $json =
+                Get-Content $arquivo.FullName `
+                  -Raw `
+                  -Encoding UTF8 |
+                ConvertFrom-Json
+
+
+              Write-Host "========================"
+
+              Write-Host "Arquivo......: $($arquivo.Name)"
+              Write-Host "Data.........: $($json.data)"
+              Write-Host "Total........: $($json.total)"
+              Write-Host "Sucesso......: $($json.successRate)%"
+              Write-Host "Falhas.......: $($json.failed)"
+              Write-Host "Homepage.....: $($json.homepage)%"
+              Write-Host "Portal.......: $($json.portal)%"
+              Write-Host "Perfil.......: $($json.perfil)%"
+
+            }
+            catch {
+
+              Write-Warning "Nao foi possivel processar $($arquivo.Name): $($_.Exception.Message)"
+
+            }
+
           }
+
+
+      # ============================================================
+      # CALCULAR RESUMO SEMANAL
+      # ============================================================
 
       - name: Calcular resumo semanal
         shell: powershell
         run: |
 
-          $limite = (Get-Date).AddDays(-7)
+          # ========================================================
+          # DEFINE PERÍODO
+          # ========================================================
 
-          $arquivos = Get-ChildItem historico -Filter *.json |
-              Where-Object { $_.LastWriteTime -ge $limite } |
-              Sort-Object Name
+          $hoje = (Get-Date).Date
+
+          $fimPeriodo =
+            $hoje.AddDays(
+              -([int]$hoje.DayOfWeek)
+            )
+
+          if (
+            $hoje.DayOfWeek -eq
+            [System.DayOfWeek]::Sunday
+          ) {
+
+            $fimPeriodo =
+              $fimPeriodo.AddDays(-7)
+
+          }
+
+          $inicioPeriodo =
+            $fimPeriodo.AddDays(-6)
+
+
+          # ========================================================
+          # LOCALIZA APENAS JSONs DIÁRIOS
+          # ========================================================
+
+          $arquivos = Get-ChildItem "historico" -Filter *.json |
+            Where-Object {
+
+              $_.BaseName -match '^\d{4}-\d{2}-\d{2}$'
+
+            } |
+            Where-Object {
+
+              try {
+
+                $dataArquivo =
+                  [datetime]::ParseExact(
+                    $_.BaseName,
+                    "yyyy-MM-dd",
+                    [System.Globalization.CultureInfo]::InvariantCulture
+                  )
+
+                return (
+                  $dataArquivo.Date -ge $inicioPeriodo -and
+                  $dataArquivo.Date -le $fimPeriodo
+                )
+
+              }
+              catch {
+
+                return $false
+
+              }
+
+            } |
+            Sort-Object Name
+
+
+          # ========================================================
+          # VARIÁVEIS
+          # ========================================================
 
           $dias = 0
+
           $total = 0
           $passed = 0
           $failed = 0
+
           $somaSucesso = 0
 
           $melhor = $null
           $pior = $null
 
+
+          # ========================================================
+          # PROCESSA EXECUÇÕES
+          # ========================================================
+
           foreach ($arquivo in $arquivos) {
 
-            $json = Get-Content $arquivo.FullName -Raw | ConvertFrom-Json
+            try {
 
-            $dias++
+              $json =
+                Get-Content $arquivo.FullName `
+                  -Raw `
+                  -Encoding UTF8 |
+                ConvertFrom-Json
 
-            $total += [int]$json.total
-            $passed += [int]$json.passed
-            $failed += [int]$json.failed
 
-            $somaSucesso += [double]$json.successRate
+              # Proteção contra JSON inválido
+              if (
+                $null -eq $json.total -or
+                $null -eq $json.passed -or
+                $null -eq $json.failed -or
+                $null -eq $json.successRate
+              ) {
 
-            if ($null -eq $melhor -or $json.successRate -gt $melhor.successRate) {
-              $melhor = $json
+                Write-Warning "Arquivo ignorado por estrutura invalida: $($arquivo.Name)"
+
+                continue
+
+              }
+
+
+              $dias++
+
+
+              $total +=
+                [int]$json.total
+
+              $passed +=
+                [int]$json.passed
+
+              $failed +=
+                [int]$json.failed
+
+              $somaSucesso +=
+                [double]$json.successRate
+
+
+              # ====================================================
+              # MELHOR DIA
+              # ====================================================
+
+              if (
+                $null -eq $melhor -or
+                [double]$json.successRate -gt
+                [double]$melhor.successRate
+              ) {
+
+                $melhor = $json
+
+              }
+
+
+              # ====================================================
+              # PIOR DIA
+              # ====================================================
+
+              if (
+                $null -eq $pior -or
+                [double]$json.successRate -lt
+                [double]$pior.successRate
+              ) {
+
+                $pior = $json
+
+              }
+
+            }
+            catch {
+
+              Write-Warning "Erro ao processar $($arquivo.Name): $($_.Exception.Message)"
+
             }
 
-            if ($null -eq $pior -or $json.successRate -lt $pior.successRate) {
-              $pior = $json
-            }
           }
 
-          $media = [math]::Round($somaSucesso / $dias,2)
+
+          # ========================================================
+          # MÉDIA
+          # ========================================================
+
+          if ($dias -gt 0) {
+
+            $media =
+              [math]::Round(
+                $somaSucesso / $dias,
+                2
+              )
+
+          }
+          else {
+
+            $media = 0
+
+          }
+
+
+          # ========================================================
+          # RESUMO
+          # ========================================================
 
           Write-Host ""
           Write-Host "==============================="
           Write-Host "RESUMO SEMANAL"
           Write-Host "==============================="
+
+          Write-Host ""
+          Write-Host "Periodo         : $($inicioPeriodo.ToString('dd/MM/yyyy')) a $($fimPeriodo.ToString('dd/MM/yyyy'))"
           Write-Host "Dias analisados : $dias"
-          Write-Host "Total cenários  : $total"
+          Write-Host "Total cenarios  : $total"
           Write-Host "Aprovados       : $passed"
           Write-Host "Falhas          : $failed"
-          Write-Host "Média sucesso   : $media%"
+          Write-Host "Media sucesso   : $media%"
+
+
+          if ($null -ne $melhor) {
+
+            Write-Host ""
+            Write-Host "Melhor dia:"
+            Write-Host "$($melhor.data) - $($melhor.successRate)%"
+
+          }
+
+
+          if ($null -ne $pior) {
+
+            Write-Host ""
+            Write-Host "Pior dia:"
+            Write-Host "$($pior.data) - $($pior.successRate)%"
+
+          }
+
+
           Write-Host ""
-          Write-Host "Melhor dia:"
-          Write-Host "$($melhor.data) - $($melhor.successRate)%"
+          Write-Host "==============================="
           Write-Host ""
-          Write-Host "Pior dia:"
-          Write-Host "$($pior.data) - $($pior.successRate)%"
-            
+
+
+      # ============================================================
+      # NODE
+      # ============================================================
+
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
+
+      # ============================================================
+      # DEPENDÊNCIAS
+      # ============================================================
+
       - name: Instalar dependências
         run: npm ci
 
+
+      # ============================================================
+      # CRIA PASTA DE RELATÓRIOS
+      # ============================================================
+
       - name: Criar pasta de relatórios
-        run: mkdir -p cypress/reports
+        shell: powershell
+        run: |
+
+          New-Item `
+            -ItemType Directory `
+            -Force `
+            -Path "cypress/reports" |
+            Out-Null
+
+
+      # ============================================================
+      # GERAR DASHBOARD
+      # ============================================================
 
       - name: Gerar dashboard
         shell: powershell
-        run: ./scripts/gerar-dashboard.ps1  
+        run: |
+
+          ./scripts/gerar-dashboard.ps1
+
+
+      # ============================================================
+      # UPLOAD
+      # ============================================================
 
       - name: Upload relatório semanal
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: relatorio-semanal
+
           path: |
+            historico/dashboard.json
+            historico/historico-completo.json
             cypress/reports
             cypress/screenshots
             cypress/videos
-        

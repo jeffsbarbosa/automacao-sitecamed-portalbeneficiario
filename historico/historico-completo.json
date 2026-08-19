@@ -490,10 +490,10 @@
         "successRate":  98.7
     },
     {
-        "total":  76,
+        "total":  77,
         "data":  "2026-08-14",
-        "hora":  "11:10:32",
-        "passed":  76,
+        "hora":  "14:24:28",
+        "passed":  77,
         "portal":  100,
         "topFalhas":  [
 

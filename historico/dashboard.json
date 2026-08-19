@@ -1,124 +1,100 @@
 {
-    "rankingFalhas":  [
-                          {
-                              "ultimoErro":  "AssertionError: Timed out retrying after 100000ms: Expected to find element: `[role=\"dialog\"]`, but never found it.",
-                              "suite":  "Testes de Disponibilidade – Submenu Extratos e Faturas",
-                              "cenario":  "Validando disponibilidade do item Demonstrativo de Mensalidades, Taxas e Copartipação Financeira",
-                              "quantidade":  1
-                          },
-                          {
-                              "ultimoErro":  "AssertionError: Timed out retrying after 100000ms: Expected to find element: `.swal2-popup`, but never found it.",
-                              "suite":  "Testes de Disponibilidade – Submenu Extratos e Faturas",
-                              "cenario":  "Validando disponibilidade do item Declaração por Tempo de Plano",
-                              "quantidade":  1
-                          }
-                      ],
+    "rankingFalhas":  {
+                          "ultimoErro":  "AssertionError: Timed out retrying after 100000ms: Expected to find element: `[class=\"MsoNormal\"]`, but never found it.",
+                          "suite":  "Testes de Disponibilidade – Menu ANS",
+                          "cenario":  "Deve validar a disponibilidade do submenu Resultado do IDSS",
+                          "quantidade":  2
+                      },
     "insights":  {
                      "execucaoPerfeita":  true,
                      "maiorSequenciaSemFalhas":  2,
                      "falhaMaisRecorrente":  {
-                                                 "suite":  "Testes de Disponibilidade – Submenu Extratos e Faturas",
-                                                 "cenario":  "Validando disponibilidade do item Demonstrativo de Mensalidades, Taxas e Copartipação Financeira",
-                                                 "quantidade":  1
+                                                 "suite":  null,
+                                                 "cenario":  null,
+                                                 "quantidade":  null
                                              },
                      "moduloMaisInstavel":  {
                                                 "falhas":  2,
-                                                "nome":  "Testes de Disponibilidade – Submenu Extratos e Faturas"
+                                                "nome":  "Testes de Disponibilidade – Menu ANS"
                                             }
                  },
     "falhasDetalhadas":  [
                              {
-                                 "data":  "2026-08-05",
-                                 "hora":  "07:08:45",
-                                 "suite":  "Testes de Disponibilidade – Submenu Extratos e Faturas",
-                                 "cenario":  "Validando disponibilidade do item Declaração por Tempo de Plano",
-                                 "erro":  "AssertionError: Timed out retrying after 100000ms: Expected to find element: `.swal2-popup`, but never found it."
+                                 "data":  "2026-08-12",
+                                 "hora":  "08:53:11",
+                                 "suite":  "Testes de Disponibilidade – Menu ANS",
+                                 "cenario":  "Deve validar a disponibilidade do submenu Resultado do IDSS",
+                                 "erro":  "AssertionError: Timed out retrying after 100000ms: Expected to find element: `[class=\"MsoNormal\"]`, but never found it."
                              },
                              {
-                                 "data":  "2026-08-05",
-                                 "hora":  "07:08:45",
-                                 "suite":  "Testes de Disponibilidade – Submenu Extratos e Faturas",
-                                 "cenario":  "Validando disponibilidade do item Demonstrativo de Mensalidades, Taxas e Copartipação Financeira",
-                                 "erro":  "AssertionError: Timed out retrying after 100000ms: Expected to find element: `[role=\"dialog\"]`, but never found it."
+                                 "data":  "2026-08-13",
+                                 "hora":  "09:12:12",
+                                 "suite":  "Testes de Disponibilidade – Menu ANS",
+                                 "cenario":  "Deve validar a disponibilidade do submenu Resultado do IDSS",
+                                 "erro":  "AssertionError: Timed out retrying after 100000ms: Expected to find element: `[class=\"MsoNormal\"]`, but never found it."
                              }
                          ],
     "historico":  [
                       {
-                          "data":  "2026-08-03",
-                          "passed":  75,
-                          "hora":  "08:48:02",
-                          "total":  75,
-                          "failed":  0,
-                          "successRate":  100
-                      },
-                      {
-                          "data":  "2026-08-04",
+                          "data":  "2026-08-10",
                           "passed":  77,
-                          "hora":  "17:21:13",
+                          "hora":  "16:55:45",
                           "total":  77,
                           "failed":  0,
                           "successRate":  100
                       },
                       {
-                          "data":  "2026-08-05",
-                          "passed":  75,
-                          "hora":  "07:08:45",
-                          "total":  77,
-                          "failed":  2,
-                          "successRate":  97.4
-                      },
-                      {
-                          "data":  "2026-08-06",
+                          "data":  "2026-08-11",
                           "passed":  77,
-                          "hora":  "08:49:22",
+                          "hora":  "08:55:48",
                           "total":  77,
                           "failed":  0,
                           "successRate":  100
                       },
                       {
-                          "data":  "2026-08-07",
-                          "passed":  73,
-                          "hora":  "05:51:02",
+                          "data":  "2026-08-12",
+                          "passed":  76,
+                          "hora":  "08:53:11",
                           "total":  77,
-                          "failed":  4,
-                          "successRate":  94.81
+                          "failed":  1,
+                          "successRate":  98.7
                       },
                       {
-                          "data":  "2026-08-08",
-                          "passed":  72,
-                          "hora":  "22:34:20",
+                          "data":  "2026-08-13",
+                          "passed":  76,
+                          "hora":  "09:12:12",
                           "total":  77,
-                          "failed":  5,
-                          "successRate":  93.51
+                          "failed":  1,
+                          "successRate":  98.7
                       },
                       {
-                          "data":  "2026-08-09",
-                          "passed":  74,
-                          "hora":  "05:26:29",
+                          "data":  "2026-08-14",
+                          "passed":  77,
+                          "hora":  "14:24:28",
                           "total":  77,
-                          "failed":  3,
-                          "successRate":  96.1
+                          "failed":  0,
+                          "successRate":  100
                       }
                   ],
     "periodo":  {
-                    "inicio":  "2026-08-03",
-                    "fim":  "2026-08-09"
+                    "inicio":  "2026-08-10",
+                    "fim":  "2026-08-16"
                 },
     "resumo":  {
-                   "aprovados":  523,
-                   "sucesso":  97.4,
+                   "aprovados":  383,
+                   "sucesso":  99.48,
                    "tendencia":  {
-                                     "variacao":  -3.9,
-                                     "status":  "PIORANDO"
+                                     "variacao":  0,
+                                     "status":  "ESTAVEL"
                                  },
-                   "falhas":  14,
-                   "diasComFalha":  4,
+                   "falhas":  2,
+                   "diasComFalha":  2,
                    "piorDia":  {
-                                   "sucesso":  93.51,
-                                   "data":  "2026-08-08"
+                                   "sucesso":  98.7,
+                                   "data":  "2026-08-12"
                                },
-                   "cenarios":  537,
-                   "dias":  7
+                   "cenarios":  385,
+                   "dias":  5
                },
     "saudeModulos":  [
                          {
@@ -127,13 +103,13 @@
                              "nome":  "HomePage"
                          },
                          {
-                             "disponibilidade":  100,
-                             "status":  "ESTAVEL",
+                             "disponibilidade":  98.92,
+                             "status":  "ATENCAO",
                              "nome":  "Portal Camed"
                          },
                          {
-                             "disponibilidade":  94.87,
-                             "status":  "CRITICO",
+                             "disponibilidade":  100,
+                             "status":  "ESTAVEL",
                              "nome":  "Perfil Associado"
                          }
                      ]
