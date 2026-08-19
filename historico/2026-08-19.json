@@ -4,14 +4,18 @@
     "data":  "2026-08-19",
     "portal":  100,
     "runner":  "self-hosted",
-    "failed":  0,
-    "status":  "SUCESSO: Nenhuma falha detectada",
-    "successRate":  100,
-    "hora":  "14:26:11",
-    "homepage":  100,
-    "passed":  77,
+    "failed":  1,
+    "status":  "ATENÇÃO: Falhas pontuais identificadas",
+    "successRate":  98.7,
+    "hora":  "14:57:11",
+    "homepage":  0,
+    "passed":  76,
     "topFalhas":  [
-
+                      {
+                          "suite":  "Homepage – Portal Camed Saúde",
+                          "cenario":  "Deve carregar a homepage CAMED SAÚDE com sucesso",
+                          "erro":  "TypeError: cy.acessarHomeCamedSaude1 is not a function"
+                      }
                   ],
     "workflow":  "Testes Automatizados"
 }
