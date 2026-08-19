@@ -53,6 +53,56 @@ jobs:
                     
           wait-on: ""
 
+      - name: Diagnosticar arquivos Mochawesome
+        if: always()
+        shell: powershell
+        run: |
+
+          Write-Host ""
+          Write-Host "========================================="
+          Write-Host "PROCURANDO ARQUIVOS MOCHAWESOME"
+          Write-Host "========================================="
+          Write-Host ""
+
+          $arquivos = Get-ChildItem `
+            -Path "." `
+            -Recurse `
+            -Filter "mochawesome*.json" `
+            -ErrorAction SilentlyContinue
+
+          Write-Host "Quantidade encontrada: $($arquivos.Count)"
+          Write-Host ""
+
+          foreach ($arquivo in $arquivos) {
+
+              Write-Host "-----------------------------------------"
+              Write-Host "Arquivo: $($arquivo.FullName)"
+
+              try {
+
+                  $json = Get-Content `
+                    $arquivo.FullName `
+                    -Raw `
+                    -Encoding UTF8 |
+                    ConvertFrom-Json
+
+                  Write-Host "Tests....: $($json.stats.tests)"
+                  Write-Host "Passes...: $($json.stats.passes)"
+                  Write-Host "Failures.: $($json.stats.failures)"
+                  Write-Host ""
+
+              }
+              catch {
+
+                  Write-Warning "Nao foi possivel ler o arquivo."
+
+              }
+
+          }
+
+          Write-Host ""
+          Write-Host "========================================="
+
       - name: Gerar relatório HTML
         if: always()
         shell: powershell

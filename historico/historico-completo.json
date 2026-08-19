@@ -503,5 +503,50 @@
         "perfil":  100,
         "failed":  0,
         "successRate":  100
+    },
+    {
+        "total":  77,
+        "data":  "2026-08-17",
+        "hora":  "15:19:10",
+        "passed":  77,
+        "portal":  100,
+        "topFalhas":  [
+
+                      ],
+        "homepage":  100,
+        "status":  "SUCESSO: Nenhuma falha detectada",
+        "perfil":  100,
+        "failed":  0,
+        "successRate":  100
+    },
+    {
+        "total":  77,
+        "data":  "2026-08-18",
+        "hora":  "09:00:13",
+        "passed":  77,
+        "portal":  100,
+        "topFalhas":  [
+
+                      ],
+        "homepage":  100,
+        "status":  "SUCESSO: Nenhuma falha detectada",
+        "perfil":  100,
+        "failed":  0,
+        "successRate":  100
+    },
+    {
+        "total":  77,
+        "data":  "2026-08-19",
+        "hora":  "05:38:30",
+        "passed":  74,
+        "portal":  100,
+        "topFalhas":  {
+
+                      },
+        "homepage":  100,
+        "status":  "CRÍTICO: Falhas relevantes detectadas",
+        "perfil":  92.31,
+        "failed":  3,
+        "successRate":  96.1
     }
 ]
