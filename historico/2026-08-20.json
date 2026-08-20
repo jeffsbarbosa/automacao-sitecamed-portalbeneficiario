@@ -1,0 +1,17 @@
+﻿{
+    "perfil":  0,
+    "total":  0,
+    "data":  "2026-08-20",
+    "portal":  0,
+    "runner":  "self-hosted",
+    "failed":  0,
+    "status":  "SUCESSO: Nenhuma falha detectada",
+    "successRate":  0,
+    "hora":  "08:44:54",
+    "homepage":  0,
+    "passed":  0,
+    "topFalhas":  [
+
+                  ],
+    "workflow":  "Testes Automatizados"
+}
