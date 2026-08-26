@@ -1,0 +1,19 @@
+﻿{
+    "perfil":  92.31,
+    "total":  77,
+    "data":  "2026-08-26",
+    "portal":  100,
+    "runner":  "self-hosted",
+    "failed":  3,
+    "status":  "CRÍTICO: Falhas relevantes detectadas",
+    "successRate":  96.1,
+    "hora":  "05:47:35",
+    "homepage":  100,
+    "passed":  74,
+    "topFalhas":  [
+                      null,
+                      null,
+                      null
+                  ],
+    "workflow":  "Testes Automatizados"
+}
