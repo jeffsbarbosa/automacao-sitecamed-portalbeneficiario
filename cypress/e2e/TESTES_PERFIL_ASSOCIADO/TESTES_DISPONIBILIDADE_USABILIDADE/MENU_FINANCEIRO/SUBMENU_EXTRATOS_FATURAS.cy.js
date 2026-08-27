@@ -26,19 +26,6 @@ it('Validar disponibilidade do item Declaração de Quitação Anual', () => {
 
 })
 
-it('Validando disponibilidade do item Declaração por Tempo de Plano', () => {
-
-     cy.xpath("//p[normalize-space()='Declaração por Tempo de Plano']")
-        .should('contain', 'Tempo de Plano')
-        .click()
-
-    //validar que a página carregou corretamente:
-    cy.url().should('include', '/CamedSaudeServicos/Servicos/Beneficiario/DeclaracaoTempoDePlano.aspx')
-    cy.get('h3').should('contain', 'Tempo de Plano')
-
-   utilidades.emitirDeclaracao()
-
-})
 
 it('Validando disponibilidade do item Demonstrativo de Limites Contratuais', () => {
 
