@@ -17,11 +17,10 @@
         href="css/style.css"
     >
 
-    
     <link
         rel="stylesheet"
         href="css/detalhes.css"
-    >   
+    >
 
 </head>
 
@@ -201,7 +200,7 @@
         </div>
 
 
-        <!-- ERROS MAPEADOS -->
+        <!-- ERROS DETALHADOS -->
 
         <div class="card indicador">
 
@@ -212,20 +211,54 @@
             <div>
 
                 <h3>
-                Erros detalhados
-            </h3>
+                    Erros detalhados
+                </h3>
 
-            <div
-                id="errosMapeados"
-                class="valor azul"
-            >
-                0
+                <div
+                    id="errosMapeados"
+                    class="valor azul"
+                >
+                    0
+                </div>
+
+                <small>
+                    Registros disponíveis
+                </small>
+
             </div>
 
-            <small>
-                Registros disponíveis
-            </small>
+        </div>
 
+    </section>
+
+
+    <!-- =====================================================
+         TOP FALHAS RECORRENTES
+    ====================================================== -->
+
+    <section class="card top-falhas">
+
+        <div class="detalhes-section-header">
+
+            <div>
+
+                <h2>
+                    🏆 Top Falhas Recorrentes
+                </h2>
+
+                <p>
+                    Cenários com maior número de ocorrências no período.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div id="topFalhas">
+
+            <div class="detalhes-carregando">
+                Carregando ranking...
             </div>
 
         </div>
@@ -271,6 +304,40 @@
 
 
     <!-- =====================================================
+         LINHA DO TEMPO DAS FALHAS
+    ====================================================== -->
+
+    <section class="card timeline-falhas">
+
+        <div class="detalhes-section-header">
+
+            <div>
+
+                <h2>
+                    🕒 Linha do Tempo das Falhas
+                </h2>
+
+                <p>
+                    Histórico cronológico das ocorrências registradas.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div id="timelineFalhas">
+
+            <div class="detalhes-carregando">
+                Carregando linha do tempo...
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
          ERROS IDENTIFICADOS
     ====================================================== -->
 
@@ -294,9 +361,13 @@
         </div>
 
 
-        <!-- BUSCA -->
+        <!-- =================================================
+             BUSCA E FILTROS
+        ================================================== -->
 
         <div class="filtro-erros">
+
+            <!-- BUSCA -->
 
             <div class="campo-busca-erros">
 
@@ -313,10 +384,61 @@
 
             </div>
 
+
+            <!-- FILTROS -->
+
+            <div class="filtros-secundarios">
+
+                <div class="campo-filtro">
+
+                    <label for="filtroData">
+                        Data
+                    </label>
+
+                    <select id="filtroData">
+
+                        <option value="">
+                            Todas as datas
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="campo-filtro">
+
+                    <label for="filtroSuite">
+                        Suite
+                    </label>
+
+                    <select id="filtroSuite">
+
+                        <option value="">
+                            Todas as suites
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    id="btnLimparFiltros"
+                    class="btn-limpar-filtros"
+                >
+                    Limpar filtros
+                </button>
+
+            </div>
+
         </div>
 
 
-        <!-- LISTA -->
+        <!-- =================================================
+             LISTA DE ERROS
+        ================================================== -->
 
         <div
             id="listaErros"

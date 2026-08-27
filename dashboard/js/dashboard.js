@@ -303,6 +303,77 @@ function configurarFiltroPeriodo() {
 
     }
 
+    /* =========================================================
+   RESTAURA PERÍODO SALVO NA SESSÃO
+========================================================= */
+
+const periodoInicioSalvo =
+    sessionStorage.getItem(
+        "dashboardPeriodoInicio"
+    );
+
+const periodoFimSalvo =
+    sessionStorage.getItem(
+        "dashboardPeriodoFim"
+    );
+
+
+if (
+    periodoInicioSalvo &&
+    periodoFimSalvo
+) {
+
+    dataInicial.value =
+        periodoInicioSalvo;
+
+    dataFinal.value =
+        periodoFimSalvo;
+
+
+    const execucoesFiltradas =
+        historicoCompleto.filter(
+            item =>
+                item.data >= periodoInicioSalvo &&
+                item.data <= periodoFimSalvo
+        );
+
+
+    if (execucoesFiltradas.length > 0) {
+
+        const dadosPeriodo =
+            montarDashboardPorPeriodo(
+                execucoesFiltradas,
+                periodoInicioSalvo,
+                periodoFimSalvo
+            );
+
+
+        renderizarDashboard(
+            dadosPeriodo
+        );
+
+
+        mostrarMensagemFiltro(
+            `Período restaurado: ${formatarData(periodoInicioSalvo)} a ${formatarData(periodoFimSalvo)}.`,
+            "sucesso"
+        );
+
+    }
+
+    else {
+
+    sessionStorage.removeItem(
+        "dashboardPeriodoInicio"
+    );
+
+    sessionStorage.removeItem(
+        "dashboardPeriodoFim"
+    );
+
+}
+
+}
+
 
     btnAplicar.addEventListener(
         "click",
@@ -358,6 +429,20 @@ function aplicarFiltroPeriodo() {
 
     }
 
+    /* =========================================================
+   SALVA PERÍODO SELECIONADO NA SESSÃO
+========================================================= */
+
+sessionStorage.setItem(
+    "dashboardPeriodoInicio",
+    inicio
+);
+
+sessionStorage.setItem(
+    "dashboardPeriodoFim",
+    fim
+);
+
 
     const execucoesFiltradas =
         historicoCompleto.filter(
@@ -409,6 +494,18 @@ function restaurarPeriodoSemanal() {
     if (!dashboardSemanal) {
         return;
     }
+
+    /* =========================================================
+   REMOVE PERÍODO SALVO
+========================================================= */
+
+sessionStorage.removeItem(
+    "dashboardPeriodoInicio"
+);
+
+sessionStorage.removeItem(
+    "dashboardPeriodoFim"
+);
 
 
     const dataInicial =
@@ -2409,21 +2506,87 @@ function carregarInsights(
    NAVEGAÇÃO - DETALHAMENTO DE FALHAS
 ========================================================= */
 
-const cardFalhas = document.getElementById("cardFalhas");
+const cardFalhas =
+    document.getElementById("cardFalhas");
 
 if (cardFalhas) {
 
     const abrirDetalhesFalhas = () => {
 
+        const dataInicial =
+            document.getElementById(
+                "dataInicialFiltro"
+            );
+
+        const dataFinal =
+            document.getElementById(
+                "dataFinalFiltro"
+            );
+
+
+        let inicio =
+            dataInicial?.value || "";
+
+        let fim =
+            dataFinal?.value || "";
+
+
+        /*
+         * Caso os campos do filtro não estejam disponíveis,
+         * utiliza o período atualmente carregado no dashboard.
+         */
+
+        if (!inicio || !fim) {
+
+            inicio =
+                dashboardSemanal?.periodo?.inicio || "";
+
+            fim =
+                dashboardSemanal?.periodo?.fim || "";
+
+        }
+
+
+        const parametros =
+            new URLSearchParams();
+
+        parametros.set(
+            "tipo",
+            "falhas"
+        );
+
+
+        if (inicio) {
+
+            parametros.set(
+                "inicio",
+                inicio
+            );
+
+        }
+
+
+        if (fim) {
+
+            parametros.set(
+                "fim",
+                fim
+            );
+
+        }
+
+
         window.location.href =
-            "detalhes.html?tipo=falhas";
+            `detalhes.html?${parametros.toString()}`;
 
     };
+
 
     cardFalhas.addEventListener(
         "click",
         abrirDetalhesFalhas
     );
+
 
     cardFalhas.addEventListener(
         "keydown",
@@ -2437,6 +2600,49 @@ if (cardFalhas) {
                 event.preventDefault();
 
                 abrirDetalhesFalhas();
+
+            }
+
+        }
+    );
+
+}
+
+/* =========================================================
+   NAVEGAÇÃO - DETALHAMENTO DAS EXECUÇÕES
+========================================================= */
+
+const cardExecucoes =
+    document.getElementById("cardExecucoes");
+
+if (cardExecucoes) {
+
+    const abrirDetalhesExecucoes = () => {
+
+        window.location.href =
+            "execucoes.html";
+
+    };
+
+
+    cardExecucoes.addEventListener(
+        "click",
+        abrirDetalhesExecucoes
+    );
+
+
+    cardExecucoes.addEventListener(
+        "keydown",
+        (event) => {
+
+            if (
+                event.key === "Enter" ||
+                event.key === " "
+            ) {
+
+                event.preventDefault();
+
+                abrirDetalhesExecucoes();
 
             }
 

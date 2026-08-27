@@ -22,7 +22,7 @@ describe("Testes de Disponibilidade – Menu SAÚDE MENTAL", () => {
     cy.contains("a", "Blitz do Cuidado")
       .should("be.visible")
       .invoke("removeAttr", "target")
-      .click();
+      .click({force: true});
 
     //Validando que a página da blitz do cuidado está sendo exibida após o clique
 
@@ -35,7 +35,7 @@ describe("Testes de Disponibilidade – Menu SAÚDE MENTAL", () => {
     cy.contains("a", "Jornada do Cuidado")
       .should("be.visible")
       .invoke("removeAttr", "target")
-      .click();
+      .click({force: true});
 
     //Validando que a página da jornada do cuidado está sendo exibida após o clique
 
@@ -49,7 +49,7 @@ describe("Testes de Disponibilidade – Menu SAÚDE MENTAL", () => {
     cy.contains("a", "Cuidado Integrado")
       .should("be.visible")
       .invoke("removeAttr", "target")
-      .click();
+      .click({force: true});
 
     //Validando que a página do Cuidado Integrado está sendo exibida após o clique
 

@@ -595,3 +595,513 @@
     }
 
 }
+
+/* =========================================================
+   DATA / HORA DA OCORRÊNCIA
+========================================================= */
+
+.erro-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 25px;
+}
+
+.erro-card-titulo {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    flex: 1;
+}
+
+.erro-data {
+    min-width: 130px;
+    padding: 10px 14px;
+
+    background: #f4f7fb;
+
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+
+    text-align: center;
+}
+
+.erro-data span {
+    display: block;
+
+    margin-bottom: 5px;
+
+    color: #64748b;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+
+.erro-data strong {
+    display: block;
+
+    color: #173b73;
+
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.erro-data small {
+    display: block;
+
+    margin-top: 3px;
+
+    color: #64748b;
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   RODAPÉ DO CARD DE ERRO
+========================================================= */
+
+.erro-card-footer {
+    margin-top: 18px;
+    padding-top: 12px;
+
+    border-top: 1px solid #edf1f7;
+
+    color: #64748b;
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   RESPONSIVIDADE
+========================================================= */
+
+@media (max-width: 700px) {
+
+    .erro-card-header {
+        flex-direction: column;
+    }
+
+    .erro-data {
+        width: 100%;
+        min-width: 0;
+
+        text-align: left;
+    }
+
+}
+
+/* =========================================================
+   FILTROS SECUNDÁRIOS
+========================================================= */
+
+.filtros-secundarios{
+    display:grid;
+
+    grid-template-columns:
+        minmax(180px, .7fr)
+        minmax(280px, 1.5fr)
+        auto;
+
+    gap:15px;
+
+    align-items:end;
+
+    margin-top:15px;
+}
+
+.campo-filtro{
+    display:flex;
+
+    flex-direction:column;
+
+    gap:7px;
+}
+
+.campo-filtro label{
+    color:#64748b;
+
+    font-size:12px;
+
+    font-weight:700;
+}
+
+.campo-filtro select{
+    width:100%;
+
+    padding:11px 13px;
+
+    border:
+        1px solid #d7e0ea;
+
+    border-radius:9px;
+
+    background:#fff;
+
+    color:#334155;
+
+    font-family:inherit;
+
+    font-size:13px;
+
+    outline:none;
+
+    cursor:pointer;
+}
+
+.campo-filtro select:focus{
+    border-color:#648bb3;
+
+    box-shadow:
+        0 0 0 3px
+        rgba(100,139,179,.12);
+}
+
+.btn-limpar-filtros{
+    padding:11px 18px;
+
+    border:none;
+
+    border-radius:9px;
+
+    background:#eef3f8;
+
+    color:#173b73;
+
+    font-family:inherit;
+
+    font-size:13px;
+
+    font-weight:700;
+
+    cursor:pointer;
+
+    transition:.2s;
+}
+
+.btn-limpar-filtros:hover{
+    background:#dde7f1;
+}
+
+
+/* =========================================================
+   RESPONSIVIDADE DOS FILTROS
+========================================================= */
+
+@media(max-width:900px){
+
+    .filtros-secundarios{
+        grid-template-columns:1fr;
+    }
+
+    .btn-limpar-filtros{
+        width:100%;
+    }
+
+}
+
+/* =========================================================
+   TOP FALHAS RECORRENTES
+========================================================= */
+
+.top-falhas{
+    margin-bottom:35px;
+}
+
+#topFalhas{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+}
+
+.top-falha-item{
+    display:grid;
+
+    grid-template-columns:
+        55px
+        minmax(0,1fr)
+        110px;
+
+    align-items:center;
+
+    gap:18px;
+
+    padding:16px 18px;
+
+    background:#f8fafc;
+
+    border:
+        1px solid #e5eaf0;
+
+    border-radius:12px;
+
+    transition:
+        transform .2s ease,
+        box-shadow .2s ease,
+        background .2s ease;
+}
+
+.top-falha-item:hover{
+    transform:translateY(-2px);
+
+    background:#ffffff;
+
+    box-shadow:
+        0 8px 22px
+        rgba(23,59,115,.08);
+}
+
+.top-falha-posicao{
+    display:flex;
+
+    align-items:center;
+    justify-content:center;
+
+    width:42px;
+    height:42px;
+
+    border-radius:50%;
+
+    background:#eef3f8;
+
+    color:#173b73;
+
+    font-size:14px;
+    font-weight:800;
+}
+
+.top-falha-conteudo{
+    min-width:0;
+}
+
+.top-falha-conteudo strong{
+    display:block;
+
+    color:#334155;
+
+    font-size:14px;
+    font-weight:700;
+
+    line-height:1.45;
+}
+
+.top-falha-conteudo span{
+    display:block;
+
+    margin-top:5px;
+
+    color:#64748b;
+
+    font-size:12px;
+
+    line-height:1.4;
+}
+
+.top-falha-quantidade{
+    text-align:center;
+
+    padding:9px 12px;
+
+    background:#fff3f3;
+
+    border-radius:10px;
+}
+
+.top-falha-quantidade strong{
+    display:block;
+
+    color:#c62828;
+
+    font-size:22px;
+    font-weight:800;
+}
+
+.top-falha-quantidade span{
+    display:block;
+
+    margin-top:2px;
+
+    color:#64748b;
+
+    font-size:10px;
+    font-weight:700;
+}
+
+
+/* =========================================================
+   LINHA DO TEMPO DAS FALHAS
+========================================================= */
+
+.timeline-falhas{
+    margin-bottom:35px;
+}
+
+#timelineFalhas{
+    position:relative;
+
+    display:flex;
+    flex-direction:column;
+
+    gap:0;
+
+    padding-left:12px;
+}
+
+#timelineFalhas::before{
+    content:"";
+
+    position:absolute;
+
+    top:10px;
+    bottom:10px;
+    left:22px;
+
+    width:2px;
+
+    background:#dbe4ee;
+}
+
+.timeline-item{
+    position:relative;
+
+    display:grid;
+
+    grid-template-columns:
+        30px
+        120px
+        minmax(0,1fr);
+
+    align-items:flex-start;
+
+    gap:16px;
+
+    padding:14px 0;
+}
+
+.timeline-marcador{
+    position:relative;
+
+    z-index:1;
+
+    width:16px;
+    height:16px;
+
+    margin-top:3px;
+    margin-left:2px;
+
+    border-radius:50%;
+
+    background:#c62828;
+
+    border:
+        4px solid #fff;
+
+    box-shadow:
+        0 0 0 2px #f3b7b7;
+}
+
+.timeline-data strong{
+    display:block;
+
+    color:#173b73;
+
+    font-size:13px;
+    font-weight:700;
+}
+
+.timeline-data span{
+    display:block;
+
+    margin-top:4px;
+
+    color:#64748b;
+
+    font-size:12px;
+}
+
+.timeline-conteudo{
+    padding:
+        0 0 14px 0;
+
+    border-bottom:
+        1px solid #edf1f7;
+}
+
+.timeline-conteudo strong{
+    display:block;
+
+    color:#334155;
+
+    font-size:14px;
+    font-weight:700;
+
+    line-height:1.45;
+}
+
+.timeline-conteudo span{
+    display:block;
+
+    margin-top:5px;
+
+    color:#64748b;
+
+    font-size:12px;
+
+    line-height:1.4;
+}
+
+
+/* =========================================================
+   RESPONSIVIDADE - TOP / TIMELINE
+========================================================= */
+
+@media(max-width:800px){
+
+    .top-falha-item{
+        grid-template-columns:
+            45px
+            minmax(0,1fr);
+
+        gap:12px;
+    }
+
+    .top-falha-quantidade{
+        grid-column:
+            1 / -1;
+
+        text-align:left;
+    }
+
+    .top-falha-quantidade strong,
+    .top-falha-quantidade span{
+        display:inline;
+    }
+
+    .top-falha-quantidade span{
+        margin-left:5px;
+    }
+
+
+    .timeline-item{
+        grid-template-columns:
+            30px
+            minmax(0,1fr);
+
+        gap:12px;
+    }
+
+    .timeline-data{
+        grid-column:2;
+    }
+
+    .timeline-conteudo{
+        grid-column:2;
+
+        padding-bottom:16px;
+    }
+
+}

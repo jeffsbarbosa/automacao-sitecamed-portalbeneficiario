@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Detalhamento das Execuções</title>
+
+    <link
+        rel="stylesheet"
+        href="css/style.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="css/execucoes.css"
+    >
+
+</head>
+
+<body class="pagina-execucoes">
+
+
+<header class="header-execucoes">
+
+    <div class="logo-camed">
+
+        <img
+            src="img/logo_transparente_1.png"
+            alt="Camed Saúde"
+        >
+
+    </div>
+
+
+    <div class="header-conteudo">
+
+        <h1>
+            Detalhamento das Execuções
+        </h1>
+
+        <p>
+            Site Camed &amp; Portal de Serviços
+        </p>
+
+
+        <div class="header-info">
+
+            <div class="info-box">
+
+                <span>
+                    PERÍODO ANALISADO
+                </span>
+
+                <strong id="periodoExecucoes">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="info-box">
+
+                <span>
+                    TOTAL DE EXECUÇÕES
+                </span>
+
+                <strong id="totalExecucoesHeader">
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<main class="execucoes-container">
+
+
+    <!-- NAVEGAÇÃO -->
+
+    <section class="execucoes-navegacao">
+
+        <a
+            href="index.html"
+            class="btn-voltar-dashboard"
+        >
+            ← Voltar ao Dashboard
+        </a>
+
+    </section>
+
+
+    <!-- INTRODUÇÃO -->
+
+    <section class="execucoes-introducao">
+
+        <span class="execucoes-label">
+            ANÁLISE DO PERÍODO
+        </span>
+
+        <h2>
+            Execuções realizadas
+        </h2>
+
+        <p>
+            Visão detalhada das execuções automatizadas realizadas
+            durante o período selecionado.
+        </p>
+
+    </section>
+
+
+    <!-- INDICADORES -->
+
+    <section class="cards cards-execucoes">
+
+
+        <div class="card indicador">
+
+            <h3>
+                Cenários executados
+            </h3>
+
+            <div
+                id="execucoesCenarios"
+                class="valor azul"
+            >
+                0
+            </div>
+
+            <small>
+                Total no período
+            </small>
+
+        </div>
+
+
+        <div class="card indicador">
+
+            <h3>
+                Aprovados
+            </h3>
+
+            <div
+                id="execucoesAprovados"
+                class="valor verde"
+            >
+                0
+            </div>
+
+            <small>
+                Cenários aprovados
+            </small>
+
+        </div>
+
+
+        <div class="card indicador">
+
+            <h3>
+                Falhas
+            </h3>
+
+            <div
+                id="execucoesFalhas"
+                class="valor vermelho"
+            >
+                0
+            </div>
+
+            <small>
+                Falhas encontradas
+            </small>
+
+        </div>
+
+
+        <div class="card indicador">
+
+            <h3>
+                Execuções
+            </h3>
+
+            <div
+                id="execucoesTotal"
+                class="valor roxo"
+            >
+                0
+            </div>
+
+            <small>
+                Execuções realizadas
+            </small>
+
+        </div>
+
+    </section>
+
+
+    <!-- HISTÓRICO DAS EXECUÇÕES -->
+
+    <section class="card execucoes-historico">
+
+        <div class="execucoes-section-header">
+
+            <div>
+
+                <h2>
+                    📅 Execuções do Período
+                </h2>
+
+                <p>
+                    Resultado consolidado de cada execução realizada.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="tabela-execucoes-wrapper">
+
+            <table id="tabelaExecucoes">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Data</th>
+                        <th>Hora</th>
+                        <th>Cenários</th>
+                        <th>Aprovados</th>
+                        <th>Falhas</th>
+                        <th>Disponibilidade</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td colspan="8">
+                            Carregando execuções...
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <!-- FILTROS -->
+
+    <section class="card execucoes-filtros">
+
+        <div class="execucoes-section-header">
+
+            <div>
+
+                <h2>
+                    🔎 Consultar Execuções
+                </h2>
+
+                <p>
+                    Filtre as execuções por data ou situação.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="filtros-execucoes">
+
+            <div class="campo-filtro-execucao">
+
+                <label for="filtroDataExecucao">
+                    Data
+                </label>
+
+                <select id="filtroDataExecucao">
+
+                    <option value="">
+                        Todas as datas
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="campo-filtro-execucao">
+
+                <label for="filtroStatusExecucao">
+                    Status
+                </label>
+
+                <select id="filtroStatusExecucao">
+
+                    <option value="">
+                        Todos os status
+                    </option>
+
+                    <option value="SUCESSO">
+                        Sucesso
+                    </option>
+
+                    <option value="ATENCAO">
+                        Atenção
+                    </option>
+
+                    <option value="CRITICO">
+                        Crítico
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <button
+                type="button"
+                id="btnLimparFiltrosExecucao"
+                class="btn-limpar-filtros"
+            >
+                Limpar filtros
+            </button>
+
+        </div>
+
+    </section>
+
+
+</main>
+
+
+<footer>
+
+    <span>
+        🛡️ Relatório gerado automaticamente pelo sistema de automação de testes.
+    </span>
+
+    <span>
+        Site Camed &amp; Portal de Serviços
+    </span>
+
+</footer>
+
+
+<script src="js/execucoes.js"></script>
+
+</body>
+
+</html>

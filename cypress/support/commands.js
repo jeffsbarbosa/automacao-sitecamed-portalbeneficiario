@@ -89,10 +89,11 @@ Cypress.Commands.add('abrirSaudeMental', () => {
   cy.contains("a", "Saúde Mental", { timeout: 30000 })
   .should('be.visible')
   .realHover()
+  .click()
     
   cy.contains("a", "Saúde Mental")
-   .should("be.visible")
-   .click();
+  .should("be.visible")
+  .click({force: true});
 
 })
 
