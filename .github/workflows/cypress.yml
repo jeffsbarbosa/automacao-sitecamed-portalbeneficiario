@@ -1024,73 +1024,241 @@ jobs:
       - name: Gerar historico da execucao
         shell: powershell
         run: |
+
+          # =========================================================
+          # CARREGA FALHAS DETALHADAS
+          # =========================================================
+
           $topFalhas = @()
 
           if (Test-Path "temp/falhas.json") {
 
             try {
 
-              $conteudoFalhas = Get-Content "temp/falhas.json" -Raw -Encoding UTF8
+              $conteudoFalhas =
+                Get-Content `
+                  "temp/falhas.json" `
+                  -Raw `
+                  -Encoding UTF8
 
-              if (-not [string]::IsNullOrWhiteSpace($conteudoFalhas)) {
+              if (
+                -not [string]::IsNullOrWhiteSpace(
+                  $conteudoFalhas
+                )
+              ) {
 
-                $falhasCarregadas = $conteudoFalhas | ConvertFrom-Json
+                $falhasCarregadas =
+                  $conteudoFalhas |
+                  ConvertFrom-Json
 
                 if ($null -ne $falhasCarregadas) {
 
-                  if ($null -ne $falhasCarregadas.value) {
-                    $topFalhas = @($falhasCarregadas.value)
+                  if (
+                    $null -ne
+                    $falhasCarregadas.value
+                  ) {
+
+                    $topFalhas =
+                      @($falhasCarregadas.value)
+
                   }
                   else {
-                    $topFalhas = @($falhasCarregadas)
+
+                    $topFalhas =
+                      @($falhasCarregadas)
+
                   }
+
                 }
+
               }
+
             }
             catch {
 
-              Write-Warning "Nao foi possivel carregar temp/falhas.json: $($_.Exception.Message)"
+              Write-Warning `
+                "Nao foi possivel carregar temp/falhas.json: $($_.Exception.Message)"
+
               $topFalhas = @()
+
             }
+
           }
 
+
+          # =========================================================
+          # CARREGA SUCESSOS DETALHADOS
+          # =========================================================
+
+          $sucessosDetalhados = @()
+
+          if (Test-Path "temp/sucessos.json") {
+
+            try {
+
+              $conteudoSucessos =
+                Get-Content `
+                  "temp/sucessos.json" `
+                  -Raw `
+                  -Encoding UTF8
+
+              if (
+                -not [string]::IsNullOrWhiteSpace(
+                  $conteudoSucessos
+                )
+              ) {
+
+                $sucessosCarregados =
+                  $conteudoSucessos |
+                  ConvertFrom-Json
+
+                if ($null -ne $sucessosCarregados) {
+
+                  if (
+                    $null -ne
+                    $sucessosCarregados.value
+                  ) {
+
+                    $sucessosDetalhados =
+                      @($sucessosCarregados.value)
+
+                  }
+                  else {
+
+                    $sucessosDetalhados =
+                      @($sucessosCarregados)
+
+                  }
+
+                }
+
+              }
+
+            }
+            catch {
+
+              Write-Warning `
+                "Nao foi possivel carregar temp/sucessos.json: $($_.Exception.Message)"
+
+              $sucessosDetalhados = @()
+
+            }
+
+          }
+
+
+          # =========================================================
+          # DIAGNOSTICO
+          # =========================================================
+
           Write-Host ""
+
           Write-Host "===== GERANDO HISTORICO DIARIO ====="
-          Write-Host "Falhas detalhadas encontradas: $($topFalhas.Count)"
+
+          Write-Host `
+            "Falhas detalhadas encontradas: $($topFalhas.Count)"
+
+          Write-Host `
+            "Sucessos detalhados encontrados: $($sucessosDetalhados.Count)"
+
+          Write-Host ""
+
+
+          # =========================================================
+          # MONTA HISTORICO DA EXECUCAO
+          # =========================================================
 
           $historico = @{
-            data        = (Get-Date).ToString("yyyy-MM-dd")
-            hora        = (Get-Date).ToString("HH:mm:ss")
-            workflow    = "Testes Automatizados"
-            runner      = "self-hosted"
 
-            total       = [int]$env:TOTAL
-            passed      = [int]$env:PASSED
-            failed      = [int]$env:FAILED
+            data =
+              (Get-Date).ToString(
+                "yyyy-MM-dd"
+              )
 
-            successRate = [double]$env:SUCCESS_RATE
+            hora =
+              (Get-Date).ToString(
+                "HH:mm:ss"
+              )
 
-            homepage    = [double]$env:RATE_HOME
-            portal      = [double]$env:RATE_PORTAL
-            perfil      = [double]$env:RATE_PERFIL
+            workflow =
+              "Testes Automatizados"
 
-            status      = $env:STATUS_LEVEL
-            topFalhas   = $topFalhas
+            runner =
+              "self-hosted"
+
+            total =
+              [int]$env:TOTAL
+
+            passed =
+              [int]$env:PASSED
+
+            failed =
+              [int]$env:FAILED
+
+            successRate =
+              [double]$env:SUCCESS_RATE
+
+            homepage =
+              [double]$env:RATE_HOME
+
+            portal =
+              [double]$env:RATE_PORTAL
+
+            perfil =
+              [double]$env:RATE_PERFIL
+
+            status =
+              $env:STATUS_LEVEL
+
+            topFalhas =
+              $topFalhas
+
+            sucessosDetalhados =
+              $sucessosDetalhados
+
           }
 
-          $data = Get-Date -Format "yyyy-MM-dd"
-          $arquivo = "historico/$data.json"
+
+          # =========================================================
+          # GRAVA JSON DIARIO
+          # =========================================================
+
+          $data =
+            Get-Date `
+              -Format "yyyy-MM-dd"
+
+          $arquivo =
+            "historico/$data.json"
+
 
           $historico |
-            ConvertTo-Json -Depth 6 |
-            Set-Content $arquivo -Encoding UTF8
+
+            ConvertTo-Json `
+              -Depth 8 |
+
+            Set-Content `
+              $arquivo `
+              -Encoding UTF8
+
+
+          # =========================================================
+          # EXIBE RESULTADO
+          # =========================================================
 
           Write-Host ""
-          Write-Host "Historico gerado com sucesso"
-          Write-Host "Arquivo: $arquivo"
+
+          Write-Host `
+            "Historico gerado com sucesso"
+
+          Write-Host `
+            "Arquivo: $arquivo"
+
           Write-Host ""
 
-          Get-Content $arquivo -Raw -Encoding UTF8
+          Get-Content `
+            $arquivo `
+            -Raw `
+            -Encoding UTF8
 
 
       - name: Publicar histórico no GitHub
