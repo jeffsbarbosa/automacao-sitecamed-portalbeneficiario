@@ -2,20 +2,16 @@
     "perfil":  100,
     "total":  76,
     "data":  "2026-09-02",
-    "portal":  97.3,
+    "portal":  100,
     "runner":  "self-hosted",
-    "failed":  1,
-    "status":  "ATENÇÃO: Falhas pontuais identificadas",
-    "successRate":  98.68,
-    "hora":  "09:19:46",
+    "failed":  0,
+    "status":  "SUCESSO: Nenhuma falha detectada",
+    "successRate":  100,
+    "hora":  "16:06:55",
     "homepage":  100,
-    "passed":  75,
+    "passed":  76,
     "topFalhas":  [
-                      {
-                          "suite":  "Testes de Disponibilidade – Menu A CAMED",
-                          "cenario":  "Deve validar a disponibilidade do item Governança",
-                          "erro":  "AssertionError: Timed out retrying after 200000ms: expected \u0027\u003ca\u003e\u0027 to be \u0027visible\u0027"
-                      }
+
                   ],
     "workflow":  "Testes Automatizados"
 }
