@@ -2,7 +2,7 @@ name: Testes Automatizados - Site Camed e Portal de Serviços Área Logada
 
 on:
   schedule:
-    - cron: "0 7 * * *"
+    - cron: "0 12 * * *"
   workflow_dispatch:
 
 jobs:
@@ -290,11 +290,16 @@ jobs:
           Add-Content -Path $env:GITHUB_ENV -Value "STATUS_COLOR=$STATUS_COLOR"
 
          
-      - name: Listar testes que falharam
+      - name: Capturar resultados detalhados
         shell: powershell
         run: |
+
           $failList = @()
+
           $falhasJson = @()
+
+          $sucessosJson = @()
+
 
           $files = Get-ChildItem `
             -Path "all-reports" `
@@ -302,83 +307,194 @@ jobs:
             -Filter mochawesome*.json `
             -ErrorAction SilentlyContinue
 
-          function Processar-Suite-Falhas {
+
+          function Processar-Suite-Resultados {
 
             param (
               $suite
             )
 
+
             if ($null -eq $suite) {
+
               return
+
             }
+
 
             if ($suite.tests) {
 
               foreach ($test in $suite.tests) {
 
+
+                # =====================================================
+                  # IDENTIFICA STATUS DO TESTE
+                # ===================================================== 
+
                 $falhou =
                   ($test.state -eq "failed") -or
                   ($test.fail -eq $true)
 
+
+                $passou =
+                  ($test.state -eq "passed") -or
+                  ($test.pass -eq $true)
+
+
+                # =====================================================
+                 #  NOME DA SUITE
+                #===================================================== 
+
+                $suiteNome = if (
+
+                  -not [string]::IsNullOrWhiteSpace(
+                    [string]$suite.title
+                  )
+
+                ) {
+
+                  [string]$suite.title
+
+                }
+                else {
+
+                  "Suite não identificada"
+
+                }
+
+
+                #=====================================================
+                   #NOME DO CENÁRIO
+                #===================================================== */
+
+                $testName = if (
+
+                  -not [string]::IsNullOrWhiteSpace(
+                    [string]$test.title
+                  )
+
+                ) {
+
+                  [string]$test.title
+
+                }
+                else {
+
+                  "Cenário não identificado"
+
+                }
+
+
+               # =====================================================
+                #   TESTE COM FALHA
+                # ===================================================== */
+
                 if ($falhou) {
 
-                  $suiteNome = if (
-                    -not [string]::IsNullOrWhiteSpace([string]$suite.title)
-                  ) {
-                    [string]$suite.title
-                  }
-                  else {
-                    "Suite não identificada"
-                  }
-
-                  $testName = if (
-                    -not [string]::IsNullOrWhiteSpace([string]$test.title)
-                  ) {
-                    [string]$test.title
-                  }
-                  else {
-                    "Cenário não identificado"
-                  }
 
                   $errorMessage = if (
+
                     $test.err -and
                     $test.err.message
+
                   ) {
+
                     ($test.err.message -split "`n")[0]
+
                   }
                   else {
+
                     "Erro não identificado"
+
                   }
+
 
                   $errorMessage =
                     $errorMessage -replace "CypressError:\s*", ""
 
+
                   $script:falhasJson += [PSCustomObject]@{
+
                     suite   = $suiteNome
                     cenario = $testName
                     erro    = $errorMessage
+
                   }
 
+
                   $itemHtml =
+
                     "<li style='margin-bottom:10px;'>" +
                     "<b>$testName</b><br>" +
                     "<span style='color:#dc3545;'> -> $errorMessage</span>" +
                     "</li>"
 
-                  $script:failList += $itemHtml
+
+                  $script:failList +=
+                    $itemHtml
+
                 }
+
+
+                # =====================================================
+                 #  TESTE APROVADO
+                # ===================================================== */
+
+                elseif ($passou) {
+
+
+                  $duracao = 0
+
+
+                  if (
+                    $null -ne $test.duration
+                  ) {
+
+                    $duracao =
+                      [int]$test.duration
+
+                  }
+
+
+                  $script:sucessosJson += [PSCustomObject]@{
+
+                    suite    = $suiteNome
+                    cenario  = $testName
+                    duracao  = $duracao
+
+                  }
+
+                }
+
               }
+
             }
+
+
+            #=========================================================
+             #  SUITES FILHAS
+            # ========================================================= */
 
             if ($suite.suites) {
 
               foreach ($childSuite in $suite.suites) {
-                Processar-Suite-Falhas $childSuite
+
+                Processar-Suite-Resultados `
+                  $childSuite
+
               }
+
             }
+
           }
 
+
+          # =============================================================
+          #  PROCESSA TODOS OS ARQUIVOS MOCHAWESOME
+          #============================================================= */
+
           foreach ($file in $files) {
+
 
             $json = Get-Content `
               $file.FullName `
@@ -386,149 +502,335 @@ jobs:
               -Encoding UTF8 |
               ConvertFrom-Json
 
-          Write-Host ""
-          Write-Host "===== ANALISANDO MOCHAWESOME ====="
-          Write-Host "Arquivo: $($file.Name)"
 
-          if ($json.stats) {
+            Write-Host ""
+
+            Write-Host "===== ANALISANDO MOCHAWESOME ====="
+
+            Write-Host "Arquivo: $($file.Name)"
+
+
+            if ($json.stats) {
 
               Write-Host "Tests    : $($json.stats.tests)"
+
               Write-Host "Passes   : $($json.stats.passes)"
+
               Write-Host "Failures : $($json.stats.failures)"
+
               Write-Host "Pending  : $($json.stats.pending)"
+
+            }
+
+
+            Write-Host "=================================="
+
+
+            if ($json.results) {
+
+              foreach ($result in $json.results) {
+
+                if ($result.suites) {
+
+                  foreach ($suite in $result.suites) {
+
+                    Processar-Suite-Resultados `
+                      $suite
+
+                  }
+
+                }
+
+              }
+
+            }
 
           }
 
-          Write-Host "=================================="    
 
-                      if ($json.results) {
-
-                        foreach ($result in $json.results) {
-
-                          if ($result.suites) {
-
-                            foreach ($suite in $result.suites) {
-                              Processar-Suite-Falhas $suite
-                            }
-                          }
-                        }
-                      }
-                    }
+          #=============================================================
+           #  HTML DAS FALHAS PARA O E-MAIL
+          #============================================================= */
 
           if ($failList.Count -eq 0) {
 
             $failText =
+
               "<p style='color:#28a745;font-weight:bold;'>" +
               "Nenhum teste falhou" +
               "</p>"
+
           }
           else {
 
             $failText =
+
               "<ul style='padding-left:20px;font-family:Arial;'>" +
               ($failList -join "") +
               "</ul>"
+
           }
+
 
           "FAIL_LIST<<EOF" |
+
             Out-File `
               -FilePath $env:GITHUB_ENV `
               -Encoding utf8 `
               -Append
+
 
           $failText |
+
             Out-File `
               -FilePath $env:GITHUB_ENV `
               -Encoding utf8 `
               -Append
+
 
           "EOF" |
+
             Out-File `
               -FilePath $env:GITHUB_ENV `
               -Encoding utf8 `
               -Append
 
-          New-Item -ItemType Directory -Force -Path "temp" | Out-Null
+
+          #=============================================================
+           #  CRIA PASTA TEMP
+          #============================================================= */
+
+          New-Item `
+            -ItemType Directory `
+            -Force `
+            -Path "temp" |
+            Out-Null
+
+
+          # =============================================================
+           #  DIAGNÓSTICO
+          # ============================================================= */
 
           Write-Host ""
-          Write-Host "===== OBJETOS CAPTURADOS ====="
-          Write-Host "Quantidade: $($falhasJson.Count)"
+
+          Write-Host "===== RESULTADOS CAPTURADOS ====="
+
+          Write-Host "Falhas   : $($falhasJson.Count)"
+
+          Write-Host "Sucessos : $($sucessosJson.Count)"
 
           Write-Host ""
+
+
           Write-Host "===== DIAGNOSTICO DE FALHAS ====="
+
           Write-Host "FAILED informado pelo Mochawesome: $env:FAILED"
+
           Write-Host "Falhas detalhadas capturadas: $($falhasJson.Count)"
 
-          if ([int]$env:FAILED -ne $falhasJson.Count) {
 
-              Write-Warning "DIVERGENCIA DETECTADA"
+          if (
+            [int]$env:FAILED -ne
+            $falhasJson.Count
+          ) {
 
-              Write-Host "O Mochawesome informou $env:FAILED falhas,"
-              Write-Host "mas apenas $($falhasJson.Count) testes com falha foram encontrados."
+            Write-Warning "DIVERGENCIA DETECTADA"
+
+            Write-Host "O Mochawesome informou $env:FAILED falhas,"
+
+            Write-Host "mas apenas $($falhasJson.Count) testes com falha foram encontrados."
+
           }
-
           else {
 
-              Write-Host "OK - Quantidade de falhas confere."
+            Write-Host "OK - Quantidade de falhas confere."
 
           }
 
+
           Write-Host "================================="
+
           Write-Host ""
+
+
+          Write-Host "===== DIAGNOSTICO DE SUCESSOS ====="
+
+          Write-Host "PASSED informado pelo Mochawesome: $env:PASSED"
+
+          Write-Host "Sucessos detalhados capturados: $($sucessosJson.Count)"
+
+
+          if (
+            [int]$env:PASSED -ne
+            $sucessosJson.Count
+          ) {
+
+            Write-Warning "DIVERGENCIA DE SUCESSOS DETECTADA"
+
+            Write-Host "O Mochawesome informou $env:PASSED sucessos,"
+
+            Write-Host "mas $($sucessosJson.Count) testes aprovados foram encontrados."
+
+          }
+          else {
+
+            Write-Host "OK - Quantidade de sucessos confere."
+
+          }
+
+
+          Write-Host "================================="
+
+          Write-Host ""
+
+
+          # =============================================================
+           #  LISTA AS FALHAS NO LOG
+          # ============================================================= */
 
           foreach ($falha in $falhasJson) {
 
             Write-Host "------------------------------"
+
             Write-Host "Suite   : $($falha.suite)"
+
             Write-Host "Cenario : $($falha.cenario)"
+
             Write-Host "Erro    : $($falha.erro)"
 
           }
 
-          Write-Host "=============================="
 
-          # Monta manualmente o array JSON para evitar
-          # problemas de serializacao do PowerShell 5.1
-          $objetosJson = @()
+          # =============================================================
+           #  MONTA TEMP/FALHAS.JSON
+          # ============================================================= */
+
+          $objetosFalhasJson = @()
+
 
           foreach ($falha in $falhasJson) {
 
             if ($null -eq $falha) {
+
               continue
+
             }
 
+
             $objeto = [ordered]@{
+
               suite   = [string]$falha.suite
               cenario = [string]$falha.cenario
               erro    = [string]$falha.erro
+
             }
 
-            $objetosJson += (
-              $objeto | ConvertTo-Json -Compress -Depth 5
+
+            $objetosFalhasJson += (
+
+              $objeto |
+                ConvertTo-Json `
+                  -Compress `
+                  -Depth 5
+
             )
 
           }
 
-          if ($objetosJson.Count -eq 0) {
 
-            $jsonFalhas = "[]"
+          if (
+            $objetosFalhasJson.Count -eq 0
+          ) {
+
+            $jsonFalhas =
+              "[]"
 
           }
           else {
 
             $jsonFalhas =
+
               "[" +
-              ($objetosJson -join ",") +
+              ($objetosFalhasJson -join ",") +
               "]"
 
           }
+
 
           Set-Content `
             -Path "temp/falhas.json" `
             -Value $jsonFalhas `
             -Encoding UTF8
 
+
+          # =============================================================
+           #  MONTA TEMP/SUCESSOS.JSON
+          # ============================================================= */
+
+          $objetosSucessosJson = @()
+
+
+          foreach ($sucesso in $sucessosJson) {
+
+            if ($null -eq $sucesso) {
+
+              continue
+
+            }
+
+
+            $objeto = [ordered]@{
+
+              suite   = [string]$sucesso.suite
+              cenario = [string]$sucesso.cenario
+              duracao = [int]$sucesso.duracao
+
+            }
+
+
+            $objetosSucessosJson += (
+
+              $objeto |
+                ConvertTo-Json `
+                  -Compress `
+                  -Depth 5
+
+            )
+
+          }
+
+
+          if (
+            $objetosSucessosJson.Count -eq 0
+          ) {
+
+            $jsonSucessos =
+              "[]"
+
+          }
+          else {
+
+            $jsonSucessos =
+
+              "[" +
+              ($objetosSucessosJson -join ",") +
+              "]"
+
+          }
+
+
+          Set-Content `
+            -Path "temp/sucessos.json" `
+            -Value $jsonSucessos `
+            -Encoding UTF8
+
+
+          # =============================================================
+           #  EXIBE OS ARQUIVOS GERADOS
+          # ============================================================= */
+
           Write-Host ""
+
           Write-Host "===== TEMP/FALHAS.JSON ====="
 
           Get-Content `
@@ -536,7 +838,19 @@ jobs:
             -Raw `
             -Encoding UTF8
 
+
           Write-Host ""
+
+          Write-Host "===== TEMP/SUCESSOS.JSON ====="
+
+          Get-Content `
+            "temp/sucessos.json" `
+            -Raw `
+            -Encoding UTF8
+
+
+          Write-Host ""
+
           Write-Host "============================"
 
 

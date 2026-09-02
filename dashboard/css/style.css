@@ -1181,3 +1181,40 @@ tbody tr:hover{
     outline:3px solid rgba(100,139,179,.35);
     outline-offset:4px;
 }
+
+/* =========================================================
+   RANKING DE FALHAS - LINK PARA DETALHES
+========================================================= */
+
+.ranking-clicavel {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.ranking-clicavel:hover {
+    background-color: #f3f7fb;
+}
+
+.ranking-clicavel:focus {
+    outline: 2px solid rgb(100 139 179 / .96);
+    outline-offset: -2px;
+}
+
+/* Link visual abaixo do cenário */
+.ranking-ver-detalhes {
+    display: block;
+    margin-top: 7px;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    color: rgb(100 139 179 / .96);
+
+    opacity: 0.85;
+    transition: opacity 0.2s ease;
+}
+
+.ranking-clicavel:hover .ranking-ver-detalhes {
+    opacity: 1;
+    text-decoration: underline;
+}

@@ -2,16 +2,19 @@
    CARREGAMENTO PRINCIPAL
 ========================================================= */
 
-document.addEventListener("DOMContentLoaded", () => {
-    carregarDetalhes();
-});
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+        carregarDetalhes();
+    }
+);
 
 
 /* =========================================================
    CONTEXTO DA PÁGINA
 ========================================================= */
 
-function obterDataDaURL() {
+function obterPeriodoDaURL() {
 
     const parametros =
         new URLSearchParams(
@@ -19,48 +22,148 @@ function obterDataDaURL() {
         );
 
 
-    /* =====================================================
-       LINK VINDO DA TELA DE EXECUÇÕES
-       detalhes.html?data=2026-08-13
-    ===================================================== */
-
     const data =
-        parametros.get("data");
-
-    if (data) {
-        return data;
-    }
-
-
-    /* =====================================================
-       LINK VINDO DO DASHBOARD
-       detalhes.html?inicio=2026-08-13&fim=2026-08-13
-    ===================================================== */
+        parametros.get(
+            "data"
+        );
 
     const inicio =
-        parametros.get("inicio");
+        parametros.get(
+            "inicio"
+        );
 
     const fim =
-        parametros.get("fim");
+        parametros.get(
+            "fim"
+        );
 
 
     /*
-     * Se início e fim forem iguais,
-     * estamos analisando uma única execução.
-     */
+        Link vindo da tela de execuções:
 
-    if (
-        inicio &&
-        fim &&
-        inicio === fim
-    ) {
+        detalhes.html?data=2026-08-13
+    */
 
-        return inicio;
+    if (data) {
+
+        return {
+            inicio: data,
+            fim: data
+        };
 
     }
 
 
-    return "";
+    /*
+        Link vindo do Dashboard:
+
+        detalhes.html?inicio=2026-08-10&fim=2026-08-16
+    */
+
+    if (
+        inicio &&
+        fim
+    ) {
+
+        return {
+            inicio,
+            fim
+        };
+
+    }
+
+
+    return {
+        inicio: "",
+        fim: ""
+    };
+
+}
+
+
+/* =========================================================
+   VERIFICA SE DATA ESTÁ DENTRO DO PERÍODO
+========================================================= */
+
+function dataDentroDoPeriodo(
+    data,
+    inicio,
+    fim
+) {
+
+    if (!data) {
+        return false;
+    }
+
+
+    if (
+        !inicio &&
+        !fim
+    ) {
+
+        return true;
+
+    }
+
+
+    if (
+        inicio &&
+        data < inicio
+    ) {
+
+        return false;
+
+    }
+
+
+    if (
+        fim &&
+        data > fim
+    ) {
+
+        return false;
+
+    }
+
+
+    return true;
+
+}
+
+
+/* =========================================================
+   FILTRA LISTA PELO PERÍODO
+========================================================= */
+
+function filtrarPorPeriodo(
+    lista,
+    inicio,
+    fim
+) {
+
+    if (!Array.isArray(lista)) {
+        return [];
+    }
+
+
+    if (
+        !inicio &&
+        !fim
+    ) {
+
+        return [...lista];
+
+    }
+
+
+    return lista.filter(
+        item =>
+            dataDentroDoPeriodo(
+                item.data,
+                inicio,
+                fim
+            )
+    );
 
 }
 
@@ -74,7 +177,9 @@ async function carregarDetalhes() {
     try {
 
         const response =
-            await fetch("../historico/dashboard.json");
+            await fetch(
+                "../historico/dashboard.json"
+            );
 
 
         if (!response.ok) {
@@ -90,47 +195,61 @@ async function carregarDetalhes() {
             await response.json();
 
 
-        const dataSelecionada =
-            obterDataDaURL();
+        const periodoSelecionado =
+            obterPeriodoDaURL();
+
+        configurarVoltarDashboard(
+            periodoSelecionado
+);
 
 
         carregarPeriodo(
             dados,
-            dataSelecionada
+            periodoSelecionado
         );
 
 
         carregarIndicadores(
             dados,
-            dataSelecionada
+            periodoSelecionado
         );
 
 
         carregarDistribuicaoFalhas(
             dados,
-            dataSelecionada
+            periodoSelecionado
         );
+
+        carregarDistribuicaoSucessos(
+            dados,
+            periodoSelecionado
+);
 
 
         carregarTopFalhas(
             dados,
-            dataSelecionada
+            periodoSelecionado
         );
 
 
         carregarTimelineFalhas(
             dados,
-            dataSelecionada
+            periodoSelecionado
         );
 
 
         carregarListaErros(
-            dados
+            dados,
+            "",
+            "",
+            "",
+            periodoSelecionado
         );
 
 
         configurarBusca(
-            dados
+            dados,
+            periodoSelecionado
         );
 
     }
@@ -145,6 +264,66 @@ async function carregarDetalhes() {
 
 }
 
+/* =========================================================
+   VOLTAR AO DASHBOARD PRESERVANDO O PERÍODO
+========================================================= */
+
+function configurarVoltarDashboard(
+    periodoSelecionado = {}
+) {
+
+    const botaoVoltar =
+        document.querySelector(
+            'a[href="index.html"]'
+        );
+
+
+    if (!botaoVoltar) {
+        return;
+    }
+
+
+    const inicio =
+        periodoSelecionado.inicio || "";
+
+    const fim =
+        periodoSelecionado.fim || "";
+
+
+    if (
+        !inicio ||
+        !fim
+    ) {
+
+        botaoVoltar.href =
+            "index.html";
+
+        return;
+
+    }
+
+
+    const parametros =
+        new URLSearchParams();
+
+
+    parametros.set(
+        "inicio",
+        inicio
+    );
+
+
+    parametros.set(
+        "fim",
+        fim
+    );
+
+
+    botaoVoltar.href =
+        `index.html?${parametros.toString()}`;
+
+}
+
 
 /* =========================================================
    PERÍODO
@@ -152,7 +331,7 @@ async function carregarDetalhes() {
 
 function carregarPeriodo(
     dados,
-    dataSelecionada = ""
+    periodoSelecionado = {}
 ) {
 
     const elemento =
@@ -166,25 +345,49 @@ function carregarPeriodo(
     }
 
 
-    /* =====================================================
-       EXECUÇÃO ESPECÍFICA
-    ===================================================== */
+    const inicioSelecionado =
+        periodoSelecionado.inicio || "";
 
-    if (dataSelecionada) {
+    const fimSelecionado =
+        periodoSelecionado.fim || "";
 
-        elemento.textContent =
-            formatarData(
-                dataSelecionada
-            );
+
+    /*
+        Período recebido pela URL
+    */
+
+    if (
+        inicioSelecionado &&
+        fimSelecionado
+    ) {
+
+        if (
+            inicioSelecionado ===
+            fimSelecionado
+        ) {
+
+            elemento.textContent =
+                formatarData(
+                    inicioSelecionado
+                );
+
+        }
+        else {
+
+            elemento.textContent =
+                `${formatarData(inicioSelecionado)} a ${formatarData(fimSelecionado)}`;
+
+        }
+
 
         return;
 
     }
 
 
-    /* =====================================================
-       PERÍODO COMPLETO
-    ===================================================== */
+    /*
+        Período padrão do dashboard.json
+    */
 
     const inicio =
         dados.periodo?.inicio;
@@ -193,9 +396,13 @@ function carregarPeriodo(
         dados.periodo?.fim;
 
 
-    if (!inicio || !fim) {
+    if (
+        !inicio ||
+        !fim
+    ) {
 
-        elemento.textContent = "-";
+        elemento.textContent =
+            "-";
 
         return;
 
@@ -214,65 +421,99 @@ function carregarPeriodo(
 
 function carregarIndicadores(
     dados,
-    dataSelecionada = ""
+    periodoSelecionado = {}
 ) {
 
+    const inicio =
+        periodoSelecionado.inicio || "";
+
+    const fim =
+        periodoSelecionado.fim || "";
+
+
+    const historicoCompleto =
+        Array.isArray(
+            dados.historico
+        )
+            ? dados.historico
+            : [];
+
+
+    const falhasCompletas =
+        Array.isArray(
+            dados.falhasDetalhadas
+        )
+            ? dados.falhasDetalhadas
+            : [];
+
+
+    const possuiPeriodo =
+        Boolean(
+            inicio &&
+            fim
+        );
+
+
     let totalFalhas = 0;
+
     let diasComFalha = 0;
+
     let errosMapeados = 0;
 
 
-    /* =====================================================
-       EXECUÇÃO ESPECÍFICA
-    ===================================================== */
+    /*
+        Período recebido pela URL
+    */
 
-    if (dataSelecionada) {
+    if (possuiPeriodo) {
 
         const historico =
-            Array.isArray(dados.historico)
-                ? dados.historico
-                : [];
-
-
-        const execucao =
-            historico.find(
-                item =>
-                    item.data === dataSelecionada
+            filtrarPorPeriodo(
+                historicoCompleto,
+                inicio,
+                fim
             );
 
 
-        const falhasDoDia =
-            Array.isArray(dados.falhasDetalhadas)
-
-                ? dados.falhasDetalhadas.filter(
-                    item =>
-                        item.data === dataSelecionada
-                )
-
-                : [];
+        const falhasDetalhadas =
+            filtrarPorPeriodo(
+                falhasCompletas,
+                inicio,
+                fim
+            );
 
 
         totalFalhas =
-            Number(
-                execucao?.failed || 0
+            historico.reduce(
+                (
+                    total,
+                    item
+                ) =>
+                    total +
+                    Number(
+                        item.failed || 0
+                    ),
+                0
             );
 
 
         diasComFalha =
-            totalFalhas > 0
-                ? 1
-                : 0;
+            historico.filter(
+                item =>
+                    Number(
+                        item.failed || 0
+                    ) > 0
+            ).length;
 
 
         errosMapeados =
-            falhasDoDia.length;
+            falhasDetalhadas.length;
 
     }
 
-
-    /* =====================================================
-       PERÍODO COMPLETO
-    ===================================================== */
+    /*
+        Período completo do dashboard
+    */
 
     else {
 
@@ -289,13 +530,15 @@ function carregarIndicadores(
 
 
         errosMapeados =
-            Array.isArray(dados.falhasDetalhadas) &&
-            dados.falhasDetalhadas.length > 0
 
-                ? dados.falhasDetalhadas.length
+            falhasCompletas.length > 0
+
+                ? falhasCompletas.length
 
                 : (
-                    Array.isArray(dados.rankingFalhas)
+                    Array.isArray(
+                        dados.rankingFalhas
+                    )
                         ? dados.rankingFalhas.length
                         : 0
                 );
@@ -335,7 +578,7 @@ function carregarIndicadores(
 
 function carregarDistribuicaoFalhas(
     dados,
-    dataSelecionada = ""
+    periodoSelecionado = {}
 ) {
 
     const container =
@@ -343,43 +586,45 @@ function carregarDistribuicaoFalhas(
             "listaDistribuicaoFalhas"
         );
 
+
     if (!container) {
         return;
     }
 
 
+    const inicio =
+        periodoSelecionado.inicio || "";
+
+    const fim =
+        periodoSelecionado.fim || "";
+
+
     let historico =
-        Array.isArray(dados.historico)
+        Array.isArray(
+            dados.historico
+        )
             ? [...dados.historico]
             : [];
 
 
-    /* =====================================================
-       EXECUÇÃO ESPECÍFICA
-    ===================================================== */
-
-    if (dataSelecionada) {
-
-        historico =
-            historico.filter(
-                item =>
-                    item.data === dataSelecionada
-            );
-
-    }
+    historico =
+        filtrarPorPeriodo(
+            historico,
+            inicio,
+            fim
+        );
 
 
-    if (historico.length === 0) {
+    if (
+        historico.length === 0
+    ) {
 
         container.innerHTML = `
 
             <div class="detalhes-vazio">
 
-                ${
-                    dataSelecionada
-                        ? "Nenhuma execução encontrada para esta data."
-                        : "Nenhuma execução encontrada no período."
-                }
+                Nenhuma execução encontrada
+                no período selecionado.
 
             </div>
 
@@ -401,212 +646,32 @@ function carregarDistribuicaoFalhas(
             ),
 
             1
-
         );
 
 
-    container.innerHTML = "";
+    container.innerHTML =
+        "";
 
 
-    historico.forEach(item => {
+    historico.forEach(
+        item => {
 
-        const falhas =
-            Number(
-                item.failed || 0
-            );
+            const falhas =
+                Number(
+                    item.failed || 0
+                );
 
 
-        const percentualBarra =
-            falhas === 0
-                ? 0
-                : (
-                    falhas /
-                    maiorQuantidadeFalhas
-                ) * 100;
+            const percentualBarra =
+                falhas === 0
 
+                    ? 0
 
-        const linha =
-            document.createElement(
-                "div"
-            );
+                    : (
+                        falhas /
+                        maiorQuantidadeFalhas
+                    ) * 100;
 
-
-        linha.className =
-            falhas > 0
-                ? "linha-distribuicao linha-com-falha"
-                : "linha-distribuicao";
-
-
-        linha.innerHTML = `
-
-            <div class="distribuicao-data">
-                ${formatarDataCurta(item.data)}
-            </div>
-
-
-            <div class="distribuicao-barra-wrapper">
-
-                <div class="distribuicao-barra">
-
-                    <div
-                        class="distribuicao-barra-preenchimento"
-                        style="width: ${percentualBarra}%"
-                    ></div>
-
-                </div>
-
-            </div>
-
-
-            <div class="distribuicao-quantidade">
-                ${falhas}
-            </div>
-
-        `;
-
-
-        container.appendChild(
-            linha
-        );
-
-    });
-
-}
-
-/* =========================================================
-   TOP FALHAS RECORRENTES
-========================================================= */
-
-function carregarTopFalhas(
-    dados,
-    dataSelecionada = ""
-) {
-
-    const container =
-        document.getElementById(
-            "topFalhas"
-        );
-
-
-    if (!container) {
-        return;
-    }
-
-
-    let falhasDetalhadas =
-        Array.isArray(dados.falhasDetalhadas)
-            ? [...dados.falhasDetalhadas]
-            : [];
-
-
-    /* =====================================================
-       EXECUÇÃO ESPECÍFICA
-    ===================================================== */
-
-    if (dataSelecionada) {
-
-        falhasDetalhadas =
-            falhasDetalhadas.filter(
-                item =>
-                    item.data === dataSelecionada
-            );
-
-    }
-
-
-    if (falhasDetalhadas.length === 0) {
-
-        container.innerHTML = `
-
-            <div class="detalhes-vazio">
-
-                ${
-                    dataSelecionada
-                        ? "Nenhuma falha identificada nesta execução."
-                        : "Nenhuma falha identificada no período."
-                }
-
-            </div>
-
-        `;
-
-        return;
-
-    }
-
-
-    /* =====================================================
-       AGRUPA SUITE + CENÁRIO
-    ===================================================== */
-
-    const agrupadas = {};
-
-
-    falhasDetalhadas.forEach(item => {
-
-        const suite =
-            String(
-                item.suite ||
-                "Suite não informada"
-            );
-
-
-        const cenario =
-            String(
-                item.cenario ||
-                "Cenário não informado"
-            );
-
-
-        const chave =
-            `${suite}|||${cenario}`;
-
-
-        if (!agrupadas[chave]) {
-
-            agrupadas[chave] = {
-
-                suite: suite,
-
-                cenario: cenario,
-
-                quantidade: 0
-
-            };
-
-        }
-
-
-        agrupadas[chave].quantidade++;
-
-    });
-
-
-    /* =====================================================
-       RANKING
-    ===================================================== */
-
-    const ranking =
-        Object
-            .values(agrupadas)
-
-            .sort(
-                (a, b) =>
-                    b.quantidade -
-                    a.quantidade
-            )
-
-            .slice(
-                0,
-                5
-            );
-
-
-    container.innerHTML = "";
-
-
-    ranking.forEach(
-        (item, indice) => {
 
             const linha =
                 document.createElement(
@@ -615,48 +680,324 @@ function carregarTopFalhas(
 
 
             linha.className =
-                "top-falha-item";
+                falhas > 0
+
+                    ? "linha-distribuicao linha-com-falha distribuicao-clicavel"
+
+                    : "linha-distribuicao";
 
 
             linha.innerHTML = `
 
-                <div class="top-falha-posicao">
-                    ${indice + 1}º
-                </div>
+                <div class="distribuicao-data">
 
-
-                <div class="top-falha-conteudo">
-
-                    <strong>
-                        ${escaparHTML(
-                            item.cenario
-                        )}
-                    </strong>
-
-                    <span>
-                        ${escaparHTML(
-                            item.suite
-                        )}
-                    </span>
+                    ${formatarDataCurta(
+                        item.data
+                    )}
 
                 </div>
 
 
-                <div class="top-falha-quantidade">
+                <div class="distribuicao-barra-wrapper">
 
-                    <strong>
-                        ${item.quantidade}
-                    </strong>
+                    <div class="distribuicao-barra">
 
-                    <span>
+                        <div
+                            class="distribuicao-barra-preenchimento"
+                            style="width: ${percentualBarra}%"
+                        ></div>
 
-                        ${
-                            item.quantidade === 1
-                                ? "ocorrência"
-                                : "ocorrências"
+                    </div>
+
+                </div>
+
+
+                <div class="distribuicao-quantidade">
+
+                    ${falhas}
+
+                </div>
+
+            `;
+
+
+            /* =================================================
+               CLIQUE SOMENTE EM DIAS COM FALHA
+            ================================================= */
+
+            if (
+                falhas > 0
+            ) {
+
+                linha.dataset.data =
+                    item.data;
+
+
+                linha.tabIndex =
+                    0;
+
+
+                linha.setAttribute(
+                    "role",
+                    "button"
+                );
+
+
+                linha.setAttribute(
+                    "title",
+                    "Clique para visualizar as falhas desta execução"
+                );
+
+
+                linha.addEventListener(
+                    "click",
+                    () => {
+
+                        const filtroData =
+                            document.getElementById(
+                                "filtroData"
+                            );
+
+
+                        const secaoErros =
+                            document.getElementById(
+                                "listaErros"
+                            );
+
+
+                        if (
+                            filtroData
+                        ) {
+
+                            filtroData.value =
+                                item.data;
+
+
+                            filtroData.dispatchEvent(
+                                new Event(
+                                    "change",
+                                    {
+                                        bubbles:
+                                            true
+                                    }
+                                )
+                            );
+
                         }
 
+
+                        setTimeout(
+                            () => {
+
+                                secaoErros?.scrollIntoView(
+                                    {
+                                        behavior:
+                                            "smooth",
+
+                                        block:
+                                            "start"
+                                    }
+                                );
+
+                            },
+                            100
+                        );
+
+                    }
+                );
+
+
+                /* =============================================
+                   ACESSIBILIDADE PELO TECLADO
+                ============================================= */
+
+                linha.addEventListener(
+                    "keydown",
+                    event => {
+
+                        if (
+                            event.key ===
+                                "Enter" ||
+                            event.key ===
+                                " "
+                        ) {
+
+                            event.preventDefault();
+
+                            linha.click();
+
+                        }
+
+                    }
+                );
+
+            }
+
+
+            container.appendChild(
+                linha
+            );
+
+        }
+    );
+
+}
+
+/* =========================================================
+   DISTRIBUIÇÃO DIÁRIA DOS SUCESSOS
+========================================================= */
+
+function carregarDistribuicaoSucessos(
+    dados,
+    periodoSelecionado = {}
+) {
+
+    const container =
+        document.getElementById(
+            "listaDistribuicaoSucessos"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    const inicio =
+        periodoSelecionado.inicio || "";
+
+    const fim =
+        periodoSelecionado.fim || "";
+
+
+    let historico =
+        Array.isArray(
+            dados.historico
+        )
+            ? [...dados.historico]
+            : [];
+
+
+    historico =
+        filtrarPorPeriodo(
+            historico,
+            inicio,
+            fim
+        );
+
+
+    if (
+        historico.length === 0
+    ) {
+
+        container.innerHTML = `
+
+            <div class="detalhes-vazio">
+
+                Nenhuma execução encontrada
+                no período selecionado.
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        "";
+
+
+    historico.forEach(
+        item => {
+
+            const aprovados =
+                Number(
+                    item.passed || 0
+                );
+
+
+            const total =
+                Number(
+                    item.total || 0
+                );
+
+
+            const taxaSucesso =
+                Number(
+                    item.successRate || 0
+                );
+
+
+            const percentualBarra =
+                Math.min(
+                    Math.max(
+                        taxaSucesso,
+                        0
+                    ),
+                    100
+                );
+
+
+            const linha =
+                document.createElement(
+                    "div"
+                );
+
+
+            linha.className =
+                "linha-distribuicao-sucesso";
+
+
+            linha.innerHTML = `
+
+                <div class="sucesso-data">
+
+                    ${formatarDataCurta(
+                        item.data
+                    )}
+
+                </div>
+
+
+                <div class="sucesso-barra-wrapper">
+
+                    <div class="sucesso-barra">
+
+                        <div
+                            class="sucesso-barra-preenchimento"
+                            style="width: ${percentualBarra}%"
+                        ></div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="sucesso-aprovados">
+
+                    <strong>
+                        ${aprovados}
+                    </strong>
+
+                    <span>
+                        / ${total}
                     </span>
+
+                </div>
+
+
+                <div class="sucesso-percentual">
+
+                    ${taxaSucesso.toLocaleString(
+                        "pt-BR",
+                        {
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 2
+                        }
+                    )}%
 
                 </div>
 
@@ -674,12 +1015,379 @@ function carregarTopFalhas(
 
 
 /* =========================================================
+   TOP FALHAS RECORRENTES
+========================================================= */
+
+function carregarTopFalhas(
+    dados,
+    periodoSelecionado = {}
+) {
+
+    const container =
+        document.getElementById(
+            "topFalhas"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    const inicio =
+        periodoSelecionado.inicio || "";
+
+    const fim =
+        periodoSelecionado.fim || "";
+
+
+    let falhasDetalhadas =
+        Array.isArray(
+            dados.falhasDetalhadas
+        )
+            ? [...dados.falhasDetalhadas]
+            : [];
+
+
+    falhasDetalhadas =
+        filtrarPorPeriodo(
+            falhasDetalhadas,
+            inicio,
+            fim
+        );
+
+
+    if (
+        falhasDetalhadas.length === 0
+    ) {
+
+        container.innerHTML = `
+
+            <div class="detalhes-vazio">
+
+                Nenhuma falha identificada
+                no período.
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    /* =====================================================
+       AGRUPA SUITE + CENÁRIO
+    ===================================================== */
+
+    const agrupadas =
+        {};
+
+
+    falhasDetalhadas.forEach(
+        item => {
+
+            const suite =
+                String(
+                    item.suite ||
+                    "Suite não informada"
+                );
+
+
+            const cenario =
+                String(
+                    item.cenario ||
+                    "Cenário não informado"
+                );
+
+
+            const chave =
+                `${suite}|||${cenario}`;
+
+
+            if (
+                !agrupadas[chave]
+            ) {
+
+                agrupadas[chave] = {
+
+                    suite,
+
+                    cenario,
+
+                    quantidade: 0
+
+                };
+
+            }
+
+
+            agrupadas[chave]
+                .quantidade++;
+
+        }
+    );
+
+
+    /* =====================================================
+       RANKING
+    ===================================================== */
+
+    const ranking =
+        Object
+            .values(
+                agrupadas
+            )
+            .sort(
+                (
+                    a,
+                    b
+                ) =>
+                    b.quantidade -
+                    a.quantidade
+            )
+            .slice(
+                0,
+                5
+            );
+
+
+    container.innerHTML =
+        "";
+
+
+    ranking.forEach(
+        (
+            item,
+            indice
+        ) => {
+
+            const linha =
+                document.createElement(
+                    "div"
+                );
+
+
+            linha.className =
+    "top-falha-item top-falha-clicavel";
+
+
+linha.dataset.cenario =
+    item.cenario;
+
+
+linha.dataset.suite =
+    item.suite;
+
+
+linha.tabIndex =
+    0;
+
+
+linha.setAttribute(
+    "role",
+    "button"
+);
+
+
+linha.setAttribute(
+    "title",
+    "Clique para visualizar as ocorrências desta falha"
+);
+
+
+            linha.innerHTML = `
+
+                <div class="top-falha-posicao">
+
+                    ${indice + 1}º
+
+                </div>
+
+
+                <div class="top-falha-conteudo">
+
+                    <strong>
+
+                        ${escaparHTML(
+                            item.cenario
+                        )}
+
+                    </strong>
+
+                    <span>
+
+                        ${escaparHTML(
+                            item.suite
+                        )}
+
+                    </span>
+
+                </div>
+
+
+                <div class="top-falha-quantidade">
+
+                    <strong>
+
+                        ${item.quantidade}
+
+                    </strong>
+
+                    <span>
+
+                        ${
+                            item.quantidade === 1
+
+                                ? "ocorrência"
+
+                                : "ocorrências"
+                        }
+
+                    </span>
+
+                </div>
+
+            `;
+
+
+            container.appendChild(
+                linha
+            );
+
+            linha.addEventListener(
+    "click",
+    () => {
+
+        const input =
+            document.getElementById(
+                "buscarErro"
+            );
+
+        const filtroSuite =
+            document.getElementById(
+                "filtroSuite"
+            );
+
+        const secaoErros =
+            document.getElementById(
+                "listaErros"
+            );
+
+
+        if (input) {
+
+            input.value =
+                item.cenario;
+
+        }
+
+
+        if (filtroSuite) {
+
+            filtroSuite.value =
+                item.suite;
+
+        }
+
+
+        input?.dispatchEvent(
+            new Event(
+                "input",
+                {
+                    bubbles: true
+                }
+            )
+        );
+
+
+        setTimeout(
+    () => {
+
+        secaoErros?.scrollIntoView(
+            {
+                behavior:
+                    "smooth",
+
+                block:
+                    "start"
+            }
+        );
+
+
+        const cardsErros =
+            document.querySelectorAll(
+                ".erro-card"
+            );
+
+
+        cardsErros.forEach(
+            card => {
+
+                card.classList.remove(
+                    "erro-destaque"
+                );
+
+                void card.offsetWidth;
+
+                card.classList.add(
+                    "erro-destaque"
+                );
+
+
+                setTimeout(
+                    () => {
+
+                        card.classList.remove(
+                            "erro-destaque"
+                        );
+
+                    },
+                    2500
+                );
+
+            }
+        );
+
+    },
+    100
+);
+
+    }
+);
+
+linha.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.key === "Enter" ||
+            event.key === " "
+        ) {
+
+            event.preventDefault();
+
+            linha.click();
+
+        }
+
+    }
+);
+
+        }
+    );
+
+}
+
+
+/* =========================================================
    LINHA DO TEMPO DAS FALHAS
 ========================================================= */
 
 function carregarTimelineFalhas(
     dados,
-    dataSelecionada = ""
+    periodoSelecionado = {}
 ) {
 
     const container =
@@ -693,6 +1401,13 @@ function carregarTimelineFalhas(
     }
 
 
+    const inicio =
+        periodoSelecionado.inicio || "";
+
+    const fim =
+        periodoSelecionado.fim || "";
+
+
     let falhas =
         Array.isArray(
             dados.falhasDetalhadas
@@ -703,34 +1418,24 @@ function carregarTimelineFalhas(
             : [];
 
 
-    /* =====================================================
-       EXECUÇÃO ESPECÍFICA
-    ===================================================== */
-
-    if (dataSelecionada) {
-
-        falhas =
-            falhas.filter(
-                item =>
-                    item.data === dataSelecionada
-            );
-
-    }
+    falhas =
+        filtrarPorPeriodo(
+            falhas,
+            inicio,
+            fim
+        );
 
 
-    if (falhas.length === 0) {
+    if (
+        falhas.length === 0
+    ) {
 
         container.innerHTML = `
 
             <div class="detalhes-vazio">
 
-                ${
-                    dataSelecionada
-
-                        ? "Nenhuma ocorrência detalhada disponível para esta execução."
-
-                        : "Nenhuma ocorrência detalhada disponível para montar a linha do tempo."
-                }
+                Nenhuma ocorrência detalhada
+                disponível no período.
 
             </div>
 
@@ -746,7 +1451,10 @@ function carregarTimelineFalhas(
     ===================================================== */
 
     falhas.sort(
-        (a, b) => {
+        (
+            a,
+            b
+        ) => {
 
             const dataA =
                 `${a.data || ""} ${a.hora || ""}`;
@@ -763,79 +1471,86 @@ function carregarTimelineFalhas(
     );
 
 
-    container.innerHTML = "";
+    container.innerHTML =
+        "";
 
 
-    falhas.forEach(item => {
+    falhas.forEach(
+        item => {
 
-        const bloco =
-            document.createElement(
-                "div"
+            const bloco =
+                document.createElement(
+                    "div"
+                );
+
+
+            bloco.className =
+                "timeline-item";
+
+
+            bloco.innerHTML = `
+
+                <div class="timeline-marcador"></div>
+
+
+                <div class="timeline-data">
+
+                    <strong>
+
+                        ${
+                            item.data
+
+                                ? formatarData(
+                                    item.data
+                                )
+
+                                : "-"
+                        }
+
+                    </strong>
+
+                    <span>
+
+                        ${escaparHTML(
+                            item.hora || "-"
+                        )}
+
+                    </span>
+
+                </div>
+
+
+                <div class="timeline-conteudo">
+
+                    <strong>
+
+                        ${escaparHTML(
+                            item.cenario ||
+                            "Cenário não informado"
+                        )}
+
+                    </strong>
+
+                    <span>
+
+                        ${escaparHTML(
+                            item.suite ||
+                            "Suite não informada"
+                        )}
+
+                    </span>
+
+                </div>
+
+            `;
+
+
+            container.appendChild(
+                bloco
             );
 
-
-        bloco.className =
-            "timeline-item";
-
-
-        bloco.innerHTML = `
-
-            <div class="timeline-marcador"></div>
-
-
-            <div class="timeline-data">
-
-                <strong>
-
-                    ${
-                        item.data
-                            ? formatarData(
-                                item.data
-                            )
-                            : "-"
-                    }
-
-                </strong>
-
-                <span>
-                    ${escaparHTML(
-                        item.hora || "-"
-                    )}
-                </span>
-
-            </div>
-
-
-            <div class="timeline-conteudo">
-
-                <strong>
-
-                    ${escaparHTML(
-                        item.cenario ||
-                        "Cenário não informado"
-                    )}
-
-                </strong>
-
-                <span>
-
-                    ${escaparHTML(
-                        item.suite ||
-                        "Suite não informada"
-                    )}
-
-                </span>
-
-            </div>
-
-        `;
-
-
-        container.appendChild(
-            bloco
-        );
-
-    });
+        }
+    );
 
 }
 
@@ -852,7 +1567,9 @@ function carregarListaErros(
 
     dataSelecionada = "",
 
-    suiteSelecionada = ""
+    suiteSelecionada = "",
+
+    periodoSelecionado = {}
 
 ) {
 
@@ -865,6 +1582,13 @@ function carregarListaErros(
     if (!container) {
         return;
     }
+
+
+    const inicio =
+        periodoSelecionado.inicio || "";
+
+    const fim =
+        periodoSelecionado.fim || "";
 
 
     const falhasDetalhadas =
@@ -891,10 +1615,10 @@ function carregarListaErros(
        FONTE PRINCIPAL + FALLBACK
     ===================================================== */
 
-    const erros =
+    let erros =
         falhasDetalhadas.length > 0
 
-            ? falhasDetalhadas
+            ? [...falhasDetalhadas]
 
             : rankingFalhas.map(
                 item => ({
@@ -919,14 +1643,36 @@ function carregarListaErros(
             );
 
 
-    if (erros.length === 0) {
+    /*
+        Filtra o período recebido pela URL.
+
+        Só aplicamos quando os itens possuem data.
+    */
+
+    if (
+        falhasDetalhadas.length > 0
+    ) {
+
+        erros =
+            filtrarPorPeriodo(
+                erros,
+                inicio,
+                fim
+            );
+
+    }
+
+
+    if (
+        erros.length === 0
+    ) {
 
         container.innerHTML = `
 
             <div class="detalhes-vazio">
 
-                Nenhum erro detalhado foi identificado
-                no período.
+                Nenhum erro detalhado foi
+                identificado no período.
 
             </div>
 
@@ -946,79 +1692,97 @@ function carregarListaErros(
 
 
     const errosFiltrados =
-        erros.filter(item => {
+        erros.filter(
+            item => {
 
-            const suite =
-                String(
-                    item.suite || ""
-                ).toLowerCase();
-
-
-            const cenario =
-                String(
-                    item.cenario || ""
-                ).toLowerCase();
+                const suite =
+                    String(
+                        item.suite || ""
+                    )
+                        .toLowerCase();
 
 
-            const erro =
-                String(
-                    item.erro || ""
-                ).toLowerCase();
+                const cenario =
+                    String(
+                        item.cenario || ""
+                    )
+                        .toLowerCase();
 
 
-            const data =
-                String(
-                    item.data || ""
+                const erro =
+                    String(
+                        item.erro || ""
+                    )
+                        .toLowerCase();
+
+
+                const data =
+                    String(
+                        item.data || ""
+                    );
+
+
+                const atendeBusca =
+
+                    !termo ||
+
+                    suite.includes(
+                        termo
+                    ) ||
+
+                    cenario.includes(
+                        termo
+                    ) ||
+
+                    erro.includes(
+                        termo
+                    ) ||
+
+                    data.includes(
+                        termo
+                    );
+
+
+                const atendeData =
+
+                    !dataSelecionada ||
+
+                    item.data ===
+                        dataSelecionada;
+
+
+                const atendeSuite =
+
+                    !suiteSelecionada ||
+
+                    item.suite ===
+                        suiteSelecionada;
+
+
+                return (
+
+                    atendeBusca &&
+
+                    atendeData &&
+
+                    atendeSuite
+
                 );
 
-
-            const atendeBusca =
-
-                suite.includes(termo) ||
-
-                cenario.includes(termo) ||
-
-                erro.includes(termo) ||
-
-                data.includes(termo);
+            }
+        );
 
 
-            const atendeData =
-
-                !dataSelecionada ||
-
-                item.data ===
-                    dataSelecionada;
-
-
-            const atendeSuite =
-
-                !suiteSelecionada ||
-
-                item.suite ===
-                    suiteSelecionada;
-
-
-            return (
-
-                atendeBusca &&
-
-                atendeData &&
-
-                atendeSuite
-
-            );
-
-        });
-
-
-    if (errosFiltrados.length === 0) {
+    if (
+        errosFiltrados.length === 0
+    ) {
 
         container.innerHTML = `
 
             <div class="detalhes-vazio">
 
-                Nenhum erro encontrado para os filtros informados.
+                Nenhum erro encontrado
+                para os filtros informados.
 
             </div>
 
@@ -1029,162 +1793,167 @@ function carregarListaErros(
     }
 
 
-    container.innerHTML = "";
+    container.innerHTML =
+        "";
 
 
-    errosFiltrados.forEach(item => {
+    errosFiltrados.forEach(
+        item => {
 
-        const card =
-            document.createElement(
-                "article"
-            );
-
-
-        card.className =
-            "erro-card";
+            const card =
+                document.createElement(
+                    "article"
+                );
 
 
-        const dataFormatada =
-            item.data
-
-                ? formatarData(
-                    item.data
-                )
-
-                : "Data não disponível";
+            card.className =
+                "erro-card";
 
 
-        const horaFormatada =
-            item.hora
-                ? item.hora
-                : "-";
+            const dataFormatada =
+                item.data
+
+                    ? formatarData(
+                        item.data
+                    )
+
+                    : "Data não disponível";
 
 
-        const quantidade =
-            Number(
-                item.quantidade || 1
-            );
+            const horaFormatada =
+                item.hora
+                    ? item.hora
+                    : "-";
 
 
-        card.innerHTML = `
-
-            <div class="erro-card-header">
-
-
-                <div class="erro-card-titulo">
-
-                    <span class="erro-icone">
-                        ×
-                    </span>
+            const quantidade =
+                Number(
+                    item.quantidade || 1
+                );
 
 
-                    <div>
+            card.innerHTML = `
 
-                        <span class="erro-label">
-                            CENÁRIO
+                <div class="erro-card-header">
+
+
+                    <div class="erro-card-titulo">
+
+                        <span class="erro-icone">
+                            ×
                         </span>
 
 
-                        <h3>
+                        <div>
+
+                            <span class="erro-label">
+                                CENÁRIO
+                            </span>
+
+
+                            <h3>
+
+                                ${escaparHTML(
+
+                                    item.cenario ||
+
+                                    "Cenário não informado"
+
+                                )}
+
+                            </h3>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="erro-data">
+
+                        <span>
+                            Ocorrência
+                        </span>
+
+                        <strong>
+                            ${dataFormatada}
+                        </strong>
+
+                        <small>
 
                             ${escaparHTML(
-
-                                item.cenario ||
-
-                                "Cenário não informado"
-
+                                horaFormatada
                             )}
 
-                        </h3>
+                        </small>
 
                     </div>
 
                 </div>
 
 
-                <div class="erro-data">
+                <div class="erro-suite">
 
                     <span>
-                        Ocorrência
+                        Suite
                     </span>
 
                     <strong>
-                        ${dataFormatada}
-                    </strong>
 
-                    <small>
                         ${escaparHTML(
-                            horaFormatada
+
+                            item.suite ||
+
+                            "Não informada"
+
                         )}
-                    </small>
+
+                    </strong>
 
                 </div>
 
-            </div>
+
+                <div class="erro-mensagem">
+
+                    <span>
+                        Erro identificado
+                    </span>
+
+                    <pre>${escaparHTML(
+
+                        item.erro ||
+
+                        "Erro não informado"
+
+                    )}</pre>
+
+                </div>
 
 
-            <div class="erro-suite">
+                <div class="erro-card-footer">
 
-                <span>
-                    Suite
-                </span>
+                    <span>
 
-                <strong>
+                        ${
+                            falhasDetalhadas.length > 0
 
-                    ${escaparHTML(
+                                ? "Ocorrência registrada na execução diária"
 
-                        item.suite ||
+                                : `${quantidade} ocorrência(s) registrada(s) no ranking semanal`
+                        }
 
-                        "Não informada"
+                    </span>
 
-                    )}
+                </div>
 
-                </strong>
-
-            </div>
+            `;
 
 
-            <div class="erro-mensagem">
+            container.appendChild(
+                card
+            );
 
-                <span>
-                    Erro identificado
-                </span>
-
-                <pre>${escaparHTML(
-
-                    item.erro ||
-
-                    "Erro não informado"
-
-                )}</pre>
-
-            </div>
-
-
-            <div class="erro-card-footer">
-
-                <span>
-
-                    ${
-                        falhasDetalhadas.length > 0
-
-                            ? "Ocorrência registrada na execução diária"
-
-                            : `${quantidade} ocorrência(s) registrada(s) no ranking semanal`
-                    }
-
-                </span>
-
-            </div>
-
-        `;
-
-
-        container.appendChild(
-            card
-        );
-
-    });
+        }
+    );
 
 }
 
@@ -1194,7 +1963,8 @@ function carregarListaErros(
 ========================================================= */
 
 function configurarBusca(
-    dados
+    dados,
+    periodoSelecionado = {}
 ) {
 
     const input =
@@ -1231,6 +2001,26 @@ function configurarBusca(
             : [];
 
 
+    const inicioPeriodo =
+        periodoSelecionado.inicio || "";
+
+    const fimPeriodo =
+        periodoSelecionado.fim || "";
+
+
+    /*
+        Trabalhamos somente com falhas
+        pertencentes ao período atual.
+    */
+
+    const falhasDoPeriodo =
+        filtrarPorPeriodo(
+            falhasDetalhadas,
+            inicioPeriodo,
+            fimPeriodo
+        );
+
+
     /* =====================================================
        PREENCHE DATAS
     ===================================================== */
@@ -1239,44 +2029,46 @@ function configurarBusca(
 
         ...new Set(
 
-            falhasDetalhadas
-
+            falhasDoPeriodo
                 .map(
                     item =>
                         item.data
                 )
-
-                .filter(Boolean)
+                .filter(
+                    Boolean
+                )
 
         )
 
     ]
-    .sort();
+        .sort();
 
 
-    datas.forEach(data => {
+    datas.forEach(
+        data => {
 
-        const option =
-            document.createElement(
-                "option"
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                data;
+
+
+            option.textContent =
+                formatarData(
+                    data
+                );
+
+
+            filtroData?.appendChild(
+                option
             );
 
-
-        option.value =
-            data;
-
-
-        option.textContent =
-            formatarData(
-                data
-            );
-
-
-        filtroData?.appendChild(
-            option
-        );
-
-    });
+        }
+    );
 
 
     /* =====================================================
@@ -1287,72 +2079,120 @@ function configurarBusca(
 
         ...new Set(
 
-            falhasDetalhadas
-
+            falhasDoPeriodo
                 .map(
                     item =>
                         item.suite
                 )
-
-                .filter(Boolean)
+                .filter(
+                    Boolean
+                )
 
         )
 
     ]
-    .sort();
+        .sort();
 
 
-    suites.forEach(suite => {
+    suites.forEach(
+        suite => {
 
-        const option =
-            document.createElement(
-                "option"
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                suite;
+
+
+            option.textContent =
+                suite;
+
+
+            filtroSuite?.appendChild(
+                option
             );
 
-
-        option.value =
-            suite;
-
-
-        option.textContent =
-            suite;
-
-
-        filtroSuite?.appendChild(
-            option
-        );
-
-    });
+        }
+    );
 
 
     /* =====================================================
-       FUNÇÃO CENTRAL DOS FILTROS
+       PARÂMETROS RECEBIDOS PELA URL
     ===================================================== */
 
-    function aplicarFiltros() {
-
-        carregarListaErros(
-
-            dados,
-
-            input?.value || "",
-
-            filtroData?.value || "",
-
-            filtroSuite?.value || ""
-
+    const parametros =
+        new URLSearchParams(
+            window.location.search
         );
+
+
+    const dataURL =
+        parametros.get(
+            "data"
+        );
+
+
+    const cenarioURL =
+        parametros.get(
+            "cenario"
+        );
+
+
+    const suiteURL =
+        parametros.get(
+            "suite"
+        );
+
+
+    /* =====================================================
+       SUITE RECEBIDA PELO RANKING
+    ===================================================== */
+
+    if (
+        suiteURL &&
+        filtroSuite
+    ) {
+
+        const existeSuite =
+            [...filtroSuite.options]
+                .some(
+                    option =>
+                        option.value ===
+                        suiteURL
+                );
+
+
+        if (existeSuite) {
+
+            filtroSuite.value =
+                suiteURL;
+
+        }
 
     }
 
 
     /* =====================================================
-       DATA RECEBIDA PELA URL
+       CENÁRIO RECEBIDO PELO RANKING
     ===================================================== */
 
-    const dataURL =
-        obterDataDaURL();
+    if (
+        cenarioURL &&
+        input
+    ) {
 
+        input.value =
+            cenarioURL;
+
+    }
+
+
+    /* =====================================================
+       DATA RECEBIDA DA TELA DE EXECUÇÕES
+    ===================================================== */
 
     if (
         dataURL &&
@@ -1374,6 +2214,29 @@ function configurarBusca(
                 dataURL;
 
         }
+
+    }
+
+
+    /* =====================================================
+       FUNÇÃO CENTRAL DOS FILTROS
+    ===================================================== */
+
+    function aplicarFiltros() {
+
+        carregarListaErros(
+
+            dados,
+
+            input?.value || "",
+
+            filtroData?.value || "",
+
+            filtroSuite?.value || "",
+
+            periodoSelecionado
+
+        );
 
     }
 
@@ -1406,21 +2269,24 @@ function configurarBusca(
 
             if (input) {
 
-                input.value = "";
+                input.value =
+                    "";
 
             }
 
 
             if (filtroData) {
 
-                filtroData.value = "";
+                filtroData.value =
+                    "";
 
             }
 
 
             if (filtroSuite) {
 
-                filtroSuite.value = "";
+                filtroSuite.value =
+                    "";
 
             }
 
@@ -1435,7 +2301,11 @@ function configurarBusca(
        APLICA FILTRO INICIAL DA URL
     ===================================================== */
 
-    if (dataURL) {
+    if (
+        dataURL ||
+        cenarioURL ||
+        suiteURL
+    ) {
 
         aplicarFiltros();
 
@@ -1570,7 +2440,8 @@ function formatarData(
     const partes =
         String(
             data
-        ).split("-");
+        )
+            .split("-");
 
 
     if (
@@ -1607,7 +2478,8 @@ function formatarDataCurta(
     const partes =
         String(
             data
-        ).split("-");
+        )
+            .split("-");
 
 
     if (
@@ -1638,27 +2510,22 @@ function escaparHTML(
     return String(
         texto ?? ""
     )
-
         .replaceAll(
             "&",
             "&amp;"
         )
-
         .replaceAll(
             "<",
             "&lt;"
         )
-
         .replaceAll(
             ">",
             "&gt;"
         )
-
         .replaceAll(
             '"',
             "&quot;"
         )
-
         .replaceAll(
             "'",
             "&#039;"

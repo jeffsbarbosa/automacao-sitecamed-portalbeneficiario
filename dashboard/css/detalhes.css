@@ -1105,3 +1105,206 @@
     }
 
 }
+
+/* =========================================================
+   TOP FALHAS - ITEM CLICÁVEL
+========================================================= */
+
+.top-falha-clicavel {
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.top-falha-clicavel:hover {
+    background-color: #f3f7fb;
+    border-color: rgb(100 139 179 / .96);
+    transform: translateY(-1px);
+}
+
+.top-falha-clicavel:focus {
+    outline: 2px solid rgb(100 139 179 / .96);
+    outline-offset: 2px;
+}
+
+/* =========================================================
+   DESTAQUE TEMPORÁRIO DA FALHA
+========================================================= */
+
+.erro-destaque {
+    animation: destacarErro 2.5s ease;
+}
+
+@keyframes destacarErro {
+
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(100, 139, 179, 0);
+    }
+
+    25% {
+        transform: scale(1.01);
+        box-shadow: 0 0 0 4px rgba(100, 139, 179, 0.25);
+    }
+
+    70% {
+        transform: scale(1.01);
+        box-shadow: 0 0 0 4px rgba(100, 139, 179, 0.25);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(100, 139, 179, 0);
+    }
+
+}
+
+/* =========================================================
+   DISTRIBUIÇÃO DE FALHAS - LINHA CLICÁVEL
+========================================================= */
+
+.distribuicao-clicavel {
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+.distribuicao-clicavel:hover {
+    background-color: #f3f7fb;
+
+    transform:
+        translateX(3px);
+
+    box-shadow:
+        0 3px 10px
+        rgba(0, 0, 0, 0.06);
+}
+
+
+.distribuicao-clicavel:focus {
+    outline:
+        2px solid
+        rgb(100 139 179 / .96);
+
+    outline-offset:
+        2px;
+}
+
+/* =========================================================
+   DISTRIBUIÇÃO DOS SUCESSOS
+========================================================= */
+
+.lista-distribuicao-sucessos {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+
+.linha-distribuicao-sucesso {
+    display: grid;
+    grid-template-columns: 80px 1fr 110px 80px;
+    align-items: center;
+    gap: 18px;
+
+    padding: 14px 16px;
+
+    background: #f8fafc;
+
+    border: 1px solid #e5eaf0;
+    border-radius: 10px;
+}
+
+
+.sucesso-data {
+    font-size: 14px;
+    font-weight: 700;
+    color: #334155;
+}
+
+
+.sucesso-barra-wrapper {
+    width: 100%;
+}
+
+
+.sucesso-barra {
+    width: 100%;
+    height: 10px;
+
+    background: #e8edf3;
+
+    border-radius: 20px;
+
+    overflow: hidden;
+}
+
+
+.sucesso-barra-preenchimento {
+    height: 100%;
+
+    background:
+        rgb(100 139 179 / .96);
+
+    border-radius: 20px;
+
+    transition:
+        width 0.6s ease;
+}
+
+
+.sucesso-aprovados {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 3px;
+
+    font-size: 14px;
+    color: #64748b;
+}
+
+
+.sucesso-aprovados strong {
+    font-size: 16px;
+    color: #334155;
+}
+
+
+.sucesso-percentual {
+    text-align: right;
+
+    font-size: 15px;
+    font-weight: 700;
+
+    color: #2f6f55;
+}
+
+
+/* =========================================================
+   RESPONSIVIDADE
+========================================================= */
+
+@media (max-width: 700px) {
+
+    .linha-distribuicao-sucesso {
+        grid-template-columns:
+            65px
+            1fr
+            70px;
+
+        gap: 10px;
+    }
+
+
+    .sucesso-aprovados {
+        display: none;
+    }
+
+}

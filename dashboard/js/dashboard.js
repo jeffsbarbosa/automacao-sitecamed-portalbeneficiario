@@ -261,7 +261,13 @@ function configurarFiltroPeriodo() {
     }
 
 
-    if (dashboardSemanal?.periodo) {
+    /* =====================================================
+       PERÍODO PADRÃO DA SEMANA
+    ===================================================== */
+
+    if (
+        dashboardSemanal?.periodo
+    ) {
 
         dataInicial.value =
             dashboardSemanal.periodo.inicio;
@@ -285,7 +291,13 @@ function configurarFiltroPeriodo() {
     }
 
 
-    if (historicoCompleto.length > 0) {
+    /* =====================================================
+       LIMITES DISPONÍVEIS NO HISTÓRICO
+    ===================================================== */
+
+    if (
+        historicoCompleto.length > 0
+    ) {
 
         const primeiraData =
             historicoCompleto[0].data;
@@ -295,85 +307,235 @@ function configurarFiltroPeriodo() {
                 historicoCompleto.length - 1
             ].data;
 
-        dataInicial.min = primeiraData;
-        dataInicial.max = ultimaData;
 
-        dataFinal.min = primeiraData;
-        dataFinal.max = ultimaData;
+        dataInicial.min =
+            primeiraData;
 
-    }
-
-    /* =========================================================
-   RESTAURA PERÍODO SALVO NA SESSÃO
-========================================================= */
-
-const periodoInicioSalvo =
-    sessionStorage.getItem(
-        "dashboardPeriodoInicio"
-    );
-
-const periodoFimSalvo =
-    sessionStorage.getItem(
-        "dashboardPeriodoFim"
-    );
+        dataInicial.max =
+            ultimaData;
 
 
-if (
-    periodoInicioSalvo &&
-    periodoFimSalvo
-) {
+        dataFinal.min =
+            primeiraData;
 
-    dataInicial.value =
-        periodoInicioSalvo;
-
-    dataFinal.value =
-        periodoFimSalvo;
-
-
-    const execucoesFiltradas =
-        historicoCompleto.filter(
-            item =>
-                item.data >= periodoInicioSalvo &&
-                item.data <= periodoFimSalvo
-        );
-
-
-    if (execucoesFiltradas.length > 0) {
-
-        const dadosPeriodo =
-            montarDashboardPorPeriodo(
-                execucoesFiltradas,
-                periodoInicioSalvo,
-                periodoFimSalvo
-            );
-
-
-        renderizarDashboard(
-            dadosPeriodo
-        );
-
-
-        mostrarMensagemFiltro(
-            `Período restaurado: ${formatarData(periodoInicioSalvo)} a ${formatarData(periodoFimSalvo)}.`,
-            "sucesso"
-        );
+        dataFinal.max =
+            ultimaData;
 
     }
 
-    else {
 
-    sessionStorage.removeItem(
-        "dashboardPeriodoInicio"
-    );
+    /* =====================================================
+       PERÍODO RECEBIDO PELA URL
+    ===================================================== */
 
-    sessionStorage.removeItem(
-        "dashboardPeriodoFim"
-    );
+    const parametrosURL =
+        new URLSearchParams(
+            window.location.search
+        );
 
-}
 
-}
+    const periodoInicioURL =
+        parametrosURL.get(
+            "inicio"
+        );
 
+
+    const periodoFimURL =
+        parametrosURL.get(
+            "fim"
+        );
+
+
+    /* =====================================================
+       PERÍODO SALVO NA SESSÃO
+    ===================================================== */
+
+    const periodoInicioSalvo =
+        sessionStorage.getItem(
+            "dashboardPeriodoInicio"
+        );
+
+
+    const periodoFimSalvo =
+        sessionStorage.getItem(
+            "dashboardPeriodoFim"
+        );
+
+
+    /* =====================================================
+       DEFINE QUAL PERÍODO SERÁ RESTAURADO
+
+       PRIORIDADE:
+       1 - URL
+       2 - SESSION STORAGE
+       3 - SEMANA PADRÃO
+    ===================================================== */
+
+    let periodoInicio =
+        "";
+
+    let periodoFim =
+        "";
+
+    let origemPeriodo =
+        "";
+
+
+    if (
+        periodoInicioURL &&
+        periodoFimURL
+    ) {
+
+        periodoInicio =
+            periodoInicioURL;
+
+        periodoFim =
+            periodoFimURL;
+
+        origemPeriodo =
+            "url";
+
+    }
+    else if (
+        periodoInicioSalvo &&
+        periodoFimSalvo
+    ) {
+
+        periodoInicio =
+            periodoInicioSalvo;
+
+        periodoFim =
+            periodoFimSalvo;
+
+        origemPeriodo =
+            "sessao";
+
+    }
+
+
+    /* =====================================================
+       RESTAURA O PERÍODO
+    ===================================================== */
+
+    if (
+        periodoInicio &&
+        periodoFim
+    ) {
+
+        const periodoValido =
+            periodoInicio <=
+            periodoFim;
+
+
+        if (periodoValido) {
+
+            const execucoesFiltradas =
+                historicoCompleto.filter(
+                    item =>
+                        item.data >=
+                            periodoInicio &&
+                        item.data <=
+                            periodoFim
+                );
+
+
+            if (
+                execucoesFiltradas.length > 0
+            ) {
+
+                dataInicial.value =
+                    periodoInicio;
+
+                dataFinal.value =
+                    periodoFim;
+
+
+                const dadosPeriodo =
+                    montarDashboardPorPeriodo(
+                        execucoesFiltradas,
+                        periodoInicio,
+                        periodoFim
+                    );
+
+
+                renderizarDashboard(
+                    dadosPeriodo
+                );
+
+
+                /*
+                    Mantém também na sessão.
+
+                    Assim, depois que a URL definir
+                    o período, a navegação continua
+                    preservando o filtro.
+                */
+
+                sessionStorage.setItem(
+                    "dashboardPeriodoInicio",
+                    periodoInicio
+                );
+
+
+                sessionStorage.setItem(
+                    "dashboardPeriodoFim",
+                    periodoFim
+                );
+
+
+                if (
+                    origemPeriodo ===
+                    "url"
+                ) {
+
+                    mostrarMensagemFiltro(
+                        `Período carregado: ${formatarData(periodoInicio)} a ${formatarData(periodoFim)}.`,
+                        "sucesso"
+                    );
+
+                }
+                else {
+
+                    mostrarMensagemFiltro(
+                        `Período restaurado: ${formatarData(periodoInicio)} a ${formatarData(periodoFim)}.`,
+                        "sucesso"
+                    );
+
+                }
+
+            }
+            else {
+
+                /*
+                    Caso o período salvo não exista
+                    mais no histórico.
+                */
+
+                if (
+                    origemPeriodo ===
+                    "sessao"
+                ) {
+
+                    sessionStorage.removeItem(
+                        "dashboardPeriodoInicio"
+                    );
+
+                    sessionStorage.removeItem(
+                        "dashboardPeriodoFim"
+                    );
+
+                }
+
+            }
+
+        }
+
+    }
+
+
+    /* =====================================================
+       EVENTOS
+    ===================================================== */
 
     btnAplicar.addEventListener(
         "click",
@@ -733,51 +895,74 @@ function montarDashboardPorPeriodo(
 
 
     const todasFalhas = [];
+    const falhasDetalhadas = [];
 
 
     historico.forEach(
-        execucao => {
+    execucao => {
 
-            const falhasDia =
-                normalizarTopFalhas(
-                    execucao.topFalhas
-                );
-
-
-            falhasDia.forEach(
-                falha => {
-
-                    if (
-                        falha &&
-                        possuiTextoValido(
-                            falha.suite
-                        ) &&
-                        possuiTextoValido(
-                            falha.cenario
-                        )
-                    ) {
-
-                        todasFalhas.push(
-                            {
-                                suite:
-                                    falha.suite,
-
-                                cenario:
-                                    falha.cenario,
-
-                                erro:
-                                    falha.erro ||
-                                    "Erro não informado"
-                            }
-                        );
-
-                    }
-
-                }
+        const falhasDia =
+            normalizarTopFalhas(
+                execucao.topFalhas
             );
 
-        }
-    );
+
+        falhasDia.forEach(
+            falha => {
+
+                if (
+                    falha &&
+                    possuiTextoValido(
+                        falha.suite
+                    ) &&
+                    possuiTextoValido(
+                        falha.cenario
+                    )
+                ) {
+
+                    const erro =
+                        falha.erro ||
+                        "Erro não informado";
+
+
+                    todasFalhas.push(
+                        {
+                            suite:
+                                falha.suite,
+
+                            cenario:
+                                falha.cenario,
+
+                            erro
+                        }
+                    );
+
+
+                    falhasDetalhadas.push(
+                        {
+                            data:
+                                execucao.data,
+
+                            hora:
+                                execucao.hora || "-",
+
+                            suite:
+                                falha.suite,
+
+                            cenario:
+                                falha.cenario,
+
+                            erro
+                        }
+                    );
+
+                }
+
+            }
+        );
+
+    }
+);
 
 
     const mapaRanking =
@@ -948,6 +1133,109 @@ function montarDashboardPorPeriodo(
         }
     );
 
+    /* =========================================================
+   SAÚDE DOS MÓDULOS NO PERÍODO FILTRADO
+========================================================= */
+
+function calcularMediaModulo(campo) {
+
+    const valores =
+        historico
+            .map(
+                item =>
+                    Number(item[campo])
+            )
+            .filter(
+                valor =>
+                    Number.isFinite(valor)
+            );
+
+
+    if (valores.length === 0) {
+        return 0;
+    }
+
+
+    const soma =
+        valores.reduce(
+            (total, valor) =>
+                total + valor,
+            0
+        );
+
+
+    return Number(
+        (
+            soma /
+            valores.length
+        ).toFixed(2)
+    );
+
+}
+
+
+function montarSaudeModulo(
+    nome,
+    disponibilidade
+) {
+
+    let status = "CRITICO";
+
+
+    if (disponibilidade === 100) {
+
+        status =
+            "ESTAVEL";
+
+    }
+    else if (
+        disponibilidade >= 95
+    ) {
+
+        status =
+            "ATENCAO";
+
+    }
+
+
+    return {
+
+        nome,
+
+        disponibilidade,
+
+        status
+
+    };
+
+}
+
+
+const saudeModulos = [
+
+    montarSaudeModulo(
+        "HomePage",
+        calcularMediaModulo(
+            "homepage"
+        )
+    ),
+
+    montarSaudeModulo(
+        "Portal Camed",
+        calcularMediaModulo(
+            "portal"
+        )
+    ),
+
+    montarSaudeModulo(
+        "Perfil Associado",
+        calcularMediaModulo(
+            "perfil"
+        )
+    )
+
+];
+
 
     return {
 
@@ -1004,6 +1292,11 @@ function montarDashboardPorPeriodo(
 
         rankingFalhas,
 
+        falhasDetalhadas,
+
+        saudeModulos,
+        
+        
         insights: {
 
             falhaMaisRecorrente,
@@ -2020,50 +2313,162 @@ function carregarRanking(
     }
 
 
-    rankingFalhas.forEach(
-        item => {
+rankingFalhas.forEach(
+    item => {
 
-            const ultimoErro =
-                possuiTextoValido(
-                    item.ultimoErro
-                )
-                    ? item
-                        .ultimoErro
-                    : "Erro não informado";
+        const ultimoErro =
+            possuiTextoValido(
+                item.ultimoErro
+            )
+                ? item.ultimoErro
+                : "Erro não informado";
 
 
-            tbody.innerHTML += `
+        const parametros =
+            new URLSearchParams();
 
-                <tr>
+        parametros.set(
+            "cenario",
+            item.cenario
+        );
 
-                    <td>
-                        ${item.quantidade || 0}
-                    </td>
+        parametros.set(
+            "suite",
+            item.suite
+        );
 
-                    <td class="ranking-suite-cenario">
+        if (
+    dados.periodo?.inicio &&
+    dados.periodo?.fim
+) {
 
-                        <strong>
-                            ${item.suite}
-                        </strong>
-
-                        <span>
-                            ${item.cenario}
-                        </span>
-
-                    </td>
-
-                    <td class="ranking-erro">
-
-                        ${ultimoErro}
-
-                    </td>
-
-                </tr>
-
-            `;
-
-        }
+    parametros.set(
+        "inicio",
+        dados.periodo.inicio
     );
+
+    parametros.set(
+        "fim",
+        dados.periodo.fim
+    );
+
+}
+
+        if (
+    dados.periodo?.inicio &&
+    dados.periodo?.fim
+) {
+
+    parametros.set(
+        "inicio",
+        dados.periodo.inicio
+    );
+
+    parametros.set(
+        "fim",
+        dados.periodo.fim
+    );
+
+}
+
+
+        tbody.innerHTML += `
+
+            <tr
+                class="ranking-clicavel"
+                data-url="detalhes.html?${parametros.toString()}"
+                tabindex="0"
+                role="button"
+            >
+
+                <td>
+                    ${item.quantidade || 0}
+                </td>
+
+                <td class="ranking-suite-cenario">
+
+                    <strong>
+                        ${item.suite}
+                    </strong>
+
+                    <span>
+                        ${item.cenario}
+                    </span>
+
+                    <small class="ranking-ver-detalhes">
+                        Ver ocorrências →
+                    </small>
+
+                </td>
+
+                <td class="ranking-erro">
+
+                    ${ultimoErro}
+
+                </td>
+
+            </tr>
+
+        `;
+
+    }
+);
+
+/* =========================================================
+   CLIQUE NO RANKING
+========================================================= */
+
+const linhasRanking =
+    tbody.querySelectorAll(
+        ".ranking-clicavel"
+    );
+
+
+linhasRanking.forEach(
+    linha => {
+
+        const abrirDetalhes = () => {
+
+            const url =
+                linha.dataset.url;
+
+
+            if (url) {
+
+                window.location.href =
+                    url;
+
+            }
+
+        };
+
+
+        linha.addEventListener(
+            "click",
+            abrirDetalhes
+        );
+
+
+        linha.addEventListener(
+            "keydown",
+            event => {
+
+                if (
+                    event.key === "Enter" ||
+                    event.key === " "
+                ) {
+
+                    event.preventDefault();
+
+                    abrirDetalhes();
+
+                }
+
+            }
+        );
+
+    }
+);
 
 }
 
